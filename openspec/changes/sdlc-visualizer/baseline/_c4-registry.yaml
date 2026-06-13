@@ -106,11 +106,11 @@ components:
   project-api:
     name: Project API
     aliases:
+    - 项目 / 应用 / 模块 CRUD
+    - project-api
     - projectApi
     - Pg_ProjectAPI
     - projectapi
-    - project-api
-    - 项目 / 应用 / 模块 CRUD
     level: L3
     container_id: frontend-spa
     source: doc
@@ -120,11 +120,11 @@ components:
   canvas-api:
     name: Canvas API
     aliases:
-    - canvasApi
-    - Pg_CanvasAPI
-    - canvasapi
-    - canvas-api
     - 节点 / 边 / 布局
+    - canvasApi
+    - canvasapi
+    - Pg_CanvasAPI
+    - canvas-api
     level: L3
     container_id: frontend-spa
     source: doc
@@ -134,9 +134,9 @@ components:
   skill-api:
     name: Skill API
     aliases:
-    - skill-api
     - 导入 / 解析 / 执行
     - Pg_SkillAPI
+    - skill-api
     level: L3
     container_id: backend-api
     source: doc
@@ -144,9 +144,9 @@ components:
   artifact-api:
     name: Artifact API
     aliases:
-    - 产物 / 版本 / diff
-    - Pg_ArtifactAPI
     - artifact-api
+    - Pg_ArtifactAPI
+    - 产物 / 版本 / diff
     level: L3
     container_id: backend-api
     source: doc
@@ -154,11 +154,11 @@ components:
   gate-api:
     name: Gate API
     aliases:
-    - Pg_GateAPI
-    - 审批 / 摘要 / 历史
+    - gate-api
     - gateApi
     - gateapi
-    - gate-api
+    - 审批 / 摘要 / 历史
+    - Pg_GateAPI
     level: L3
     container_id: frontend-spa
     source: doc
@@ -168,11 +168,11 @@ components:
   c4-api:
     name: C4 API
     aliases:
-    - c4Api
-    - DSL / 渲染 / 导出
+    - Pg_C4API
     - c4api
     - c4-api
-    - Pg_C4API
+    - c4Api
+    - DSL / 渲染 / 导出
     level: L3
     container_id: frontend-spa
     source: doc
@@ -182,9 +182,9 @@ components:
   prototype-api:
     name: Prototype API
     aliases:
+    - Pg_ProtoAPI
     - OpenUI / Wireframe
     - prototype-api
-    - Pg_ProtoAPI
     level: L3
     container_id: wireframe-engine
     source: doc
@@ -192,13 +192,13 @@ components:
   project-service:
     name: Project Service
     aliases:
-    - Pg_ProjectSvc
-    - projectservice
-    - ProjectService 项目 CRUD
-    - 双态管理 / Timebox
-    - S_Project
     - project-service
     - ProjectService
+    - Pg_ProjectSvc
+    - S_Project
+    - projectservice
+    - 双态管理 / Timebox
+    - ProjectService 项目 CRUD
     level: L3
     container_id: backend-api
     source: doc
@@ -219,9 +219,9 @@ components:
   skill-service:
     name: Skill Service
     aliases:
-    - CLI 适配 / 日志捕获
-    - Pg_SkillSvc
     - skill-service
+    - Pg_SkillSvc
+    - CLI 适配 / 日志捕获
     level: L3
     container_id: backend-api
     source: doc
@@ -229,11 +229,11 @@ components:
   artifact-service:
     name: Artifact Service
     aliases:
-    - Git 快照 / 冲突检测
-    - artifact-service
-    - Pg_ArtifactSvc
     - artifactservice
+    - artifact-service
     - ArtifactService
+    - Git 快照 / 冲突检测
+    - Pg_ArtifactSvc
     level: L3
     container_id: backend-api
     source: doc
@@ -243,9 +243,9 @@ components:
   gate-service:
     name: Gate Service
     aliases:
-    - Pg_GateSvc
     - 自检摘要 / HITL
     - gate-service
+    - Pg_GateSvc
     level: L3
     container_id: backend-api
     source: doc
@@ -253,9 +253,9 @@ components:
   size-estimate-service:
     name: SizeEstimate Service
     aliases:
-    - 五维度评估 / 路由
     - size-estimate-service
     - Pg_SizeSvc
+    - 五维度评估 / 路由
     level: L3
     container_id: backend-api
     source: doc
@@ -263,9 +263,9 @@ components:
   c4-service:
     name: C4 Service
     aliases:
-    - c4-service
     - Pg_C4Svc
     - DSL 生成 / 层级穿透
+    - c4-service
     level: L3
     container_id: c4-dsl-engine
     source: doc
@@ -274,8 +274,8 @@ components:
     name: Prototype Service
     aliases:
     - Pg_ProtoSvc
-    - OpenUI 适配 / Wireframe
     - prototype-service
+    - OpenUI 适配 / Wireframe
     level: L3
     container_id: wireframe-engine
     source: doc
@@ -283,9 +283,9 @@ components:
   db-repository:
     name: Repository
     aliases:
-    - db-repository
-    - Pg_DBRepo
     - SQLAlchemy 2.0
+    - Pg_DBRepo
+    - db-repository
     level: L3
     container_id: backend-api
     source: doc
@@ -293,9 +293,9 @@ components:
   file-repository:
     name: File Repository
     aliases:
-    - 本地文件系统
-    - file-repository
     - Pg_FileRepo
+    - file-repository
+    - 本地文件系统
     level: L3
     container_id: backend-api
     source: doc
@@ -303,9 +303,9 @@ components:
   git-repository:
     name: Git Repository
     aliases:
-    - GitPython
     - git-repository
     - Pg_GitRepo
+    - GitPython
     level: L3
     container_id: backend-api
     source: doc
@@ -313,11 +313,11 @@ components:
   cli-adapter:
     name: CLI Adapter
     aliases:
-    - cli-adapter
     - cliadapter
     - CLIAdapter
-    - Kimi STDIO
     - Pg_CLIAdapter
+    - cli-adapter
+    - Kimi STDIO
     level: L3
     container_id: backend-api
     source: doc
@@ -328,9 +328,9 @@ components:
   sse-manager:
     name: SSE Manager
     aliases:
-    - 事件推送
-    - sse-manager
     - Pg_SSEMgr
+    - sse-manager
+    - 事件推送
     level: L3
     container_id: frontend-spa
     source: doc
@@ -387,8 +387,8 @@ components:
   wireframeengine:
     name: WireframeEngine
     aliases:
-    - WireframeEngine
     - wireframeengine
+    - WireframeEngine
     level: L3
     container_id: c4-dsl-engine
     source: doc
@@ -399,9 +399,9 @@ components:
   sketchgenerator:
     name: SketchGenerator
     aliases:
-    - sketchgenerator
     - SketchGenerator
     - S4
+    - sketchgenerator
     level: L3
     container_id: c4-dsl-engine
     source: doc
@@ -413,8 +413,8 @@ components:
   crosslayervalidator:
     name: CrossLayerValidator
     aliases:
-    - CrossLayerValidator
     - crosslayervalidator
+    - CrossLayerValidator
     level: L3
     container_id: c4-dsl-engine
     source: doc
@@ -425,8 +425,8 @@ components:
   interfacecontractstore:
     name: InterfaceContractStore
     aliases:
-    - InterfaceContractStore
     - interfacecontractstore
+    - InterfaceContractStore
     level: L3
     container_id: c4-dsl-engine
     source: doc
@@ -449,8 +449,8 @@ components:
   pocketflowengine:
     name: PocketFlowEngine
     aliases:
-    - pocketflowengine
     - PocketFlowEngine
+    - pocketflowengine
     level: L3
     container_id: backend-api
     source: doc
@@ -485,8 +485,8 @@ components:
   gatecontroller:
     name: GateController
     aliases:
-    - GateController
     - gatecontroller
+    - GateController
     level: L3
     container_id: skill-orchestrator
     source: doc
@@ -497,8 +497,8 @@ components:
   complexityrouter:
     name: ComplexityRouter
     aliases:
-    - ComplexityRouter
     - complexityrouter
+    - ComplexityRouter
     level: L3
     container_id: frontend-spa
     source: doc
@@ -521,8 +521,8 @@ components:
   artifactversionmanager:
     name: ArtifactVersionManager
     aliases:
-    - artifactversionmanager
     - ArtifactVersionManager
+    - artifactversionmanager
     level: L3
     container_id: backend-api
     source: doc
@@ -533,8 +533,8 @@ components:
   gitadapter:
     name: GitAdapter
     aliases:
-    - GitAdapter
     - gitadapter
+    - GitAdapter
     level: L3
     container_id: backend-api
     source: doc
@@ -558,8 +558,8 @@ components:
   fallbackmanager:
     name: FallbackManager
     aliases:
-    - fallbackmanager
     - FallbackManager
+    - fallbackmanager
     level: L3
     container_id: backend-api
     source: doc
@@ -570,8 +570,8 @@ components:
   permissionmanager:
     name: PermissionManager
     aliases:
-    - PermissionManager
     - permissionmanager
+    - PermissionManager
     level: L3
     container_id: backend-api
     source: doc
@@ -582,8 +582,8 @@ components:
   metricscollector:
     name: MetricsCollector
     aliases:
-    - MetricsCollector
     - metricscollector
+    - MetricsCollector
     level: L3
     container_id: backend-api
     source: doc
@@ -630,10 +630,10 @@ components:
   riskscannerservice:
     name: RiskScannerService
     aliases:
-    - RiskScannerService
-    - riskscannerservice
     - RiskScannerService 风险扫描与聚合
+    - RiskScannerService
     - S_Risk
+    - riskscannerservice
     level: L3
     container_id: backend-api
     source: doc
@@ -644,8 +644,8 @@ components:
   timeboxservice:
     name: TimeboxService
     aliases:
-    - TimeboxService Timebox 计算与预警
     - TimeboxService
+    - TimeboxService Timebox 计算与预警
     - timeboxservice
     - S_Timebox
     level: L3
@@ -656,9 +656,9 @@ components:
   projectrepository:
     name: ProjectRepository
     aliases:
-    - projectrepository
-    - ProjectRepository
     - Repo_Project
+    - ProjectRepository
+    - projectrepository
     level: L3
     container_id: backend-api
     source: doc
@@ -679,10 +679,10 @@ components:
   skillimportservice:
     name: SkillImportService
     aliases:
-    - skillimportservice
-    - SkillImportService 扫描
     - SkillImportService
     - S_Import
+    - SkillImportService 扫描
+    - skillimportservice
     level: L3
     container_id: backend-api
     source: doc
@@ -693,10 +693,10 @@ components:
   skillparser:
     name: SkillParser
     aliases:
-    - SkillParser
-    - SkillParser Frontmatter 解析
-    - S_Parser
     - skillparser
+    - S_Parser
+    - SkillParser Frontmatter 解析
+    - SkillParser
     level: L3
     container_id: backend-api
     source: doc
@@ -707,10 +707,10 @@ components:
   dageditorservice:
     name: DAGEditorService
     aliases:
-    - DAGEditorService 画布操作
-    - S_DAGEditor
-    - DAGEditorService
     - dageditorservice
+    - DAGEditorService 画布操作
+    - DAGEditorService
+    - S_DAGEditor
     level: L3
     container_id: backend-api
     source: doc
@@ -731,10 +731,10 @@ components:
   executionplangenerator:
     name: ExecutionPlanGenerator
     aliases:
-    - S_PlanGen
-    - executionplangenerator
     - ExecutionPlanGenerator
     - ExecutionPlanGenerator 计划生成
+    - S_PlanGen
+    - executionplangenerator
     level: L3
     container_id: backend-api
     source: doc
@@ -746,9 +746,9 @@ components:
     name: StageOrchestrator
     aliases:
     - S_Orchestrator
-    - stageorchestrator
     - StageOrchestrator
     - StageOrchestrator Stage 就绪检查
+    - stageorchestrator
     level: L3
     container_id: backend-api
     source: doc
@@ -759,10 +759,10 @@ components:
   bypassapprovalservice:
     name: BypassApprovalService
     aliases:
-    - BypassApprovalService 旁路授权校验
-    - BypassApprovalService
     - S_Bypass
     - bypassapprovalservice
+    - BypassApprovalService
+    - BypassApprovalService 旁路授权校验
     level: L3
     container_id: backend-api
     source: doc
@@ -773,9 +773,9 @@ components:
   executionplanrepository:
     name: ExecutionPlanRepository
     aliases:
-    - Repo_Plan
     - executionplanrepository
     - ExecutionPlanRepository
+    - Repo_Plan
     level: L3
     container_id: backend-api
     source: doc
@@ -812,8 +812,8 @@ components:
   bypassrecordrepository:
     name: BypassRecordRepository
     aliases:
-    - bypassrecordrepository
     - Repo_Bypass
+    - bypassrecordrepository
     - BypassRecordRepository
     level: L3
     container_id: backend-api
@@ -825,10 +825,10 @@ components:
   triggervalidator:
     name: TriggerValidator
     aliases:
-    - TriggerValidator 触发校验
-    - triggervalidator
     - TriggerValidator
+    - triggervalidator
     - S_Trigger
+    - TriggerValidator 触发校验
     level: L3
     container_id: backend-api
     source: doc
@@ -854,9 +854,9 @@ components:
     name: LogCollector
     aliases:
     - LogCollector
-    - logcollector
     - LogCollector 日志捕获
     - S_Log
+    - logcollector
     level: L3
     container_id: skill-orchestrator
     source: doc
@@ -867,8 +867,8 @@ components:
   retrymanager:
     name: RetryManager
     aliases:
-    - S_Retry
     - retrymanager
+    - S_Retry
     - RetryManager
     - RetryManager 重试计数
     level: L3
@@ -881,9 +881,9 @@ components:
   skillexecutionrepository:
     name: SkillExecutionRepository
     aliases:
-    - SkillExecutionRepository
-    - skillexecutionrepository
     - Repo_Exec
+    - skillexecutionrepository
+    - SkillExecutionRepository
     level: L3
     container_id: backend-api
     source: doc
@@ -894,8 +894,8 @@ components:
   executionlogrepository:
     name: ExecutionLogRepository
     aliases:
-    - ExecutionLogRepository
     - executionlogrepository
+    - ExecutionLogRepository
     - Repo_Log
     level: L3
     container_id: backend-api
@@ -907,10 +907,10 @@ components:
   templateservice:
     name: TemplateService
     aliases:
-    - S_Template
+    - TemplateService
     - templateservice
     - TemplateService 模板定义查询
-    - TemplateService
+    - S_Template
     level: L3
     container_id: backend-api
     source: doc
@@ -919,10 +919,10 @@ components:
   deviationservice:
     name: DeviationService
     aliases:
-    - deviationservice
     - DeviationService 偏离确认
-    - S_Deviation
     - DeviationService
+    - deviationservice
+    - S_Deviation
     level: L3
     container_id: backend-api
     source: doc
@@ -931,10 +931,10 @@ components:
   impactscopecalculator:
     name: ImpactScopeCalculator
     aliases:
-    - S_Impact
+    - ImpactScopeCalculator 切换影响范围计算
     - ImpactScopeCalculator
     - impactscopecalculator
-    - ImpactScopeCalculator 切换影响范围计算
+    - S_Impact
     level: L3
     container_id: backend-api
     source: doc
@@ -945,10 +945,10 @@ components:
   stageconfigservice:
     name: StageConfigService
     aliases:
-    - S_StageConfig
-    - StageConfigService Stage 序列管理
     - StageConfigService
+    - StageConfigService Stage 序列管理
     - stageconfigservice
+    - S_StageConfig
     level: L3
     container_id: backend-api
     source: doc
@@ -959,9 +959,9 @@ components:
   templaterepository:
     name: TemplateRepository
     aliases:
-    - templaterepository
     - Repo_Template
     - TemplateRepository
+    - templaterepository
     level: L3
     container_id: backend-api
     source: doc
@@ -992,9 +992,9 @@ components:
   applicationservice:
     name: ApplicationService
     aliases:
-    - ApplicationService
     - applicationservice
     - S_App
+    - ApplicationService
     - ApplicationService CRUD
     level: L3
     container_id: backend-api
@@ -1006,9 +1006,9 @@ components:
   moduleservice:
     name: ModuleService
     aliases:
+    - S_Module
     - moduleservice
     - ModuleService 定义
-    - S_Module
     - ModuleService
     level: L3
     container_id: backend-api
@@ -1019,9 +1019,9 @@ components:
     name: CostStatsService
     aliases:
     - coststatsservice
+    - CostStatsService
     - S_Stats
     - CostStatsService Token 聚合
-    - CostStatsService
     level: L3
     container_id: backend-api
     source: doc
@@ -1031,8 +1031,8 @@ components:
     name: ApplicationRepository
     aliases:
     - ApplicationRepository
-    - applicationrepository
     - Repo_App
+    - applicationrepository
     level: L3
     container_id: backend-api
     source: doc
@@ -1063,10 +1063,10 @@ components:
   execservice:
     name: ExecService
     aliases:
-    - execservice
-    - ExecService CLI 调用
     - ExecService
     - S_Exec
+    - ExecService CLI 调用
+    - execservice
     level: L3
     container_id: backend-api
     source: doc
@@ -1116,8 +1116,8 @@ components:
     name: SketchService
     aliases:
     - S1
-    - sketchservice
     - SketchService
+    - sketchservice
     level: L3
     container_id: backend-api
     source: doc
@@ -1129,8 +1129,8 @@ components:
     name: SketchPageService
     aliases:
     - sketchpageservice
-    - S2
     - SketchPageService
+    - S2
     level: L3
     container_id: backend-api
     source: doc
@@ -1141,9 +1141,9 @@ components:
   storypathvalidator:
     name: StoryPathValidator
     aliases:
-    - StoryPathValidator
-    - S5
     - storypathvalidator
+    - S5
+    - StoryPathValidator
     level: L3
     container_id: backend-api
     source: doc
@@ -1239,6 +1239,16 @@ components:
     container_id: backend-api
     source: code
     source_file: backend/app/api/v1/canvas_state.py
+    kind: router
+    implemented: true
+  clirouter:
+    name: CliRouter
+    aliases:
+    - CliRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/cli.py
     kind: router
     implemented: true
   contractsrouter:
@@ -1481,6 +1491,16 @@ components:
     source_file: backend/app/infrastructure/database/repositories/gate_repo.py
     kind: class
     implemented: true
+  aioutputparser:
+    name: AIOutputParser
+    aliases:
+    - AIOutputParser
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/ai_output_parser.py
+    kind: class
+    implemented: true
   annotationservice:
     name: AnnotationService
     aliases:
@@ -1489,6 +1509,16 @@ components:
     container_id: backend-api
     source: code
     source_file: backend/app/services/annotation_service.py
+    kind: class
+    implemented: true
+  archgovernanceservice:
+    name: ArchGovernanceService
+    aliases:
+    - ArchGovernanceService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/arch_governance_service.py
     kind: class
     implemented: true
   archvalidationservice:
@@ -1511,6 +1541,16 @@ components:
     source_file: backend/app/services/binding_service.py
     kind: class
     implemented: true
+  bugfixservice:
+    name: BugFixService
+    aliases:
+    - BugFixService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/bug_fix_service.py
+    kind: class
+    implemented: true
   bypassservice:
     name: BypassService
     aliases:
@@ -1521,6 +1561,16 @@ components:
     source_file: backend/app/services/bypass_service.py
     kind: class
     implemented: true
+  cliservice:
+    name: CliService
+    aliases:
+    - CliService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/cli_service.py
+    kind: class
+    implemented: true
   complexityservice:
     name: ComplexityService
     aliases:
@@ -1529,6 +1579,26 @@ components:
     container_id: backend-api
     source: code
     source_file: backend/app/services/complexity_service.py
+    kind: class
+    implemented: true
+  filebackupservice:
+    name: FileBackupService
+    aliases:
+    - FileBackupService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/file_backup_service.py
+    kind: class
+    implemented: true
+  gitservice:
+    name: GitService
+    aliases:
+    - GitService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/git_service.py
     kind: class
     implemented: true
   logcollectorservice:
@@ -1609,6 +1679,16 @@ components:
     container_id: backend-api
     source: code
     source_file: backend/app/services/user_story_service.py
+    kind: class
+    implemented: true
+  validationservice:
+    name: ValidationService
+    aliases:
+    - ValidationService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/validation_service.py
     kind: class
     implemented: true
   wireframenavlinkservice:
@@ -2156,6 +2236,26 @@ components:
     source_file: frontend/src/components/WireframeViewer.tsx
     kind: component
     implemented: true
+  clicard:
+    name: CliCard
+    aliases:
+    - CliCard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/cli/CliCard.tsx
+    kind: component
+    implemented: true
+  terminal:
+    name: Terminal
+    aliases:
+    - Terminal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/cli/Terminal.tsx
+    kind: component
+    implemented: true
   sdlccanvas:
     name: SDLCCanvas
     aliases:
@@ -2307,6 +2407,26 @@ components:
     kind: component
     implemented: true
     intentional_orphan: true
+  modes:
+    name: MODES
+    aliases:
+    - MODES
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/AiCli/index.tsx
+    kind: component
+    implemented: true
+  aiclipage:
+    name: AiCliPage
+    aliases:
+    - AiCliPage
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/AiCli/index.tsx
+    kind: component
+    implemented: true
   appdashboard:
     name: AppDashboard
     aliases:
@@ -2355,6 +2475,36 @@ components:
     container_id: frontend-spa
     source: code
     source_file: frontend/src/pages/ArchGovernance/index.tsx
+    kind: component
+    implemented: true
+  fixconfirmmodal:
+    name: FixConfirmModal
+    aliases:
+    - FixConfirmModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchGovernance/components/FixConfirmModal.tsx
+    kind: component
+    implemented: true
+  changeeditor:
+    name: ChangeEditor
+    aliases:
+    - ChangeEditor
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchGovernance/components/FixConfirmModal.tsx
+    kind: component
+    implemented: true
+  fixterminalmodal:
+    name: FixTerminalModal
+    aliases:
+    - FixTerminalModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchGovernance/components/FixTerminalModal.tsx
     kind: component
     implemented: true
   emptystate:
@@ -3356,6 +3506,26 @@ components:
     kind: component
     implemented: true
 interfaces:
+- id: post-c4-governance-fix-plan
+  method: POST
+  path: /c4/governance/fix-plan
+  source_container: c4-api
+- id: post-c4-governance-fix-apply
+  method: POST
+  path: /c4/governance/fix-apply
+  source_container: c4-api
+- id: post-c4-governance-fix-batch
+  method: POST
+  path: /c4/governance/fix-batch
+  source_container: c4-api
+- id: post-c4-governance-fix-rollback
+  method: POST
+  path: /c4/governance/fix-rollback
+  source_container: c4-api
+- id: get-c4-governance-fix-history
+  method: GET
+  path: /c4/governance/fix-history
+  source_container: c4-api
 - id: get-api-v1-stages-stage-id-detail
   method: GET
   path: /api/v1/stages/{stage_id}/detail
@@ -4115,6 +4285,15 @@ relationships:
 - source: canvasstaterouter
   target: templaterepository
   description: 依赖
+- source: clirouter
+  target: archgovernanceservice
+  description: 调用
+- source: clirouter
+  target: bugfixservice
+  description: 调用
+- source: clirouter
+  target: cliservice
+  description: 调用
 - source: complexityrouter
   target: complexityservice
   description: 调用
@@ -4207,6 +4386,9 @@ relationships:
   description: 依赖
 - source: apiv1router
   target: canvasstaterouter
+  description: 依赖
+- source: apiv1router
+  target: clirouter
   description: 依赖
 - source: apiv1router
   target: contractsrouter
@@ -4406,6 +4588,18 @@ relationships:
 - source: applicationservice
   target: applicationrepository
   description: 持久化/查询
+- source: archgovernanceservice
+  target: aioutputparser
+  description: 依赖
+- source: archgovernanceservice
+  target: filebackupservice
+  description: 调用
+- source: archgovernanceservice
+  target: gitservice
+  description: 调用
+- source: archgovernanceservice
+  target: validationservice
+  description: 调用
 - source: archvalidationservice
   target: c4baselinestore
   description: 调用
@@ -4668,6 +4862,9 @@ relationships:
   target: canvaspage
   description: 包含/渲染
 - source: sidebar
+  target: aiclipage
+  description: 包含/渲染
+- source: sidebar
   target: templatestageconfig
   description: 包含/渲染
 - source: sidebar
@@ -4743,6 +4940,9 @@ relationships:
   target: canvaspage
   description: 包含/渲染
 - source: topbar
+  target: aiclipage
+  description: 包含/渲染
+- source: topbar
   target: templatestageconfig
   description: 包含/渲染
 - source: topbar
@@ -4818,6 +5018,9 @@ relationships:
   target: canvaspage
   description: 包含/渲染
 - source: applayout
+  target: aiclipage
+  description: 包含/渲染
+- source: applayout
   target: templatestageconfig
   description: 包含/渲染
 - source: applayout
@@ -4891,6 +5094,9 @@ relationships:
   description: 包含/渲染
 - source: app
   target: canvaspage
+  description: 包含/渲染
+- source: app
+  target: aiclipage
   description: 包含/渲染
 - source: app
   target: templatestageconfig
@@ -5027,6 +5233,12 @@ relationships:
 - source: skillsnapshottab
   target: apiapi
   description: 调用
+- source: modes
+  target: clicard
+  description: 包含/渲染
+- source: aiclipage
+  target: clicard
+  description: 包含/渲染
 - source: appdashboard
   target: useappdashboardstore
   description: 状态订阅
@@ -5045,6 +5257,21 @@ relationships:
 - source: appdeleteconfirm
   target: useappdashboardstore
   description: 状态订阅
+- source: archgovernancepage
+  target: fixconfirmmodal
+  description: 包含/渲染
+- source: archgovernancepage
+  target: fixterminalmodal
+  description: 包含/渲染
+- source: fixconfirmmodal
+  target: apiapi
+  description: 调用
+- source: changeeditor
+  target: apiapi
+  description: 调用
+- source: fixterminalmodal
+  target: clicard
+  description: 包含/渲染
 - source: emptystate
   target: archvalidationapi
   description: 调用
@@ -5575,6 +5802,9 @@ relationships:
   description: 持久化/查询
 - source: bypassservice
   target: bypassrecordrepository
+  description: 持久化/查询
+- source: gitservice
+  target: git-repository
   description: 持久化/查询
 - source: skillregistryservice
   target: skillrepository
