@@ -81,10 +81,23 @@ class LLMGateway(ABC):
 
 
 class KimiCLIGateway(LLMGateway):
-    """Kimi CLI gateway — spawns `kimi` subprocess in print mode.
+    """Kimi CLI gateway — spawns `kimi` subprocess in one-shot print mode.
 
-    The prompt is piped via stdin to avoid shell escaping issues.
+    The prompt is passed via the ``-p`` command-line argument and a strict
+    ``--max-steps-per-turn 1`` guard is applied so that Kimi CLI behaves like a
+    plain text generator instead of an agent that may explore the filesystem
+    indefinitely.
     """
+
+    # Prefix every prompt with a strong system instruction that forbids tool
+    # usage.  Kimi CLI is an agent by default; without this guard it may try to
+    # read files or spawn subagents, causing long hangs or non-deterministic
+    # output.
+    _TOOL_BAN = (
+        "[系统指令] 你是一个纯文本回答助手。"
+        "禁止调用任何工具、禁止读取文件、禁止执行命令、禁止探索项目。"
+        "只根据题目中给出的信息直接回答，不要进行任何外部操作。\n\n"
+    )
 
     def __init__(self, cli_path: str | None = None) -> None:
         self.cli_path = cli_path or settings.KIMI_CLI_PATH
@@ -99,19 +112,21 @@ class KimiCLIGateway(LLMGateway):
         *,
         temperature: float = 0.2,
     ) -> str:
+        del temperature  # Not supported by Kimi CLI.
         cmd = [
             self.cli_path,
-            "--print",
             "--quiet",
-            "--input-format",
-            "text",
+            "--max-steps-per-turn",
+            "1",
+            "-p",
+            self._TOOL_BAN + prompt,
         ]
-        # Kimi CLI does not expose temperature; ignore it.
-        # Force UTF-8 for stdin/stdout on Windows so Chinese prompts work.
         env = os.environ.copy()
         env.setdefault("PYTHONIOENCODING", "utf-8")
-        await self._emit_chunk(on_chunk, f"执行命令：{' '.join(cmd)}")
-        print(f"[KIMI CLI] spawning {' '.join(cmd)}")
+        env.setdefault("KIMI_CLI_NO_ANALYTICS", "1")
+
+        await self._emit_chunk(on_chunk, f"执行命令：{' '.join(cmd[:4])} ...")
+        print(f"[KIMI CLI] spawning {' '.join(cmd[:4])} ...")
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdin=asyncio.subprocess.PIPE,
@@ -119,33 +134,57 @@ class KimiCLIGateway(LLMGateway):
             stderr=asyncio.subprocess.PIPE,
             env=env,
         )
-        assert proc.stdin is not None
-        proc.stdin.write(prompt.encode("utf-8"))
-        await proc.stdin.drain()
-        proc.stdin.close()
+        # Close stdin immediately; we pass the prompt via -p.
+        if proc.stdin is not None:
+            proc.stdin.close()
 
         chunks: list[str] = []
-        assert proc.stdout is not None
-        while True:
-            raw = await proc.stdout.read(1024)
-            if not raw:
-                break
-            text = raw.decode("utf-8", errors="replace")
-            # Strip UTF-16 surrogate characters that cannot be JSON-serialized.
-            text = "".join(c for c in text if not (0xD800 <= ord(c) <= 0xDFFF))
-            chunks.append(text)
-            print(f"[KIMI CLI] stdout chunk ({len(text)} chars)")
-            await self._emit_chunk(on_chunk, text)
+        stderr_chunks: list[bytes] = []
 
-        await proc.wait()
-        print(f"[KIMI CLI] exit code {proc.returncode}")
-        if proc.returncode != 0:
+        async def _read_stdout() -> None:
+            assert proc.stdout is not None
+            while True:
+                raw = await proc.stdout.read(1024)
+                if not raw:
+                    break
+                text = raw.decode("utf-8", errors="replace")
+                text = _strip_surrogates(text)
+                chunks.append(text)
+                print(f"[KIMI CLI] stdout chunk ({len(text)} chars)")
+                await self._emit_chunk(on_chunk, text)
+
+        async def _read_stderr() -> None:
             assert proc.stderr is not None
-            stderr = (await proc.stderr.read()).decode("utf-8", errors="replace")
-            stderr = "".join(c for c in stderr if not (0xD800 <= ord(c) <= 0xDFFF))
+            while True:
+                raw = await proc.stderr.read(1024)
+                if not raw:
+                    break
+                stderr_chunks.append(raw)
+
+        await asyncio.gather(_read_stdout(), _read_stderr())
+        await proc.wait()
+
+        stderr = b"".join(stderr_chunks).decode("utf-8", errors="replace")
+        stderr = _strip_surrogates(stderr)
+        print(f"[KIMI CLI] exit code {proc.returncode}")
+        if stderr:
             print(f"[KIMI CLI] stderr: {stderr!r}")
-            raise RuntimeError(f"Kimi CLI failed (exit {proc.returncode}): {stderr}")
-        return "".join(chunks).strip()
+
+        result = "".join(chunks).strip()
+
+        # Kimi CLI exits with 1 when the step limit is hit, but it usually still
+        # produced useful content.  Treat non-zero exit codes as fatal only when
+        # no output was captured.
+        if proc.returncode != 0 and not result:
+            raise RuntimeError(
+                f"Kimi CLI failed (exit {proc.returncode}): {stderr or 'no output'}"
+            )
+        return result
+
+
+def _strip_surrogates(text: str) -> str:
+    """Remove UTF-16 surrogate characters that cannot be JSON-serialized."""
+    return "".join(c for c in text if not (0xD800 <= ord(c) <= 0xDFFF))
 
 
 class OpenAILLMGateway(LLMGateway):
