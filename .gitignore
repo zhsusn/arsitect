@@ -1,4 +1,6 @@
 # Project-specific
+refcode/
+
 # Database
 data/
 *.db
