@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import os
 import re
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
@@ -106,11 +107,16 @@ class KimiCLIGateway(LLMGateway):
             "text",
         ]
         # Kimi CLI does not expose temperature; ignore it.
+        # Force UTF-8 for stdin/stdout on Windows so Chinese prompts work.
+        env = os.environ.copy()
+        env.setdefault("PYTHONIOENCODING", "utf-8")
+        await self._emit_chunk(on_chunk, f"执行命令：{' '.join(cmd)}")
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
         assert proc.stdin is not None
         proc.stdin.write(prompt.encode("utf-8"))
@@ -124,6 +130,8 @@ class KimiCLIGateway(LLMGateway):
             if not raw:
                 break
             text = raw.decode("utf-8", errors="replace")
+            # Strip UTF-16 surrogate characters that cannot be JSON-serialized.
+            text = "".join(c for c in text if not (0xD800 <= ord(c) <= 0xDFFF))
             chunks.append(text)
             await self._emit_chunk(on_chunk, text)
 
@@ -131,6 +139,7 @@ class KimiCLIGateway(LLMGateway):
         if proc.returncode != 0:
             assert proc.stderr is not None
             stderr = (await proc.stderr.read()).decode("utf-8", errors="replace")
+            stderr = "".join(c for c in stderr if not (0xD800 <= ord(c) <= 0xDFFF))
             raise RuntimeError(f"Kimi CLI failed (exit {proc.returncode}): {stderr}")
         return "".join(chunks).strip()
 
