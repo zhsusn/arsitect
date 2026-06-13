@@ -551,10 +551,13 @@ class ArchGovernanceService:
                     ).model_dump()
                 )
             except Exception as exc:  # noqa: BLE001
+                import traceback
+                tb = traceback.format_exc()
+                print(f"[ARCH FIX] LLM error: {exc!r}\n{tb}")
                 await sender(
                     self._build_text(
                         session_id,
-                        f"⚠️ AI 调用失败，使用原始修复方案继续执行：{exc}",
+                        f"⚠️ AI 调用失败，使用原始修复方案继续执行：{exc!r}",
                     ).model_dump()
                 )
                 file_changes = {target_path: change.get("after", "")}

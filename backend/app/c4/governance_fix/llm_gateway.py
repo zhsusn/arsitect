@@ -111,6 +111,7 @@ class KimiCLIGateway(LLMGateway):
         env = os.environ.copy()
         env.setdefault("PYTHONIOENCODING", "utf-8")
         await self._emit_chunk(on_chunk, f"执行命令：{' '.join(cmd)}")
+        print(f"[KIMI CLI] spawning {' '.join(cmd)}")
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdin=asyncio.subprocess.PIPE,
@@ -133,13 +134,16 @@ class KimiCLIGateway(LLMGateway):
             # Strip UTF-16 surrogate characters that cannot be JSON-serialized.
             text = "".join(c for c in text if not (0xD800 <= ord(c) <= 0xDFFF))
             chunks.append(text)
+            print(f"[KIMI CLI] stdout chunk ({len(text)} chars)")
             await self._emit_chunk(on_chunk, text)
 
         await proc.wait()
+        print(f"[KIMI CLI] exit code {proc.returncode}")
         if proc.returncode != 0:
             assert proc.stderr is not None
             stderr = (await proc.stderr.read()).decode("utf-8", errors="replace")
             stderr = "".join(c for c in stderr if not (0xD800 <= ord(c) <= 0xDFFF))
+            print(f"[KIMI CLI] stderr: {stderr!r}")
             raise RuntimeError(f"Kimi CLI failed (exit {proc.returncode}): {stderr}")
         return "".join(chunks).strip()
 
