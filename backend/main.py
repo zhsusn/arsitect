@@ -1,6 +1,14 @@
 """SDLC Visualizer — FastAPI application entry point."""
 
 import asyncio
+import sys
+
+# ProactorEventLoop is required on Windows for asyncio subprocess support
+# (used by the Kimi CLI LLM gateway). Uvicorn's reload supervisor may
+# otherwise install a SelectorEventLoop which cannot create subprocess
+# transports.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager, suppress
 
