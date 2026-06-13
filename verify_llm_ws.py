@@ -104,7 +104,8 @@ async def run_verification() -> None:
             text = payload.get("text") or ""
             card = payload.get("card")
 
-            print(f"[{msg_type}] {text[:120] if text else ''}")
+            safe_text = text[:120].encode("gbk", "ignore").decode("gbk", "ignore") if text else ""
+            print(f"[{msg_type}] {safe_text}")
 
             if msg_type == "card" and card and card.get("type") == "arch-decision":
                 pending_card = card
@@ -141,7 +142,8 @@ async def run_verification() -> None:
             msg_type = msg.get("type")
             payload = msg.get("payload") or {}
             text = payload.get("text") or ""
-            print(f"[{msg_type}] {text[:120] if text else ''}")
+            safe_text = text[:120].encode("gbk", "ignore").decode("gbk", "ignore") if text else ""
+            print(f"[{msg_type}] {safe_text}")
 
     print(f"log saved to {LOG_FILE}")
 
