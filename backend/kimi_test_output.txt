@@ -1,0 +1,23 @@
+=== FILE: frontend/src/containers/frontend-spa/index.tsx ===
+
+```typescript
+/**
+ * Frontend SPA 容器占位模块
+ *
+ * 该文件作为 C4 架构中 frontend-spa 容器的最小代码占位，
+ * 后续可在此扩展路由入口、全局布局、状态初始化等逻辑。
+ */
+
+import React from 'react';
+
+const FrontendSpa: React.FC = () => {
+  return (
+    <div className="frontend-spa">
+      <h1>Frontend SPA</h1>
+      <p>frontend-spa 容器占位页面，待进一步实现业务功能。</p>
+    </div>
+  );
+};
+
+export default FrontendSpa;
+```
