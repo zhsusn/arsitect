@@ -87,3 +87,10 @@ dmypy.json
 
 # Ruff
 .ruff_cache/
+
+# Directories not tracked in git
+refcode/
+docs/ref-doc/
+
+# Temporary scripts
+tmp_*.py
