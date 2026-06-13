@@ -127,59 +127,67 @@ class KimiCLIGateway(LLMGateway):
 
         await self._emit_chunk(on_chunk, f"执行命令：{' '.join(cmd[:4])} ...")
         print(f"[KIMI CLI] spawning {' '.join(cmd[:4])} ...")
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=env,
-        )
-        # Close stdin immediately; we pass the prompt via -p.
-        if proc.stdin is not None:
-            proc.stdin.close()
-
-        chunks: list[str] = []
-        stderr_chunks: list[bytes] = []
-
-        async def _read_stdout() -> None:
-            assert proc.stdout is not None
-            while True:
-                raw = await proc.stdout.read(1024)
-                if not raw:
-                    break
-                text = raw.decode("utf-8", errors="replace")
-                text = _strip_surrogates(text)
-                chunks.append(text)
-                print(f"[KIMI CLI] stdout chunk ({len(text)} chars)")
-                await self._emit_chunk(on_chunk, text)
-
-        async def _read_stderr() -> None:
-            assert proc.stderr is not None
-            while True:
-                raw = await proc.stderr.read(1024)
-                if not raw:
-                    break
-                stderr_chunks.append(raw)
-
-        await asyncio.gather(_read_stdout(), _read_stderr())
-        await proc.wait()
-
-        stderr = b"".join(stderr_chunks).decode("utf-8", errors="replace")
-        stderr = _strip_surrogates(stderr)
-        print(f"[KIMI CLI] exit code {proc.returncode}")
-        if stderr:
-            print(f"[KIMI CLI] stderr: {stderr!r}")
-
-        result = "".join(chunks).strip()
-
-        # Kimi CLI exits with 1 when the step limit is hit, but it usually still
-        # produced useful content.  Treat non-zero exit codes as fatal only when
-        # no output was captured.
-        if proc.returncode != 0 and not result:
-            raise RuntimeError(
-                f"Kimi CLI failed (exit {proc.returncode}): {stderr or 'no output'}"
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
-        return result
+            # Close stdin immediately; we pass the prompt via -p.
+            if proc.stdin is not None:
+                proc.stdin.close()
+
+            chunks: list[str] = []
+            stderr_chunks: list[bytes] = []
+
+            async def _read_stdout() -> None:
+                assert proc.stdout is not None
+                while True:
+                    raw = await proc.stdout.read(1024)
+                    if not raw:
+                        break
+                    text = raw.decode("utf-8", errors="replace")
+                    text = _strip_surrogates(text)
+                    chunks.append(text)
+                    print(f"[KIMI CLI] stdout chunk ({len(text)} chars)")
+                    await self._emit_chunk(on_chunk, text)
+
+            async def _read_stderr() -> None:
+                assert proc.stderr is not None
+                while True:
+                    raw = await proc.stderr.read(1024)
+                    if not raw:
+                        break
+                    stderr_chunks.append(raw)
+
+            await asyncio.gather(_read_stdout(), _read_stderr())
+            await proc.wait()
+
+            stderr = b"".join(stderr_chunks).decode("utf-8", errors="replace")
+            stderr = _strip_surrogates(stderr)
+            print(f"[KIMI CLI] exit code {proc.returncode}")
+            if stderr:
+                print(f"[KIMI CLI] stderr: {stderr!r}")
+
+            result = "".join(chunks).strip()
+
+            # Kimi CLI exits with 1 when the step limit is hit, but it usually still
+            # produced useful content.  Treat non-zero exit codes as fatal only when
+            # no output was captured.
+            if proc.returncode != 0 and not result:
+                raise RuntimeError(
+                    f"Kimi CLI failed (exit {proc.returncode}): {stderr or 'no output'}"
+                )
+            return result
+        except Exception as exc:
+            import traceback
+            Path("D:/srccode/arsitect/backend/kimi_gateway_error.log").write_text(
+                f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}",
+                encoding="utf-8",
+            )
+            raise
 
 
 def _strip_surrogates(text: str) -> str:
