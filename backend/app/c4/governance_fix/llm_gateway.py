@@ -128,6 +128,7 @@ class KimiCLIGateway(LLMGateway):
 
         await self._emit_chunk(on_chunk, f"执行命令：{' '.join(cmd[:4])} ...")
         print(f"[KIMI CLI] spawning {' '.join(cmd[:4])} ...")
+        print(f"[KIMI CLI] event loop: {asyncio.get_running_loop().__class__.__name__}")
         try:
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
