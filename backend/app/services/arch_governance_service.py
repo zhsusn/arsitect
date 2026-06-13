@@ -83,6 +83,7 @@ class ArchGovernanceService:
         self._ai_gateway = ai_gateway or AIGateway()
         self._file_backup = file_backup or FileBackupService()
         self._llm_gateway = llm_gateway or get_llm_gateway()
+        print(f"[ARCH SVC] llm_gateway type: {type(self._llm_gateway)}")
         self._git_service = git_service or GitService()
         self._validation_service = validation_service or ValidationService()
         self._prompt_assembler = PromptAssembler(file_backup=self._file_backup)
