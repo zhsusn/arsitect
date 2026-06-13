@@ -1,0 +1,113 @@
+doc_quality_gate:
+  version: "1.0.0"
+  run_id: "sdlc-visualizer-hlr-dqg-20260601-v2"
+  timestamp: "2026-06-01T10:30:00+08:00"
+  documents_checked:
+    - path: "openspec/changes/sdlc-visualizer/high-level-requirements/00-requirements-overview.md"
+      status: "auto_fixed"
+      issues_found: 1
+    - path: "openspec/changes/sdlc-visualizer/high-level-requirements/01-requirements-list.md"
+      status: "auto_fixed"
+      issues_found: 2
+    - path: "openspec/changes/sdlc-visualizer/high-level-requirements/02-functional-requirements.md"
+      status: "auto_fixed"
+      issues_found: 2
+    - path: "openspec/changes/sdlc-visualizer/high-level-requirements/doc-quality-fix-log.yaml"
+      status: "na"
+      issues_found: 0
+
+  auto_fixes:
+    - id: "FIX-012"
+      doc: "00-requirements-overview.md"
+      layer: "I1-数值一致性"
+      severity: "warning"
+      type: "historical_record_correction"
+      location: "修改记录 v1.2"
+      description: "历史修改记录中仍写着 Stage-Skill 绑定（0-n 个），与全文当前已修正的 1-n 定义冲突，已修正为 1-n"
+      before: "Stage-Skill 绑定（0-n 个，含主/辅助角色）"
+      after: "Stage-Skill 绑定（1-n 个，含主/辅助角色）"
+      impact_on_decision: "none"
+
+    - id: "FIX-013"
+      doc: "01-requirements-list.md"
+      layer: "P4-版本一致性"
+      severity: "tip"
+      type: "changelog_sync"
+      location: "文档头部修改记录"
+      description: "01 文件头部修改记录仅到 v1.1，且引用 00 文件修改记录，与自身变更日志中的 v1.2/v1.3 不一致。已补充 v1.2/v1.3 摘要。"
+      before: "仅 v1.1 记录，引用 00 文件"
+      after: "v1.1/v1.2/v1.3 完整记录"
+      impact_on_decision: "none"
+
+    - id: "FIX-014"
+      doc: "02-functional-requirements.md"
+      layer: "P4-版本一致性"
+      severity: "tip"
+      type: "changelog_sync"
+      location: "文档头部修改记录"
+      description: "02 文件头部修改记录仅到 v1.1，且引用 00 文件修改记录。已补充 v1.2/v1.3 摘要。"
+      before: "仅 v1.1 记录，引用 00 文件"
+      after: "v1.1/v1.2/v1.3 完整记录"
+      impact_on_decision: "none"
+
+    - id: "FIX-015"
+      doc: "02-functional-requirements.md"
+      layer: "C1-结构完整性"
+      severity: "warning"
+      type: "module_responsibility_completion"
+      location: "1. 系统功能架构图 -> 模块职责说明"
+      description: "v1.3 新增 5 个模块（复杂度路由面板、C4 架构浏览器、架构验证中心、历史回溯、Skill 注册、项目治理），但模块职责说明仅列出 7 个旧模块。已补充全部 6 个缺失模块的职责说明。"
+      before: "7 个模块职责"
+      after: "13 个模块职责（含 6 个新增）"
+      impact_on_decision: "none"
+
+    - id: "FIX-016"
+      doc: "01-requirements-list.md"
+      layer: "I2-术语一致性"
+      severity: "tip"
+      type: "description_correction"
+      location: "REQ-P1-004"
+      description: "REQ-P1-004 原描述为'多人协作批注（P1，MVP 仅单人批注）'，其中'MVP 仅单人批注'与 P1 优先级矛盾（P1 本就不在 MVP 范围内）。已修正为准确功能描述。"
+      before: "多人协作批注（P1，MVP 仅单人批注）"
+      after: "多人协作批注：多用户实时同步批注、评论线程、标记已解决、离线同步"
+      impact_on_decision: "none"
+
+  manual_fixes_required:
+    - id: "MAN-012"
+      doc: "00-requirements-overview.md"
+      layer: "P1-单一事实来源"
+      severity: "warning"
+      type: "assumption_register_consolidation"
+      location: "3.5 节 ASM-001~005 与 8.2 节 A-001~006"
+      description: "文档中存在两套独立的假设登记册，编号体系不同（ASM-xxx vs A-xxx）、字段结构不同、内容来源不同，违反单一事实来源原则。"
+      options:
+        - "方案 A：统一为 A-001~011 一套编号，按'架构升级假设'和'产品基础假设'分两个子表"
+        - "方案 B：保留两套但明确重命名为'架构升级假设登记册'和'产品基础假设登记册'，增加适用范围说明"
+        - "方案 C：删除 8.2 节 A-001~006，将 3.5 节提升为唯一假设登记册"
+      recommended_option: "A"
+      decision_owner: "PM"
+      impact_on_decision: "requires_re_review"
+
+  pending_items:
+    - id: "PEN-001"
+      description: "人工抽查 01 文件重建及补充后的内容完整性"
+      blocker: false
+      due_phase: "before_gate1_freeze"
+
+    - id: "PEN-002"
+      description: "人工确认 Mermaid 状态图下划线命名兼容性"
+      blocker: false
+      due_phase: "detailed-requirements"
+
+    - id: "PEN-003"
+      description: "人工确认 v1.3 扩展范围后 MVP 工期是否仍满足 6-8 周（新增 5 个 P0 需求、2 个模块）"
+      blocker: true
+      due_phase: "before_gate1_freeze"
+
+  summary:
+    blocking_cleared: true
+    total_issues: 6
+    auto_fixed: 5
+    manual_required: 1
+    file_rebuilt: 0
+    recommendation: "阻断级问题已全部清零。PRD-000 v1.3 满足进入 Gate 1 评审的质量门槛。剩余 1 项警告（MAN-012 假设登记册合并）需 PM 决策，建议选方案 A 统一为 A-001~011。PEN-003 为 Gate 1 前必须人工确认项。"

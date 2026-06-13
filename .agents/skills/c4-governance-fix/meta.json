@@ -1,0 +1,7 @@
+{
+  "name": "c4-governance-fix",
+  "version": "1.0.0",
+  "pattern": "pipeline",
+  "tags": ["c4", "governance", "fix", "architecture", "sdlc"],
+  "platforms": ["kimi", "claude", "cursor", "codex", "gemini", "windsurf"]
+}

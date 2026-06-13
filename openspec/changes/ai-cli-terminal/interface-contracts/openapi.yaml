@@ -1,0 +1,969 @@
+openapi: 3.1.0
+info:
+  title: AI CLI Terminal API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /cli/sessions:
+    post:
+      tags: [cli]
+      summary: 创建 AI CLI 会话
+      operationId: createCliSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id]
+              properties:
+                project_id:
+                  type: string
+                mode:
+                  type: string
+                  enum: [bug, arch]
+                  default: bug
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CliSession'
+        '401':
+          description: 未登录
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /cli/sessions/{session_id}/history:
+    get:
+      tags: [cli]
+      summary: 获取会话历史消息
+      operationId: getCliSessionHistory
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CliMessage'
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /cli/sessions/{session_id}/close:
+    post:
+      tags: [cli]
+      summary: 关闭会话
+      operationId: closeCliSession
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 关闭成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  session_id:
+                    type: string
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /cli/sessions/{session_id}/mode:
+    post:
+      tags: [cli]
+      summary: 切换会话模式
+      operationId: switchCliSessionMode
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode]
+              properties:
+                mode:
+                  type: string
+                  enum: [bug, arch]
+      responses:
+        '200':
+          description: 切换成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CliSession'
+        '400':
+          description: 模式无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /cli/ws/{session_id}:
+    get:
+      tags: [cli]
+      summary: WebSocket 长连接
+      description: |
+        建立 WebSocket 连接后，客户端按 `CliRequest` 格式发送消息，
+        服务端按 `CliResponse` 格式推送消息。
+
+        WebSocket 业务消息约定：
+        - 客户端：command（用户输入文本）、action（卡片按钮触发，如 Y/N/edit）、abort（中止任务）、ping（心跳）。
+        - 服务端：text（文本输出）、card（交互卡片）、progress（进度更新）、error（错误）、done（任务完成）、pong（心跳响应）。
+      operationId: cliWebSocket
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '101':
+          description: Switching Protocols to WebSocket
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /bugs:
+    post:
+      tags: [bugs]
+      summary: 创建 Bug 记录
+      operationId: createBugRecord
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, session_id, error_input]
+              properties:
+                project_id:
+                  type: string
+                session_id:
+                  type: string
+                error_input:
+                  type: string
+                  description: 用户粘贴的原始异常信息
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BugRecord'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags: [bugs]
+      summary: 查询历史 Bug
+      operationId: listBugRecords
+      parameters:
+        - name: project_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: signature
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BugRecord'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /bugs/{bug_id}:
+    get:
+      tags: [bugs]
+      summary: 获取 Bug 详情
+      operationId: getBugRecord
+      parameters:
+        - name: bug_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BugRecord'
+        '404':
+          description: Bug 不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /bugs/{bug_id}/execute:
+    post:
+      tags: [bugs]
+      summary: 执行修复方案
+      operationId: executeBugFix
+      parameters:
+        - name: bug_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                edited_diff:
+                  type: string
+                  nullable: true
+                  description: 用户编辑后的 Diff，为空则使用原始 Diff
+      responses:
+        '200':
+          description: 执行结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecResult'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 高风险，建议生成 PR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /bugs/{bug_id}/ignore:
+    post:
+      tags: [bugs]
+      summary: 忽略修复方案
+      operationId: ignoreBugFix
+      parameters:
+        - name: bug_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 已忽略
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BugRecord'
+        '404':
+          description: Bug 不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/scan:
+    post:
+      tags: [arch]
+      summary: 触发架构扫描
+      operationId: scanArchIssues
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, session_id]
+              properties:
+                project_id:
+                  type: string
+                session_id:
+                  type: string
+                rules:
+                  type: array
+                  items:
+                    type: string
+                  description: 指定启用的规则 ID 列表，为空则使用默认规则
+      responses:
+        '202':
+          description: 扫描已接受，结果通过 WebSocket 推送
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scan_id:
+                    type: string
+                  status:
+                    type: string
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/issues:
+    get:
+      tags: [arch]
+      summary: 查询治理项列表
+      operationId: listArchIssues
+      parameters:
+        - name: project_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [detected, planned, executed, verified, closed, skipped]
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, warning, info]
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArchIssue'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/issues/{issue_id}:
+    get:
+      tags: [arch]
+      summary: 获取治理项详情
+      operationId: getArchIssue
+      parameters:
+        - name: issue_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchIssue'
+        '404':
+          description: 治理项不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/issues/{issue_id}/plan:
+    post:
+      tags: [arch]
+      summary: 生成治理方案
+      operationId: generateArchPlan
+      parameters:
+        - name: issue_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchIssue'
+        '404':
+          description: 治理项不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/issues/{issue_id}/execute:
+    post:
+      tags: [arch]
+      summary: 执行重构
+      operationId: executeArchGovernance
+      parameters:
+        - name: issue_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 执行结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecResult'
+        '404':
+          description: 治理项不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/issues/{issue_id}/skip:
+    post:
+      tags: [arch]
+      summary: 跳过治理项
+      operationId: skipArchIssue
+      parameters:
+        - name: issue_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 已跳过
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchIssue'
+        '404':
+          description: 治理项不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /arch/rules:
+    get:
+      tags: [arch]
+      summary: 获取扫描规则配置
+      operationId: listArchRules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScanRule'
+    put:
+      tags: [arch]
+      summary: 更新扫描规则配置
+      operationId: updateArchRules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScanRule'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScanRule'
+        '422':
+          description: 请求参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+components:
+  schemas:
+    CliSession:
+      type: object
+      required:
+        - id
+        - project_id
+        - user_id
+        - mode
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          description: 会话唯一标识
+          example: "CLI-01928374-5566-7788-99aa-bbccddeeff00"
+        project_id:
+          type: string
+          description: 关联项目 ID
+        user_id:
+          type: string
+          description: 创建用户 ID
+        mode:
+          type: string
+          enum: [bug, arch]
+          description: 当前工作模式
+        status:
+          type: string
+          enum: [active, paused, closed]
+          description: 会话状态
+        created_at:
+          type: string
+          format: date-time
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CliMessage:
+      type: object
+      required:
+        - id
+        - session_id
+        - message_type
+        - sequence_no
+        - created_at
+      properties:
+        id:
+          type: string
+        session_id:
+          type: string
+        message_type:
+          type: string
+          enum: [user, ai, system, error, success, card, progress]
+        content:
+          type: string
+          nullable: true
+        card_data:
+          type: object
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        sequence_no:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    CliCard:
+      type: object
+      required:
+        - type
+        - data
+        - actions
+      properties:
+        type:
+          type: string
+          enum: [bug-report, fix-proposal, arch-decision, progress, confirm]
+        data:
+          type: object
+        actions:
+          type: array
+          items:
+            type: object
+            required: [label, command]
+            properties:
+              label:
+                type: string
+              command:
+                type: string
+              style:
+                type: string
+                enum: [primary, danger, default]
+
+    CliRequest:
+      type: object
+      required: [type, sessionId]
+      properties:
+        type:
+          type: string
+          enum: [command, input, action, abort, ping]
+        sessionId:
+          type: string
+        payload:
+          type: object
+          properties:
+            text:
+              type: string
+            command:
+              type: string
+            actionType:
+              type: string
+            metadata:
+              type: object
+
+    CliResponse:
+      type: object
+      required: [type, sessionId, timestamp]
+      properties:
+        type:
+          type: string
+          enum: [text, card, progress, error, done, prompt, pong]
+        sessionId:
+          type: string
+        payload:
+          type: object
+          properties:
+            text:
+              type: string
+            card:
+              $ref: '#/components/schemas/CliCard'
+            progress:
+              type: object
+              properties:
+                current:
+                  type: integer
+                total:
+                  type: integer
+                label:
+                  type: string
+            error:
+              $ref: '#/components/schemas/ErrorResponse'
+        timestamp:
+          type: integer
+          description: Unix 毫秒时间戳
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "SESSION_NOT_FOUND"
+        message:
+          type: string
+          example: "会话已失效，请重新创建"
+        detail:
+          type: object
+          nullable: true
+
+    BugRecord:
+      type: object
+      required:
+        - id
+        - project_id
+        - session_id
+        - error_signature
+        - error_type
+        - error_input
+        - status
+      properties:
+        id:
+          type: string
+        project_id:
+          type: string
+        session_id:
+          type: string
+        error_signature:
+          type: string
+        error_type:
+          type: string
+        error_input:
+          type: string
+        error_stack:
+          type: string
+          nullable: true
+        root_cause:
+          type: string
+          nullable: true
+        affected_files:
+          type: array
+          items:
+            type: string
+        fix_diff:
+          type: string
+          nullable: true
+        fix_risk:
+          type: string
+          enum: [low, medium, high]
+        status:
+          type: string
+          enum: [pending, executed, verified, failed, ignored]
+        executed_by:
+          type: string
+        verified_result:
+          type: string
+          nullable: true
+        similar_bug_id:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ExecResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        output:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        branch:
+          type: string
+          nullable: true
+
+    ArchIssue:
+      type: object
+      required:
+        - id
+        - project_id
+        - session_id
+        - issue_type
+        - severity
+        - title
+        - status
+      properties:
+        id:
+          type: string
+        project_id:
+          type: string
+        session_id:
+          type: string
+        issue_type:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        rule_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        impact_analysis:
+          type: string
+          nullable: true
+        governance_plan:
+          type: string
+          nullable: true
+        refactor_diff:
+          type: string
+          nullable: true
+        review_points:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [detected, planned, executed, verified, closed, skipped]
+        executed_at:
+          type: string
+          format: date-time
+          nullable: true
+        adr_id:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    ScanRule:
+      type: object
+      required: [rule_id, name, enabled, severity]
+      properties:
+        rule_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+        severity:
+          type: string
+          enum: [critical, warning, info]
+
+    HTTPValidationError:
+      type: object
+      title: HTTPValidationError
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+
+    ValidationError:
+      type: object
+      title: ValidationError
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type

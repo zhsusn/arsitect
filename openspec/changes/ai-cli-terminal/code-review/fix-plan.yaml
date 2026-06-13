@@ -1,0 +1,28 @@
+fix_plan:
+  id: FP-CR-2026-0613-ai-cli-terminal
+  change: ai-cli-terminal
+  based_on_review_report: CR-2026-0613-ai-cli-terminal
+  created_at: "2026-06-13T06:21:39+08:00"
+  status: no_blocking_fixes_required
+  issues: []
+  follow_up_tasks:
+    - id: FU-001
+      description: 接入真实认证系统后，将 `backend/app/api/v1/cli.py` 中 `_current_user_id()` 替换为正式依赖。
+      priority: low
+      owner: backend
+    - id: FU-002
+      description: 从会话或请求上下文中获取真实 project_id，移除 bug 模式下的硬编码。
+      priority: low
+      owner: backend
+    - id: FU-003
+      description: 将 AI Gateway mock 实现替换为真实 LLM 调用，并补充对应测试桩。
+      priority: medium
+      owner: backend
+    - id: FU-004
+      description: 前端 AI CLI 页面样式收敛到项目统一 UI 组件库或 Tailwind CSS。
+      priority: low
+      owner: frontend
+    - id: FU-005
+      description: 为 `useCliSession`、Terminal、CliCard 补充前端单元测试。
+      priority: low
+      owner: frontend

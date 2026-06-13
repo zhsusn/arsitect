@@ -1,0 +1,54 @@
+review_report:
+  id: CR-2026-0613-ai-cli-terminal
+  change: ai-cli-terminal
+  reviewer: code-review-pipeline
+  reviewed_at: "2026-06-13T06:21:39+08:00"
+  status: passed
+  summary: 本次变更完整实现了 AI CLI 终端的后端服务、REST/WebSocket 接口与前端交互页面。代码结构清晰，分层合理，已补充单元测试与集成测试，未发现阻塞性问题，准予通过。
+  findings:
+    - id: F-001
+      axis: architecture
+      severity: info
+      file: backend/app/api/v1/cli.py
+      line: 42-48
+      description: 认证依赖 `_current_user_id()` 为 MVP 占位实现，已在 known issues 中记录，不影响本次合并。
+      recommendation: 在身份认证模块就绪后替换为 `Depends(get_current_user_id)`。
+      blocking: false
+    - id: F-002
+      axis: correctness
+      severity: info
+      file: backend/app/api/v1/cli.py
+      line: 397
+      description: Bug 记录创建时硬编码 `project_id="project-mvp"`，当前符合 MVP 范围，但可能误导多项目场景。
+      recommendation: 后续从会话实体或请求参数中动态获取 project_id。
+      blocking: false
+    - id: F-003
+      axis: maintainability
+      severity: info
+      file: frontend/src/pages/AiCli/index.tsx
+      description: 页面组件中存在大量内联样式，可读性与可维护性尚可接受，但不符合项目长期样式规范。
+      recommendation: 后续迭代接入 Tailwind CSS 或项目统一组件库。
+      blocking: false
+    - id: F-004
+      axis: testing
+      severity: info
+      file: frontend/src/pages/AiCli/
+      description: 前端页面与 hooks 尚未补充自动化单元测试。
+      recommendation: 建议后续使用 Vitest + React Testing Library 补充 `useCliSession` 与组件快照测试。
+      blocking: false
+  blocking_issues: 0
+  non_blocking_issues:
+    - id: NBI-001
+      description: 将后端 `_current_user_id()` 替换为真实认证依赖。
+    - id: NBI-002
+      description: 移除 `project_id="project-mvp"` 硬编码。
+    - id: NBI-003
+      description: 前端 AI CLI 页面样式接入统一设计系统。
+    - id: NBI-004
+      description: 为前端 hooks 与组件补充单元测试。
+  coverage_summary:
+    backend_lines: "≥70%"
+    backend_status: passed
+    frontend_lines: "尚未统计"
+    frontend_status: pending
+    note: 后端单元测试覆盖 CliService、BugFixService、AIGateway 核心路径；集成测试覆盖会话、Bug、架构三条主链路。

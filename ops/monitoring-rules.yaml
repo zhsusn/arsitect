@@ -1,0 +1,188 @@
+# 监控规则骨架（V2.1 初始化生成）
+# 项目：Arsitect（AI Code 研发平台）
+# 阶段：初始化 / 后续由 monitoring-setup Skill 持续完善
+
+project: arsitect
+version: "1.0.0"
+generated_at: 2026-05-30
+
+# ---------------------------
+# 基础设施层监控
+# ---------------------------
+infrastructure:
+  - name: postgres-availability
+    target: PostgreSQL
+    type: metric
+    condition: up == 0
+    severity: critical
+    channel: pagerduty
+    runbook: ops/runbooks/postgres-recovery.md
+
+  - name: redis-availability
+    target: Redis
+    type: metric
+    condition: up == 0
+    severity: critical
+    channel: pagerduty
+    runbook: ops/runbooks/redis-recovery.md
+
+  - name: disk-usage
+    target: all-nodes
+    type: metric
+    condition: disk_usage > 85%
+    severity: warning
+    channel: slack-ops
+
+  - name: memory-usage
+    target: all-nodes
+    type: metric
+    condition: memory_usage > 80%
+    severity: warning
+    channel: slack-ops
+
+# ---------------------------
+# 应用层监控（FastAPI 后端）
+# ---------------------------
+application:
+  - name: api-error-rate
+    target: fastapi-app
+    type: metric
+    condition: rate(http_requests_total{status=~"5.."}[5m]) > 0.01
+    severity: critical
+    channel: pagerduty
+    runbook: ops/runbooks/api-error-spike.md
+
+  - name: api-latency-p99
+    target: fastapi-app
+    type: metric
+    condition: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 2.0
+    severity: warning
+    channel: slack-ops
+
+  - name: api-qps-spike
+    target: fastapi-app
+    type: metric
+    condition: rate(http_requests_total[1m]) > threshold * 2
+    severity: warning
+    channel: slack-ops
+
+  - name: fastapi-health-check
+    target: fastapi-app
+    type: probe
+    endpoint: /health
+    interval: 10s
+    timeout: 5s
+    severity: critical
+    channel: pagerduty
+
+# ---------------------------
+# 前端监控（React 19 + Vite 6）
+# ---------------------------
+frontend:
+  - name: frontend-error-rate
+    target: react-app
+    type: log
+    condition: "level=ERROR AND source=frontend"
+    threshold: "> 10/min"
+    severity: warning
+    channel: slack-ops
+
+  - name: core-web-vitals-lcp
+    target: react-app
+    type: rum
+    condition: LCP > 2.5s
+    severity: warning
+    channel: slack-ops
+
+  - name: core-web-vitals-cls
+    target: react-app
+    type: rum
+    condition: CLS > 0.1
+    severity: warning
+    channel: slack-ops
+
+# ---------------------------
+# 业务层监控（Arsitect 特有）
+# ---------------------------
+business:
+  - name: skill-execution-failure-rate
+    target: skill-engine
+    type: metric
+    condition: rate(skill_execution_total{status="failed"}[5m]) > 0.05
+    severity: critical
+    channel: pagerduty
+    runbook: ops/runbooks/skill-engine-recovery.md
+
+  - name: gate-timeout-pending
+    target: human-gate-service
+    type: metric
+    condition: human_gate_pending_duration > 48h
+    severity: warning
+    channel: slack-ops
+
+  - name: progress-ssot-drift
+    target: progress-tracker
+    type: log
+    condition: "event=SSOT_DRIFT_DETECTED"
+    severity: warning
+    channel: slack-ops
+
+  - name: llm-provider-error-rate
+    target: llm-gateway
+    type: metric
+    condition: rate(llm_requests_total{status="error"}[5m]) > 0.1
+    severity: critical
+    channel: pagerduty
+    runbook: ops/runbooks/llm-failover.md
+
+# ---------------------------
+# 安全与合规监控
+# ---------------------------
+security:
+  - name: hardcoded-secret-scan
+    target: codebase
+    type: scan
+    tool: gitleaks / trufflehog
+    schedule: "0 2 * * *"
+    severity: critical
+    channel: pagerduty
+
+  - name: dependency-vulnerability
+    target: all-packages
+    type: scan
+    tool: trivy / snyk
+    schedule: "0 3 * * 1"
+    severity: warning
+    channel: slack-ops
+
+# ---------------------------
+# 告警路由配置
+# ---------------------------
+alert_routes:
+  pagerduty:
+    service_key: "{PAGERDUTY_SERVICE_KEY}"
+    escalation_policy: "arsitect-oncall"
+  
+  slack-ops:
+    webhook_url: "{SLACK_OPS_WEBHOOK_URL}"
+    channel: "#arsitect-alerts"
+
+# ---------------------------
+# 可观测性配置（OpenTelemetry + Jaeger）
+# ---------------------------
+observability:
+  tracing:
+    enabled: true
+    exporter: otlp
+    endpoint: "http://jaeger-collector:4317"
+    sampling_rate: 0.1
+  
+  metrics:
+    enabled: true
+    exporter: prometheus
+    scrape_interval: 15s
+  
+  logs:
+    enabled: true
+    exporter: elasticsearch
+    index_pattern: "arsitect-logs-{YYYY.MM.dd}"

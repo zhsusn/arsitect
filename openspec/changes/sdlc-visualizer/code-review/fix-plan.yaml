@@ -1,0 +1,112 @@
+fix_plan:
+  task_id: "task-integration-test-suite"
+  total_issues: 9
+  blocking: 0
+  important: 4
+  nit: 3
+  suggestion: 2
+  items:
+    - id: I3
+      severity: important
+      action: fix
+      approach: >
+        将 test_sync4~8 的 seeded fixture 中硬编码 SQL 表名替换为 ORM delete() 构造器引用。
+        例如：text("DELETE FROM binding_rules") → delete(BindingRule)。
+        需在每个文件顶部补充对应模型的导入。
+      files:
+        - "backend/tests/integration/test_sync4_binding.py"
+        - "backend/tests/integration/test_sync5_bypass.py"
+        - "backend/tests/integration/test_sync6_openui.py"
+        - "backend/tests/integration/test_sync7_sketch.py"
+        - "backend/tests/integration/test_sync8_wireframe.py"
+      test_required: true
+      estimated_time: "10min"
+
+    - id: I4
+      severity: important
+      action: fix
+      approach: >
+        在 test_sync4~8 的 seeded fixture return 前调用 session.expunge(proj)（及 plan），
+        使 ORM 对象在 session 关闭后仍保持已加载的标量属性可访问，避免未来访问 relationship 时触发
+        DetachedInstanceError。
+      files:
+        - "backend/tests/integration/test_sync4_binding.py"
+        - "backend/tests/integration/test_sync5_bypass.py"
+        - "backend/tests/integration/test_sync6_openui.py"
+        - "backend/tests/integration/test_sync7_sketch.py"
+        - "backend/tests/integration/test_sync8_wireframe.py"
+      test_required: true
+      estimated_time: "10min"
+
+    - id: I2
+      severity: important
+      action: fix
+      approach: >
+        重构 conftest.py db_session fixture：移除 `async with session.begin()` context manager，
+        改为显式 `await session.begin()` + `yield session` + `await session.rollback()`，
+        消除事务管理逻辑冗余。
+      files:
+        - "backend/tests/conftest.py"
+      test_required: true
+      estimated_time: "10min"
+
+    - id: I1
+      severity: important
+      action: fix
+      approach: >
+        将 test_sync1~3 迁移至与 test_sync4~8 一致的 fixture-based 模式：
+        1) 移除模块级 client = TestClient(app)；2) 为每个测试类添加 seeded fixture；
+        3) 测试函数签名注入 client 和 seeded fixture。
+        保持现有测试逻辑不变，仅调整基础设施使用方式。
+      files:
+        - "backend/tests/integration/test_sync1_baseline.py"
+        - "backend/tests/integration/test_sync2_execution.py"
+        - "backend/tests/integration/test_sync3_advanced.py"
+      test_required: true
+      estimated_time: "20min"
+
+    - id: N1
+      severity: nit
+      action: defer
+      defer_reason: "将在 I1 统一模式时自然解决，无需单独处理"
+      follow_up_task: "I1"
+
+    - id: N2
+      severity: nit
+      action: fix
+      approach: >
+        将 test_sync5_bypass.py 中 authorizer_token: "x" * 32 改为带语义注释的测试数据，
+        说明 32 位长度要求。
+      files:
+        - "backend/tests/integration/test_sync5_bypass.py"
+      test_required: false
+      estimated_time: "2min"
+
+    - id: N3
+      severity: nit
+      action: defer
+      defer_reason: "提取通用 fixture 属于重构优化，不阻塞合并，可在后续迭代中处理"
+      follow_up_task: "task-refactor-common-fixtures"
+
+    - id: S1
+      severity: suggestion
+      action: defer
+      defer_reason: "同 I1，模式统一后自然完成"
+      follow_up_task: "I1"
+
+    - id: S2
+      severity: suggestion
+      action: defer
+      defer_reason: "class-scoped fixture 优化属于性能调优，不影响正确性，后续迭代处理"
+      follow_up_task: "task-refactor-common-fixtures"
+
+  execution_order: ["I3", "I4", "I2", "N2", "I1"]
+  defer_items:
+    - id: N1
+      reason: "将在 I1 统一模式时自然解决"
+    - id: N3
+      reason: "通用 fixture 提取属于非阻塞重构"
+    - id: S1
+      reason: "同 I1"
+    - id: S2
+      reason: "性能优化非阻塞"

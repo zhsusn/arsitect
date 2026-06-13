@@ -1,0 +1,135 @@
+review_report:
+  task_id: "task-integration-test-suite"
+  overall: "Request Changes"
+  summary: >
+    集成测试套件结构清晰、契约一致、全量通过。但存在 4 项 Important 级维护性问题：
+    (1) test_sync1~3 与 test_sync4~8 测试模式不一致；
+    (2) db_session fixture 事务管理冗余；
+    (3) 硬编码 SQL 表名；
+    (4) fixture 返回 detached ORM 对象隐患。
+    建议修复后合并，Nit 和 Suggestion 可在后续迭代处理。
+  phases:
+    phase1_context: >
+      理解正确：在 FastAPI + SQLAlchemy async + SQLite :memory: 环境下，为 Binding/Bypass/OpenUI/Sketch/Wireframe
+      五个模块补充端到端集成测试。核心挑战是 Service 层使用 flush() 而非 commit()，导致标准 TestClient
+      跨请求数据不可见。解决方案为 conftest.py 新增 client fixture，通过 app.dependency_overrides[get_db]
+      注入共享 async session，使同一内存数据库连接上的 flush 数据对后续 HTTP 请求可见。
+    phase2_high_level: >
+      测试架构合理：集成测试与单元测试物理隔离（tests/integration/ vs tests/unit/），每个模块独立文件，
+      遵循统一 CRUD+边界模式。但架构演进痕迹明显：test_sync1~3 沿用早期模式（模块级 client、测试内 seed），
+      test_sync4~8 采用新模式（fixture client、fixture seed）。两种模式共存增加了理解成本，且旧模式
+      未利用共享 session 机制，虽因 commit() 而仍能工作，但隐式依赖底层 StaticPool 共享连接，非显式契约。
+    phase3_line_by_line: >
+      发现 4 项 Important 级问题、3 项 Nit、2 项 Suggestion。逐文件关键发现如下：
+      - conftest.py: db_session 中 `async with session.begin(): yield session` 与外部 `await session.rollback()`
+        双重事务管理，存在逻辑冗余；client fixture 设计优雅，teardown 清理完整。
+      - test_sync4~8: seeded fixture 中 `text("DELETE FROM binding_rules")` 等硬编码表名，与 ORM 模型解耦；
+        fixture return 后 session 已关闭，返回的 Project 对象处于 detached 状态；DELETE 清理在每个测试前执行，
+        但未覆盖测试中途异常导致的残留数据。
+      - test_sync1~3: 模块级 `client = TestClient(app)` 未覆盖 get_db，与 test_sync4~8 注入方式不一致；
+        seed 后直接 commit()，依赖 StaticPool 隐式共享而非显式 session 共享。
+    phase4_summary: >
+      测试链路完整（Create→List→Get→Update→Delete+边界），契约与 openapi.yaml 一致，ID 连续（TEST-1501~1516），
+      文档完善。基础设施改进（共享 session client）解决了核心阻塞问题。代码重复率可控，但模式不统一和硬编码
+      表名是主要技术债务，应在合并前清理。
+  issues:
+    important:
+      - id: I1
+        phase: "phase2"
+        axis: "maintainability"
+        file: "tests/integration/test_sync1_baseline.py, test_sync2_execution.py, test_sync3_advanced.py"
+        line: "14, 17, 15"
+        desc: "test_sync1~3 使用模块级 client = TestClient(app)，与 test_sync4~8 的 fixture-based 共享 session 模式不一致"
+        suggest: >
+          统一为 fixture-based 模式：移除模块级 client，改为注入 conftest.py 的 client fixture；
+          将测试内 seed 逻辑提取为 fixture。确保所有集成测试使用同一套基础设施。
+        rationale: "模式分裂增加维护成本，新开发者难以判断应遵循哪种规范。旧模式隐式依赖 StaticPool 共享连接，非显式契约。"
+      - id: I2
+        phase: "phase3"
+        axis: "correctness"
+        file: "tests/conftest.py"
+        line: "82~87"
+        desc: "db_session fixture 事务管理冗余：session.begin() context manager 已管理事务生命周期，外部又调用 rollback()"
+        suggest: >
+          重构为单一模式：若需手动控制，移除 `async with session.begin()`，改为 `await session.begin()` + `yield session` +
+          显式 `await session.rollback()`；若依赖 context manager，移除外部 rollback()，利用 begin() 的自动回滚。
+        rationale: "双重事务管理可能导致 session 已关闭后调用 rollback() 的警告或异常，且逻辑混乱。"
+      - id: I3
+        phase: "phase3"
+        axis: "maintainability"
+        file: "tests/integration/test_sync4_binding.py, test_sync5_bypass.py, test_sync6_openui.py, test_sync7_sketch.py, test_sync8_wireframe.py"
+        line: "33~35, 32~35, 33~35, 33~35, 33~35"
+        desc: "seeded fixture 中硬编码数据库表名（DELETE FROM binding_rules / bypass_records / open_ui_specs / sketches / wireframes）"
+        suggest: >
+          使用 ORM 模型类属性引用表名，例如 `text(f'DELETE FROM {BindingRule.__tablename__}')`，
+          或直接使用 `session.query(BindingRule).delete()` 的 ORM 方式清理。
+        rationale: "硬编码表名与模型定义解耦，若 __tablename__ 变更（如复数形式调整），测试会静默失败或残留脏数据。"
+      - id: I4
+        phase: "phase3"
+        axis: "correctness"
+        file: "tests/integration/test_sync4_binding.py, test_sync5_bypass.py, test_sync6_openui.py, test_sync7_sketch.py, test_sync8_wireframe.py"
+        line: "54, 64, 54, 54, 54"
+        desc: "seeded fixture return 后 async session context 已退出，返回的 ORM 对象处于 detached 状态"
+        suggest: >
+          在 fixture 中使用 `await session.refresh(proj)` 确保数据已加载，或返回纯数据（如 project_id 字符串）
+          而非 ORM 对象。当前测试中仅访问 project_id（已加载的标量属性），暂无实际故障，但存在隐患。
+        rationale: "Detached 对象访问未加载的 relationship 或 deferred 属性时会触发 DetachedInstanceError，是潜伏 bug。"
+    nit:
+      - id: N1
+        phase: "phase3"
+        axis: "maintainability"
+        file: "tests/integration/test_sync1_baseline.py, test_sync2_execution.py, test_sync3_advanced.py"
+        line: "21~51, 24~83, 22~61"
+        desc: "test_sync1~3 缺少表级清理，测试数据在共享内存数据库中累积"
+        suggest: "添加与 test_sync4~8 类似的 DELETE 清理逻辑，或统一使用 fixture 管理生命周期。"
+      - id: N2
+        phase: "phase3"
+        axis: "readability"
+        file: "tests/integration/test_sync5_bypass.py"
+        line: "81"
+        desc: "authorizer_token 使用 'x' * 32 缺乏语义，读者无法判断这是有效格式还是占位符"
+        suggest: "添加注释说明 32 位长度要求，或使用语义化测试数据如 'test-token-32chars-long-xxxxxx'。"
+      - id: N3
+        phase: "phase3"
+        axis: "performance"
+        file: "tests/integration/test_sync4_binding.py, test_sync5_bypass.py, test_sync6_openui.py, test_sync7_sketch.py, test_sync8_wireframe.py"
+        line: "29~54, 28~64, 29~54, 29~54, 29~54"
+        desc: "每个测试类重复定义几乎相同的 seeded fixture，仅 application_id / project_id / 表名不同"
+        suggest: "提取通用参数化 fixture 到 conftest.py，通过 pytest fixture params 或 indirect 参数化区分模块。"
+    suggestion:
+      - id: S1
+        phase: "phase2"
+        axis: "maintainability"
+        desc: "将 test_sync1~3 迁移至 fixture-based 模式，彻底消除架构演进痕迹"
+      - id: S2
+        phase: "phase3"
+        axis: "performance"
+        desc: "考虑将 seeded fixture 提升为 class-scoped，减少每个测试函数重复创建 Application+Project 的开销"
+    praise:
+      - id: P1
+        phase: "phase3"
+        axis: "correctness"
+        desc: "测试链路完整：每个模块覆盖 CREATE→LIST→GET→UPDATE→DELETE 及异常/空列表边界，无遗漏"
+      - id: P2
+        phase: "phase1"
+        axis: "readability"
+        desc: "文档完善：每个测试方法包含 TEST-ID、覆盖的 AC、Policy 说明，docstring 规范统一"
+      - id: P3
+        phase: "phase2"
+        axis: "correctness"
+        desc: "client fixture 优雅解决 flush/commit 隔离问题：dependency_overrides + shared_session + 完整 teardown"
+      - id: P4
+        phase: "phase3"
+        axis: "readability"
+        desc: "广泛使用类型注解（client: TestClient, seeded_project: Project），增强 IDE 支持和代码可读性"
+  strengths:
+    - "契约一致性优秀：所有 URL、字段、状态码与 openapi.yaml 对齐，无硬编码内部类名/方法名"
+    - "测试 ID 空间规划良好：TEST-1501~1516 与单元测试连续，无重复"
+    - "Green Mirage Audit 通过：无非空断言、无过度 mock、无恒真断言"
+    - "覆盖率优异：集成测试全量运行 92.79%，远超 70% 门控"
+  assessment: >
+    建议：修复 I1（统一模式）、I2（清理事务冗余）、I3（消除硬编码表名）、I4（处理 detached 状态）后合并。
+    N1~N3 和 S1~S2 可在后续迭代中处理，不阻塞合并。本次审查不通过的唯一原因是模式分裂和硬编码表名
+    属于技术债务，应在进入主干前清理。
+  dead_code_identified: []
+  new_dependencies: []

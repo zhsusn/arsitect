@@ -1,0 +1,798 @@
+调研了一圈，2026 年开源生态里出现了几个与 arsitect 定位高度同频的项目。结论是：GTPlanner 借鉴架构、OpenUI 依赖服务、Wireframe 借鉴模式自研，同时必须引入 C4 InterFlow 作为架构基础设施。
+一、调研补充：三个不可忽视的开源方案
+1. C4 InterFlow —— 架构即代码的基础设施（必看）
+这是本次调研最关键的补充。C4 InterFlow 是一个开源的 Architecture as Code (AaC) 框架，直接支持：
+DSL 描述架构：用 C# / YAML / JSON 定义 C4 模型的 Structure + Interface + Flow
+从代码反向生成：扫描 C# 源码自动生成 Architecture as Code（可扩展到其他语言）
+CLI 批量出图：一条命令生成 C4 Context / Container / Component 图 + 序列图 + 文档
+CI/CD 原生：GitHub Actions 里自动渲染架构图并发布到 GitHub Pages
+架构查询：JSONPath-like 语法查询依赖关系，做影响分析
+它与 arsitect 的契合度极高——arsitect 追求的"架构设计+代码生成"闭环，C4 InterFlow 已经解决了架构模型与代码之间的鸿沟问题。
+2. Coco Workflow —— 自适应复杂度路由（值得借鉴）
+Coco Workflow 是一个面向 Claude Code 的自主 spec-driven 开发插件，其自适应复杂度路由机制非常精妙：
+表格
+复杂度层级	触发信号	执行路径
+Trivial	单文件、bug fix	hotfix — 无 epic，无仪式
+Light	1-3 文件、单故事	Design + import — 跳过任务分解
+Standard	多文件、有依赖	完整流水线：interview → design → tasks → import
+arsitect 完全可以借鉴这个思想：简单需求走"快速架构草图"，复杂需求走"完整 C4 + 接口契约 + 原型验证"。
+3. OpenHands —— 全自动代码执行器（可选依赖）
+OpenHands（原 OpenDevin）采用 CodeAct 架构，将 Bash、Python、Browser 统一为动作空间，在 Docker 沙箱中自主执行。SWE-bench 验证性能达到 77%。
+arsitect 不需要自己实现代码生成，但可以把 OpenHands 作为可选执行器：Context Package 输出后，直接喂给 OpenHands 做全自动施工。
+二、三工具策略决策：借鉴 vs 融合 vs 依赖
+表格
+工具	策略	决策理由	arsitect 中的角色
+GTPlanner	借鉴（架构思想）	其 PocketFlow 节点生命周期（prep-exec-post）和 StageGate 机制是通用编排范式，但 GTPlanner 是通用规划工具（写 PRD、做调研），没有 C4 模型、接口契约、领域驱动等软件架构专用节点。直接融合会导致节点语义不匹配。	提取编排内核，自研 ArchitectNode 体系
+OpenUI	依赖服务（Docker + API）	OpenUI 是成熟的前端原型渲染引擎，多框架（React/Vue/Svelte）、实时预览、Docker 一键部署。arsitect 不需要自己实现"自然语言 → 前端代码"的复杂管线，直接调用 HTTP API 即可。	作为 PrototypeGenerator 的渲染后端
+AI Wireframe Generator	借鉴（LangGraph 模式）+ 自研	其"需求解析→布局规划→SVG 渲染"的 LangGraph 多 Agent 流水线值得借鉴，但通用 Wireframe 无法自动将 C4 Container 映射到页面（如"RiskControl Service"对应"风控仪表盘"）。arsitect 需要领域感知的线框引擎。	自研 WireframeEngine，参考其 Agent 编排模式
+三、为什么 GTPlanner 不能融合或依赖？
+GTPlanner 的设计目标是通用项目规划（任何行业、任何项目类型），而 arsitect 是软件架构专用编排器。两者在节点语义上存在根本差异：
+表格
+维度	GTPlanner 节点	arsitect 需要的节点
+规划对象	通用任务、里程碑、资源	C4 Context/Container/Component、领域实体、聚合根
+技术栈推荐	基于向量检索匹配通用工具	基于架构特征匹配框架（如"微服务+事件驱动"→Kafka+Spring Cloud）
+输出格式	Markdown PRD、调研报告	PlantUML C4 图、OpenAPI YAML、DDL SQL、架构决策记录 ADR
+反馈循环	用户说"这里不对"	原型点击发现接口缺失，自动回退到 ContractDesigner
+如果直接依赖 GTPlanner：你需要在它的通用节点上套一层"软件架构翻译器"，复杂度反而更高。不如借鉴其PocketFlow 三阶段生命周期 + Shared Store + Action 驱动流转的架构思想，自己实现 arsitect-orchestrator。
+四、为什么 OpenUI 应该依赖服务？
+OpenUI 的定位是前端原型生成专家，它的核心能力（自然语言 → 多框架组件代码 → 实时预览）与 arsitect 的架构设计主线正交：
+arsitect 不需要理解 React/Vue 的组件化细节
+arsitect 不需要维护前端代码生成模型
+arsitect 只需要输入：页面描述 + 组件清单 + 数据流约束；输出：可交互 HTML 原型
+集成方式：
+yaml
+# arsitect/config.yaml
+services:
+  openui:
+    endpoint: "http://openui:7878/api/generate"
+    timeout: 120
+    output_formats: ["html", "react"]
+    max_pages_per_batch: 5
+arsitect 的 PrototypeGenerator 将 C4 Container 图和接口契约转换为 OpenUI 可理解的提示词，通过 HTTP 调用获取原型代码。这是成本最低、效果最好的策略。
+五、为什么 Wireframe 要借鉴+自研？
+AI Wireframe Generator 的LangGraph 多 Agent 架构（需求解析 Agent → 布局规划 Agent → SVG 渲染 Agent）是优秀的工程实践，值得借鉴。但直接依赖它有两个致命问题：
+无领域感知：它不知道"RiskControl Bounded Context"应该对应"风控仪表盘"页面，也不知道"Device Aggregate"应该对应"设备列表+详情"页面结构
+无架构关联：它生成的线框图是独立产物，无法反向验证是否覆盖了 C4 Component 的所有接口
+arsitect 的自研方案：
+Agent 1: DomainMapper：读取 domain_model.json + c4_container.json，映射领域实体到页面（如 Device → 设备管理页：列表/详情/编辑）
+Agent 2: LayoutPlanner：基于页面类型（列表页/详情页/仪表盘）选择布局模式，生成 SVG 坐标
+Agent 3: NavigationLinker：根据 C4 接口依赖关系，建立页面跳转（如"点击设备 → 跳转设备详情 → 调用 GET /api/v1/devices/{id}"）
+这样线框图天生与架构模型绑定，评审时可以直接检查"这个页面是否漏了某个接口"。
+六、C4 InterFlow 的引入策略：融合
+C4 InterFlow 是 arsitect 必须融合的基础设施，因为它填补了 arsitect 架构设计中最硬核的空白：
+表格
+arsitect 需求	C4 InterFlow 能力	融合方式
+C4 模型即代码	YAML/JSON DSL 定义架构	直接采用其 DSL 作为 arsitect-aac 格式
+从架构生成图	CLI draw-diagrams 生成 PlantUML/SVG/PNG	封装为 C4DiagramEngine 服务
+架构查询分析	JSONPath-like 查询依赖关系	集成到 ArchitectureValidator
+CI/CD 发布	GitHub Actions 自动渲染	直接复用其流水线模板
+融合方式：不是 Fork 改造，而是作为依赖库/CLI 工具集成到 arsitect 的 ArchitectureGenerator 节点中。arsitect 生成 YAML 格式的架构模型，调用 C4 InterFlow CLI 渲染成图。
+七、arsitect 的「四层借鉴+依赖」架构
+Mermaid
+代码
+预览
+flowchart TD
+    subgraph Layer1 [Layer 1: 编排内核 — 借鉴 GTPlanner]
+        A1[PocketFlow 三阶段<br/>prep-exec-post]
+        A2[StageGateController<br/>action 驱动流转]
+        A3[Shared Store<br/>ProjectState YAML]
+        A4[多轮反馈循环<br/>self-check → feedback]
+    end
+    
+    subgraph Layer2 [Layer 2: 架构基础设施 — 融合 C4 InterFlow]
+        B1[Architecture as Code<br/>YAML/JSON DSL]
+        B2[C4 Diagram Engine<br/>CLI 渲染]
+        B3[Architecture Query<br/>依赖分析]
+    end
+    
+    subgraph Layer3 [Layer 3: 原型验证 — 依赖 OpenUI + 自研 Wireframe]
+        C1[OpenUI Service<br/>Docker HTTP API]
+        C2[WireframeEngine<br/>LangGraph 多 Agent]
+        C3[PrototypeVerifier<br/>接口覆盖度检查]
+    end
+    
+    subgraph Layer4 [Layer 4: 代码执行 — 可选依赖 OpenHands]
+        D1[Context Package 组装]
+        D2[OpenHands / Claude Code<br/>全自动施工]
+    end
+    
+    Layer1 --> Layer2
+    Layer2 --> Layer3
+    Layer3 --> Layer4
+    
+    style Layer1 fill:#e3f2fd,stroke:#1976d2
+    style Layer2 fill:#e8f5e9,stroke:#2e7d32
+    style Layer3 fill:#fff3e0,stroke:#ef6c00
+    style Layer4 fill:#fce4ec,stroke:#c62828
+八、实施优先级建议
+表格
+优先级	事项	策略	工作量	关键产出
+P0	引入 C4 InterFlow 作为架构基础设施	融合	3 天	arsitect-aac DSL + CLI 渲染
+P1	实现 PocketFlow 式编排内核	借鉴 GTPlanner	1 周	ArchitectNode + StageGateController
+P2	接入 OpenUI 原型服务	依赖服务	2 天	OpenUIAdapter + Docker Compose
+P3	自研领域感知 WireframeEngine	借鉴 Wireframe	1 周	三 Agent 线框流水线
+P4	集成 Coco 式复杂度路由	借鉴 Coco	3 天	ComplexityRouter（Trivial/Light/Standard）
+P5	可选接入 OpenHands 执行器	依赖服务	2 天	OpenHandsExecutor
+如果你确认这个分层策略，我可以直接输出：
+arsitect-aac YAML Schema（融合 C4 InterFlow）
+ArchitectNode 的 PocketFlow 接口定义
+OpenUIAdapter 的提示词转换器代码草案
+
+
+
+引用
+调研C4 InterFlow，Coco Workflow，OpenHands  三个开源方案后，arsitect 的整体架构方案需要做哪些调整
+编辑
+复制
+分享
+InterFlow驱动arsitect
+基于对 C4 InterFlow、Coco Workflow、OpenHands 的深度调研，arsitect 的整体架构需要从「线性流水线」升级为「自适应复杂度 + 架构即代码 + 双向闭环」的立体架构。以下是必须做的 6 项核心调整：
+一、调整总览：从「固定五阶段」到「自适应架构引擎」
+表格
+维度	调整前（基于 GTPlanner 映射）	调整后（融合三方案）	调整原因
+架构模型	自定义 JSON/YAML 描述 C4	C4 InterFlow DSL 作为核心 AaC 格式	获得从代码反向生成、架构查询、CI 渲染的完整能力
+流程编排	固定 5 阶段流水线（Domain→Sketch→Tech→Validate→Design）	Coco 式复杂度路由：Trivial / Light / Standard / Deep	简单需求不走完整仪式，复杂需求自动展开深度调研
+代码执行	Claude Code / Aider / Cursor 三选一	增加 OpenHands 作为 L5 全自动沙箱执行器	需要无人值守、带安全隔离的自动施工能力
+架构验证	SelfCheck 做文档一致性检查	增加 C4 InterFlow 架构查询 + 代码反向生成对比	检测「架构漂移」：代码实现是否偏离架构设计
+原型验证	OpenUI + Wireframe 独立验证	原型验证后 自动回写 C4 InterFlow DSL	确保原型发现的接口缺口直接同步到架构模型
+CI/CD 集成	无	内置 C4 InterFlow CLI 渲染流水线	架构图随代码提交自动更新，架构文档即代码
+二、调整 1：架构模型层 —— 全面采用 C4 InterFlow DSL
+2.1 为什么必须换底座？
+C4 InterFlow 不是「又一个画图工具」，而是架构即代码（Architecture as Code）的基础设施。它提供了 arsitect 最缺失的硬核能力：
+表格
+C4 InterFlow 能力	arsitect 之前缺失	补全后的价值
+DSL 定义架构	用自定义 JSON 描述 C4，无标准	采用社区标准 AaC，可扩展、可校验
+从代码反向生成	架构→代码单向流动	代码生成后，反向扫描生成 C4 图，做架构漂移检测
+架构查询引擎	无法做影响分析	$.components[?(@.technology=='Spring Boot')] 查询依赖
+CLI 批量渲染	依赖 PlantUML 在线服务	本地 CLI 生成 SVG/PNG/Mermaid，CI 友好
+多语言扩展	只支持概念层	可扩展扫描 Java/Go/Python 源码自动生成 Component 图
+2.2 数据模型调整
+调整前：
+yaml
+# 自定义格式，arsitect 自己维护
+architecture:
+  c4_container: "c4_container.puml"
+  modules:
+    - name: "risk-control-service"
+      type: "microservice"
+调整后：
+yaml
+# C4 InterFlow DSL，标准化 + 可渲染 + 可查询
+architecture:
+  aac_format: "c4-interflow"
+  dsl_file: "arsitect.aac.yml"
+  
+  # arsitect 扩展字段
+  design_constraints:
+    - "所有服务必须无状态"
+    - "数据库分库分键: tenant_id"
+arsitect.aac.yml 示例（C4 InterFlow 标准格式）：
+yaml
+# 采用 C4 InterFlow DSL
+structures:
+  - id: RiskControlService
+    type: container
+    name: "风控服务"
+    description: "设备融资风控评分与预警"
+    technology: "Spring Boot"
+    tags: ["microservice", "core-domain"]
+    
+  - id: RiskControlDatabase
+    type: container
+    name: "风控数据库"
+    description: "评分卡规则与预警记录"
+    technology: "PostgreSQL"
+    
+interfaces:
+  - id: SubmitApplication
+    type: http
+    path: "/api/v1/financing/applications"
+    method: "POST"
+    source: WebApp
+    target: RiskControlService
+    
+flows:
+  - id: DeviceOverdueAlert
+    description: "设备逾期预警流程"
+    steps:
+      - from: GPSTrackingService
+        to: RiskControlService
+        action: "publish OverdueEvent"
+      - from: RiskControlService
+        to: NotificationService
+        action: "send alert"
+2.3 新增「架构漂移检测」节点
+利用 C4 InterFlow 的反向生成能力，在代码生成后执行：
+Mermaid
+代码
+预览
+flowchart LR
+    A[arsitect 设计架构<br/>arsitect.aac.yml] --> B[AI Code 平台生成代码]
+    B --> C[C4 InterFlow 反向扫描<br/>从代码生成实际架构]
+    C --> D[架构对比引擎]
+    D -->|一致| E[通过，继续]
+    D -->|偏离| F[架构漂移报告<br/>缺少接口/新增未授权依赖]
+    F --> G[自动回退到 DetailDesigner<br/>修复架构或代码]
+三、调整 2：编排层 —— 引入 Coco 式复杂度路由
+3.1 为什么固定流水线是浪费？
+Coco Workflow 的核心洞察：不是所有需求都值得完整仪式。一个字段修改和一个新微服务不应该走同样的流程。
+3.2 复杂度路由矩阵
+表格
+复杂度	触发条件	arsitect 执行路径	跳过的阶段
+Trivial	单文件修改、bug fix、字段调整	hotfix → 直接生成 Context Package → 调用 AI Code 平台	跳过 DomainParser、C4 建模、原型验证
+Light	1-3 文件、单页面、单接口	design+import → 轻量架构草图（C4 Container 一层）→ 直接生成	跳过深度技术调研、兼容性验证
+Standard	新模块、多接口、有状态机	完整流水线：Domain → C4 Context → C4 Container → TechStack → API 契约 → 原型验证	无跳过
+Deep	新领域、核心系统重构、跨服务架构	完整流水线 + C4 InterFlow 架构查询 + OpenHands 沙箱验证 + 架构漂移检测	增加反向验证
+3.3 路由决策器实现
+Python
+# arsitect/orchestrator/complexity_router.py
+class ComplexityRouter:
+    def route(self, requirement: Requirement) -> ExecutionPath:
+        signals = self.analyze_signals(requirement)
+        
+        if signals.file_count <= 1 and signals.no_new_entities:
+            return HotfixPath()  # Trivial
+            
+        elif signals.file_count <= 3 and signals.single_bounded_context:
+            return LightPath()   # Light，C4 Container 一层即可
+            
+        elif signals.has_new_domain or signals.cross_service:
+            return DeepPath()    # Deep，完整+反向验证
+            
+        else:
+            return StandardPath() # Standard
+四、调整 3：执行层 —— 引入 OpenHands 作为沙箱执行器
+4.1 OpenHands 的不可替代性
+OpenHands（原 OpenDevin）的 CodeAct 架构 将动作空间统一为代码执行，在 Docker 沙箱中自主完成：
+文件读写（Edit/Write）
+命令执行（Bash）
+浏览器操作（Browser）
+代码搜索（Grep）
+SWE-bench 验证性能 77%，这意味着它在真实代码库上解决 issue 的能力已经成熟。
+4.2 与现有执行器的对比
+表格
+执行器	自动化等级	安全隔离	适用场景	arsitect 角色
+Claude Code	L5	❌（本地文件系统）	开发者本地快速迭代	首选日常执行器
+Aider	L5	❌（本地 Git 仓库）	批量修改、CI 集成	批量重构执行器
+OpenHands	L5	✅（Docker 沙箱）	无人值守、高风险操作、架构验证	安全沙箱执行器
+4.3 arsitect 中的 OpenHands 集成
+OpenHands 不是替代 Claude Code，而是特定场景的安全兜底：
+Mermaid
+代码
+预览
+flowchart TD
+    A[arsitect 生成 Context Package] --> B{复杂度 + 风险判断}
+    
+    B -->|低风险 / 日常开发| C[Claude Code / Aider]
+    B -->|高风险 / 无人值守 / 架构验证| D[OpenHands Docker 沙箱]
+    
+    C --> E[代码写入本地仓库]
+    D --> F[代码写入沙箱<br/>自动测试 + 架构扫描]
+    
+    F --> G[C4 InterFlow 反向生成<br/>对比架构设计]
+    G -->|漂移检测通过| H[合并到主仓库]
+    G -->|漂移检测失败| I[丢弃沙箱<br/>回退修复]
+    
+    style D fill:#e8f5e9,stroke:#2e7d32
+    style F fill:#e8f5e9,stroke:#2e7d32
+典型场景：
+架构验证：让 OpenHands 在沙箱中按 Context Package 生成完整代码，C4 InterFlow 反向扫描验证架构一致性，通过后才允许合并
+夜间批处理：复杂模块的代码生成放在夜间，OpenHands 无人值守执行，早上看架构漂移报告
+五、调整 4：验证层 —— 架构查询 + 一致性引擎
+5.1 利用 C4 InterFlow 查询能力
+之前 SelfCheck 只能做文本一致性检查，现在可以基于架构模型做结构化查询：
+yaml
+# arsitect 架构验证规则
+validation_rules:
+  - name: "所有微服务必须有数据库"
+    query: "$.structures[?(@.type=='container' && @.tags contains 'microservice')]"
+    assert: "each has interface to type='database'"
+    
+  - name: "核心领域必须有 API 契约"
+    query: "$.structures[?(@.tags contains 'core-domain')]"
+    assert: "each has interfaces with type='http'"
+    
+  - name: "无循环依赖"
+    query: "cycles in flows"
+    assert: "count == 0"
+5.2 原型-架构双向绑定增强
+之前原型验证后需要人工反馈，现在利用 C4 InterFlow DSL 的可修改性：
+Mermaid
+代码
+预览
+flowchart LR
+    A[OpenUI 原型] --> B[用户点击"批量导入设备"]
+    B --> C{api.yaml 中有此接口?}
+    C -->|无| D[自动修改 arsitect.aac.yml<br/>新增 SubmitBatchDevices 接口]
+    D --> E[自动重新渲染 C4 Component 图]
+    E --> F[标记架构变更<br/>等待 Gate 评审]
+    
+    style D fill:#e1f5fe,stroke:#0277bd
+六、调整 5：CI/CD 层 —— 架构文档即代码
+6.1 内置 C4 InterFlow 渲染流水线
+arsitect 项目初始化时，自动生成 GitHub Actions 配置：
+yaml
+# .github/workflows/arsitect-render.yml
+name: Architecture Render
+on:
+  push:
+    paths:
+      - 'arsitect.aac.yml'  # 架构模型变更时触发
+      - 'src/**'             # 代码变更时触发反向生成
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # 1. 正向渲染：从 DSL 生成架构图
+      - name: Render C4 Diagrams
+        run: |
+          c4-interflow draw-diagrams --aac-file arsitect.aac.yml --output docs/architecture/
+      
+      # 2. 反向生成：从代码扫描更新架构（可选）
+      - name: Reverse Engineer
+        run: |
+          c4-interflow reverse-engineer --source src/ --output arsitect.actual.yml
+      
+      # 3. 架构漂移检测
+      - name: Architecture Drift Check
+        run: |
+          arsitect verify --design arsitect.aac.yml --actual arsitect.actual.yml
+      
+      # 4. 发布到 GitHub Pages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/architecture/
+效果：每次代码提交，架构图自动更新；如果代码实现偏离架构设计，CI 直接失败。
+七、调整后的 arsitect 整体架构
+plain
+┌─────────────────────────────────────────────────────────────┐
+│                    arsitect Platform                         │
+│         Architecture-First, Code-Second, Drift-Proof        │
+├─────────────────────────────────────────────────────────────┤
+│  交互层                                                       │
+│  ├── Project Dashboard (项目看板)                            │
+│  ├── Complexity Router (复杂度路由面板)                       │
+│  │   └── Trivial / Light / Standard / Deep 可视化           │
+│  ├── C4 Interactive Navigator (C4 层级穿透)                  │
+│  │   └── 点击 Container → 查看 Component → 查看 Code         │
+│  └── Prototype + Review (原型 + 批注)                        │
+├─────────────────────────────────────────────────────────────┤
+│  编排层 (借鉴 GTPlanner + Coco Workflow)                     │
+│  ├── ComplexityRouter (复杂度路由)                            │
+│  │   └── 基于信号自动选择执行路径                             │
+│  ├── StageGateController (门控)                              │
+│  │   └── proceed / feedback / block / drift                  │
+│  ├── ArchitectNode (PocketFlow 三阶段)                      │
+│  │   └── prep → exec → post                                  │
+│  └── FeedbackLoop (多轮反馈 + 架构漂移检测)                  │
+├─────────────────────────────────────────────────────────────┤
+│  架构引擎层 (融合 C4 InterFlow)                              │
+│  ├── DomainParser (领域解析)                                 │
+│  ├── C4ModelManager (C4 InterFlow DSL 管理)                 │
+│  │   ├── 正向渲染: DSL → PlantUML/SVG/Mermaid               │
+│  │   ├── 反向生成: 代码 → DSL (架构漂移检测)                 │
+│  │   └── 架构查询: JSONPath 影响分析                        │
+│  ├── TechStackRecommender (技术栈推荐)                       │
+│  ├── ContractDesigner (接口契约 + DB Schema)                 │
+│  └── ADRGenerator (架构决策记录)                             │
+├─────────────────────────────────────────────────────────────┤
+│  原型验证层 (依赖 OpenUI + 自研 Wireframe)                   │
+│  ├── OpenUIAdapter (高保真原型)                             │
+│  ├── WireframeEngine (领域感知线框图)                         │
+│  │   └── DomainMapper → LayoutPlanner → NavigationLinker    │
+│  └── PrototypeVerifier (接口覆盖度检查 + 自动回写 DSL)        │
+├─────────────────────────────────────────────────────────────┤
+│  代码执行层 (Context Package + 多执行器)                     │
+│  ├── ContextAssembler (上下文包组装)                         │
+│  ├── CodeGenDispatcher (分发器)                              │
+│  │   ├── ClaudeExecutor (本地开发)                          │
+│  │   ├── AiderExecutor (批量重构)                           │
+│  │   └── OpenHandsExecutor (Docker 沙箱/无人值守)           │
+│  └── DriftCollector (收集代码生成结果 + 反向验证)            │
+├─────────────────────────────────────────────────────────────┤
+│  状态存储层                                                   │
+│  ├── ProjectState (YAML 中央状态)                            │
+│  ├── arsitect.aac.yml (C4 InterFlow DSL — 架构唯一真相源)    │
+│  └── stage_history/ (阶段历史 + 架构版本)                    │
+├─────────────────────────────────────────────────────────────┤
+│  外部服务层                                                   │
+│  ├── C4 InterFlow CLI (架构渲染 + 反向生成)                  │
+│  ├── OpenUI Service (Docker)                                 │
+│  ├── Vector DB (技术栈知识库)                                │
+│  └── Jina/Web Search (兼容性调研)                            │
+└─────────────────────────────────────────────────────────────┘
+八、实施优先级（调整后）
+表格
+周次	目标	关键动作	依赖方案
+W1	引入 C4 InterFlow 底座	定义 arsitect.aac.yml Schema，集成 CLI 渲染	C4 InterFlow 融合
+W2	实现复杂度路由	实现 ComplexityRouter，改造 5 阶段为 4 条路径	Coco Workflow 借鉴
+W3	架构漂移检测 MVP	正向 DSL → 渲染；反向代码扫描 → 对比	C4 InterFlow 融合
+W4	接入 OpenHands 沙箱	实现 OpenHandsExecutor，Docker 调用封装	OpenHands 依赖
+W5	原型-架构双向绑定	OpenUI 验证后自动回写 DSL	OpenUI 依赖 + 自研
+W6	CI/CD 流水线	GitHub Actions 自动渲染 + 漂移检测门禁	C4 InterFlow 融合
+如果你确认这个调整方向，我可以直接输出：
+arsitect.aac.yml 的完整 JSON Schema（融合 C4 InterFlow 扩展字段）
+ComplexityRouter 的信号检测算法草案
+OpenHandsExecutor 的 Docker API 调用封装代码
+当前最新方案，怎样复用C4 InterFlow、Coco Workflow、OpenHands，GTPlanner，OpenUI ， Wireframe 这些开源项目？借鉴架构，依赖，借鉴核心代码还是其他方式
+编辑
+复制
+分享
+核对各项目开源协议兼容性检查
+搜索网页
+C4 InterFlow GitHub license MIT Coco Workflow skullninja license OpenHands OpenDevin license MIT GTPlanner OpenSQZ license OpenUI WandB license AI Wireframe Generator license
+50 个结果
+自研CRouter提取轻路由
+
+
+Github
+GitHub - skullninja/coco-workflow: Autonomous spec-driven development plugin for Claude Code. Describe a feature, get merged, tested, reviewed code. Full pipeline from PRD to PR with   dependency-awar
+
+
+
+Github
+GitHub - OpenSQZ/GTPlanner: GTPlanner: AI-Powered PRD Generation Tool
+
+
+
+百度百科
+OpenDevin
+
+1个月前
+基于调研结果，六个项目全部 MIT 协议，复用自由度极高。但复用方式不能一刀切，必须按技术耦合度和领域适配成本分层决策。
+一、复用策略矩阵：六项目 × 四种方式
+表格
+开源项目	协议	复用方式	技术实现	arsitect 中的具体角色	不这么做的风险
+C4 InterFlow	MIT	依赖 CLI + 融合 DSL	作为 .NET CLI 工具 / Docker 服务调用；arsitect 扩展其 YAML DSL	架构唯一真相源（AaC）+ 反向工程 + CI 渲染	自研 DSL 无生态，无法做架构漂移检测
+Coco Workflow	MIT	纯借鉴架构（零代码依赖）	提取复杂度信号检测 + 路由决策表，自研 ComplexityRouter	需求入口分流器（Trivial/Light/Standard/Deep）	直接集成会引入 Claude Code 专属插件逻辑，污染 arsitect 平台中立性
+OpenHands	MIT	依赖 Docker 服务（进程级）	Docker 容器运行，通过 REST API / CLI 发送任务包	L5 全自动沙箱执行器（架构验证 + 无人值守）	直接嵌入 Python 源码会引入庞大依赖树（70K stars 项目），且沙箱安全边界被打破
+GTPlanner	MIT	纯借鉴架构（零代码依赖）	提取 PocketFlow prep→exec→post 三阶段 + StageGate 状态机，自研 ArchitectNode	编排内核（节点生命周期 + 门控流转）	直接依赖会引入通用规划节点（非软件架构语义），需大量适配层
+OpenUI	未明确（WandB 项目）	依赖服务（Docker + HTTP）	Docker 独立部署，arsitect 通过 HTTP API 调用	高保真原型渲染后端	自研前端代码生成管线成本极高，且无法复用多框架（React/Vue/Svelte）能力
+AI Wireframe Generator	MIT	借鉴核心模式 + 自研（算法级）	移植 LangGraph StateGraph 构建逻辑，自研领域感知节点	领域感知线框引擎（DomainMapper → LayoutPlanner → NavigationLinker）	直接依赖其通用 Wireframe 节点，无法将 C4 Container 映射到页面
+二、逐项拆解：怎么接、接哪里、接多深
+2.1 C4 InterFlow —— 依赖 CLI + 融合 DSL（最深融合）
+为什么不 Fork 改造？
+C4 InterFlow 是 .NET 生态的 CLI 工具，arsitect 大概率是 Python/Node 技术栈。Fork 后维护跨语言代码成本极高。MIT 协议允许直接调用其发布产物。
+具体集成三层：
+表格
+层级	实现方式	代码示例
+DSL 生成层	arsitect 输出符合 C4 InterFlow 的 YAML	arsitect.aac.yml（见下文）
+CLI 调用层	subprocess / Docker 调用 c4-interflow 命令	subprocess.run(["c4-interflow", "draw-diagrams", "--aac-file", ...])
+反向扫描层	代码生成后，调用 reverse-engineer 生成实际架构	subprocess.run(["c4-interflow", "reverse-engineer", "--source", "src/"])
+arsitect 扩展的 DSL 字段（C4 InterFlow 标准之上）：
+yaml
+# arsitect.aac.yml —— 兼容 C4 InterFlow，扩展 arsitect 专属字段
+structures:
+  - id: RiskControlService
+    type: container
+    name: "风控服务"
+    technology: "Spring Boot"
+    tags: ["microservice", "core-domain"]
+    # arsitect 扩展
+    arsitect:
+      domain_entity: "RiskControl"
+      bounded_context: "Financing"
+      codegen_target: "backend/spring-boot"
+      constraints: ["stateless", "tenant-isolated"]
+
+interfaces:
+  - id: SubmitApplication
+    type: http
+    path: "/api/v1/financing/applications"
+    # arsitect 扩展
+    arsitect:
+      prototype_page: "FinancingApply"
+      wireframe_component: "MultiStepForm"
+
+flows:
+  - id: DeviceOverdueAlert
+    steps:
+      - from: GPSTrackingService
+        to: RiskControlService
+    # arsitect 扩展
+    arsitect:
+      event_driven: true
+      saga_pattern: "compensating_transaction"
+融合点：C4 InterFlow 负责渲染和反向工程，arsitect 负责设计语义扩展。两者通过 YAML 文件解耦。
+2.2 Coco Workflow —— 纯借鉴架构（零代码引入）
+为什么零代码？
+Coco Workflow 是 Claude Code 专属插件（基于 claude-code 的 slash command 体系）。直接引入会让 arsitect 绑定到 Claude Code 生态，丧失平台中立性。
+借鉴什么？
+只提取其复杂度信号检测和路由决策表：
+Python
+# arsitect/orchestrator/complexity_router.py
+# 自研实现，借鉴 Coco 的信号-路径映射思想
+
+class ComplexityRouter:
+    """
+    借鉴 Coco Workflow 的复杂度路由思想：
+    - Trivial: 单文件、无新实体 → hotfix
+    - Light: 1-3文件、单边界上下文 → 轻量架构
+    - Standard: 多模块、有依赖 → 完整流水线
+    - Deep: 新领域、跨服务 → 完整+反向验证
+    """
+    
+    def analyze_signals(self, requirement: Requirement) -> ComplexityLevel:
+        signals = {
+            "file_count": requirement.estimated_files,
+            "new_entities": requirement.new_domain_entities,
+            "bounded_contexts": len(requirement.affected_contexts),
+            "cross_service": requirement.has_cross_service_dependency,
+            "has_state_machine": requirement.has_state_machine,
+            "has_new_tech": requirement.introduces_new_technology
+        }
+        
+        if signals["file_count"] <= 1 and not signals["new_entities"]:
+            return ComplexityLevel.TRIVIAL  # 对应 Coco 的 hotfix
+            
+        elif signals["file_count"] <= 3 and signals["bounded_contexts"] == 1:
+            return ComplexityLevel.LIGHT    # 对应 Coco 的 design+import
+            
+        elif signals["cross_service"] or signals["has_new_tech"]:
+            return ComplexityLevel.DEEP     # 对应 Coco 的 interview+design+tasks
+            
+        else:
+            return ComplexityLevel.STANDARD   # 对应 Coco 的 standard pipeline
+借鉴点：信号权重、阈值设定、路径选择逻辑。代码完全自研。
+2.3 OpenHands —— 依赖 Docker 服务（进程隔离）
+为什么不嵌入源码？
+OpenHands 是 70K+ stars 的 Python 项目，依赖树庞大（Docker、Playwright、Sandbox、LLM Router）。直接嵌入会导致 arsitect 部署包膨胀 10 倍以上，且安全沙箱边界（Docker-in-Docker 问题）难以维护。
+正确方式：作为独立 Docker 服务，通过 API 调用。
+yaml
+# docker-compose.yml
+services:
+  openhands:
+    image: allhandsai/openhands:0.28
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - openhands-data:/app/.openhands-state
+    environment:
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+
+  arsitect:
+    build: .
+    depends_on:
+      - openhands
+    environment:
+      - OPENHANDS_API_URL=http://openhands:3000/api
+arsitect 调用封装：
+Python
+# arsitect/executors/openhands_executor.py
+import requests
+
+class OpenHandsExecutor:
+    def __init__(self, api_url: str):
+        self.api_url = api_url
+        
+    def execute(self, context_package: ContextPackage) -> ExecutionResult:
+        """
+        发送 Context Package 给 OpenHands，在 Docker 沙箱中执行
+        """
+        payload = {
+            "task": self.assemble_prompt(context_package),
+            "workspace_mount_path": context_package.workspace_path,
+            "config": {
+                "agent": "CodeActAgent",
+                "max_iterations": 100,
+                "sandbox": {"type": "docker"}
+            }
+        }
+        
+        # 启动会话
+        session = requests.post(f"{self.api_url}/sessions", json=payload).json()
+        session_id = session["session_id"]
+        
+        # 轮询结果
+        result = self.poll_until_complete(session_id)
+        
+        # 提取生成的文件列表 + 执行日志
+        return ExecutionResult(
+            files=result["files"],
+            logs=result["history"],
+            success=result["status"] == "completed"
+        )
+关键设计：OpenHands 只操作挂载目录（workspace），arsitect 把 Context Package 和项目骨架写入挂载目录，OpenHands 在沙箱中生成代码，arsitect 读取结果做架构漂移检测。
+2.4 GTPlanner —— 纯借鉴架构（零代码引入）
+为什么不引入 PocketFlow 源码？
+GTPlanner 的 PocketFlow 是通用异步工作流引擎，节点语义是 short_planning、tool_recommend（通用规划）。arsitect 需要的是 DomainParser、C4ModelManager、ContractDesigner（软件架构语义）。强行适配会造成功能扭曲。
+借鉴什么？
+只提取其节点生命周期协议和状态驱动流转：
+Python
+# arsitect/core/architect_node.py
+# 借鉴 GTPlanner / PocketFlow 的 prep → exec → post 三阶段
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any, Literal
+
+class ArchitectNode(ABC):
+    """
+    借鉴 GTPlanner PocketFlow 的 Node 抽象：
+    - prep: 从 ProjectState 读取输入，做预处理
+    - exec: 执行核心架构计算（LLM 调用 / 检索 / 渲染）
+    - post: 更新 ProjectState，返回 action 决定下一节点
+    """
+    
+    @abstractmethod
+    def prep(self, shared: ProjectState) -> PrepResult:
+        """读取共享状态，返回预处理结果"""
+        pass
+    
+    @abstractmethod
+    def exec(self, prep_res: PrepResult) -> ExecResult:
+        """执行核心计算，返回执行结果"""
+        pass
+    
+    @abstractmethod
+    def post(self, shared: ProjectState, prep_res: PrepResult, exec_res: ExecResult) -> Literal["proceed", "feedback", "block", "drift"]:
+        """
+        更新共享状态，返回 action：
+        - proceed: 进入下一节点
+        - feedback: 回退到当前节点重新执行
+        - block: 人工闸门拦截
+        - drift: 架构漂移，触发反向验证
+        """
+        pass
+    
+    def run(self, shared: ProjectState) -> Literal["proceed", "feedback", "block", "drift"]:
+        """标准运行模板，借鉴 PocketFlow 的 Node.run()"""
+        try:
+            prep_res = self.prep(shared)
+            exec_res = self.exec(prep_res)
+            action = self.post(shared, prep_res, exec_res)
+            return action
+        except Exception as e:
+            return self.exec_fallback(shared, e)
+    
+    def exec_fallback(self, shared: ProjectState, error: Exception) -> Literal["block"]:
+        """降级处理：异常时直接拦截"""
+        shared.errors.append(str(error))
+        return "block"
+借鉴点：三阶段分离、异常降级、action 驱动流转。实现完全自研，不引入 PocketFlow 依赖。
+2.5 OpenUI —— 依赖服务（Docker + HTTP）
+为什么不借鉴核心代码？
+OpenUI 的核心是"自然语言 → 多框架前端代码 → 实时预览"，涉及复杂的 LLM Prompt Engineering、组件库映射、代码沙箱渲染。自研成本极高，且 arsitect 不需要掌握前端生成细节。
+集成方式：
+Python
+# arsitect/services/openui_adapter.py
+import requests
+
+class OpenUIAdapter:
+    def __init__(self, endpoint: str = "http://openui:7878"):
+        self.endpoint = endpoint
+        
+    def generate_prototype(self, page_spec: PageSpec) -> PrototypeResult:
+        """
+        将 arsitect 的页面规范转换为 OpenUI 提示词
+        """
+        prompt = f"""
+        Generate a {page_spec.framework} page for: {page_spec.name}
+        
+        Components: {', '.join(page_spec.components)}
+        Data flow: {page_spec.data_flow}
+        Style: {page_spec.theme}
+        
+        Must use these API endpoints: {page_spec.api_endpoints}
+        """
+        
+        response = requests.post(
+            f"{self.endpoint}/api/generate",
+            json={"prompt": prompt, "format": "html"}
+        )
+        
+        return PrototypeResult(
+            html=response.json()["html"],
+            react_code=response.json().get("react"),
+            preview_url=f"{self.endpoint}/preview/{response.json()['id']}"
+        )
+部署：OpenUI 作为独立 Docker 服务，arsitect 只通过 HTTP 调用。
+2.6 AI Wireframe Generator —— 借鉴核心模式 + 自研（算法级）
+为什么部分移植？
+AI Wireframe Generator 的 LangGraph StateGraph 构建模式（多 Agent 流水线）是通用算法，MIT 允许借鉴。但其节点实现（通用布局规划）不满足 arsitect 的领域感知需求。
+移植范围：
+移植：StateGraph 的构建逻辑、节点连接方式、状态传递机制
+自研：节点内部实现（DomainMapper、LayoutPlanner、NavigationLinker）
+Python
+# arsitect/prototype/wireframe_engine.py
+# 借鉴 AI Wireframe Generator 的 LangGraph 多 Agent 架构，自研领域节点
+
+from langgraph.graph import StateGraph, END
+
+class WireframeEngine:
+    """
+    借鉴 AI Wireframe Generator 的 LangGraph 多 Agent 流水线：
+    - 需求解析 Agent → 布局规划 Agent → SVG 渲染 Agent
+    但节点实现完全自研，注入领域知识
+    """
+    
+    def build_graph(self):
+        builder = StateGraph(WireframeState)
+        
+        # Agent 1: 领域映射（自研）
+        builder.add_node("domain_mapper", self.domain_mapper)
+        
+        # Agent 2: 布局规划（自研）
+        builder.add_node("layout_planner", self.layout_planner)
+        
+        # Agent 3: 导航连接（自研）
+        builder.add_node("navigation_linker", self.navigation_linker)
+        
+        # Agent 4: SVG 渲染（自研）
+        builder.add_node("svg_renderer", self.svg_renderer)
+        
+        # 借鉴其线性流水线连接方式
+        builder.add_edge("domain_mapper", "layout_planner")
+        builder.add_edge("layout_planner", "navigation_linker")
+        builder.add_edge("navigation_linker", "svg_renderer")
+        builder.add_edge("svg_renderer", END)
+        
+        return builder.compile()
+    
+    def domain_mapper(self, state: WireframeState):
+        """
+        自研：读取 C4 InterFlow DSL，将 Container/Component 映射到页面
+        例如：RiskControlService → "风控仪表盘" 页面
+        """
+        c4_model = load_c4_model(state.project_id)
+        state.pages = self.map_containers_to_pages(c4_model.structures)
+        return state
+关键：只借鉴其编排模式（LangGraph 状态机），不借鉴其业务逻辑（通用布局算法）。
+三、许可证合规性总结
+表格
+项目	协议	复用深度	合规要求
+C4 InterFlow	MIT	调用 CLI + 扩展 YAML	保留版权声明，无传染
+Coco Workflow	MIT	零代码借鉴	无需协议声明（思想不受版权保护）
+OpenHands	MIT	Docker 服务调用	保留版权声明，无传染
+GTPlanner	MIT	零代码借鉴	无需协议声明
+OpenUI	未明确（假设 MIT/Apache）	Docker 服务调用	保留版权声明
+AI Wireframe Generator	MIT	借鉴算法模式 + 自研实现	如移植代码片段需保留版权声明
+MIT 协议核心：保留原始版权声明 + 允许闭源商用。arsitect 作为独立项目，调用这些 MIT 工具作为外部服务，不会产生协议传染（GPL 才会）。
+四、arsitect 的依赖拓扑图
+Mermaid
+代码
+预览
+flowchart TD
+    subgraph arsitect_core [arsitect 核心（自研）]
+        A[ComplexityRouter<br/>借鉴 Coco]
+        B[ArchitectNode<br/>借鉴 GTPlanner]
+        C[WireframeEngine<br/>借鉴 Wireframe]
+        D[ProjectState<br/>自研]
+    end
+    
+    subgraph external_services [外部服务（依赖）]
+        E[C4 InterFlow CLI<br/>MIT]
+        F[OpenHands Docker<br/>MIT]
+        G[OpenUI Docker<br/>MIT]
+    end
+    
+    subgraph data_exchange [数据交换格式]
+        H[arsitect.aac.yml<br/>C4 InterFlow DSL + 扩展]
+        I[Context Package<br/>自研 JSON]
+        J[Wireframe State<br/>LangGraph 兼容]
+    end
+    
+    A -->|选择路径| B
+    B -->|生成/更新| H
+    B -->|组装| I
+    C -->|消费| H
+    C -->|生成| J
+    
+    H -->|调用 CLI| E
+    I -->|HTTP API| F
+    I -->|HTTP API| G
+    J -->|内部状态| C
+    
+    style arsitect_core fill:#e3f2fd,stroke:#1976d2
+    style external_services fill:#e8f5e9,stroke:#2e7d32
+    style data_exchange fill:#fff3e0,stroke:#ef6c00
+如果你需要，我可以直接输出：
+arsitect.aac.yml 的完整 JSON Schema（含 C4 InterFlow 标准字段 + arsitect 扩展字段）
+ArchitectNode 的抽象基类代码（借鉴 GTPlanner PocketFlow）
+WireframeEngine 的 LangGraph 图构建代码（借鉴 AI Wireframe Generator）

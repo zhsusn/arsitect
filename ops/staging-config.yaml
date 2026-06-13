@@ -1,0 +1,4 @@
+﻿# 预发布环境配置模板
+environment: staging
+database: {连接串}
+api_keys: {第三方API Key}

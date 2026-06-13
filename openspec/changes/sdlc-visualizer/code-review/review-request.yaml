@@ -1,0 +1,51 @@
+review_request:
+  task_id: "task-integration-test-suite"
+  timestamp: "2026-06-04T09:06:00+08:00"
+  description: "Binding/Bypass/OpenUI/Sketch/Wireframe 模块集成测试套件 + 共享 Session Client Fixture"
+  requirements_source:
+    - "openspec/changes/sdlc-visualizer/detailed-requirements/feature-17-bypass/module-requirements.md"
+    - "openspec/changes/sdlc-visualizer/detailed-requirements/feature-18-openui/module-requirements.md"
+    - "openspec/changes/sdlc-visualizer/detailed-requirements/feature-19-wireframe/module-requirements.md"
+    - "openspec/changes/sdlc-visualizer/interface-contracts/openapi.yaml"
+  base_sha: "N/A (initial commit pending)"
+  head_sha: "N/A (working tree)"
+  files_changed:
+    - path: "backend/tests/integration/test_sync4_binding.py"
+      change_type: "新增"
+      lines_added: 144
+      lines_deleted: 0
+      language: "python"
+    - path: "backend/tests/integration/test_sync5_bypass.py"
+      change_type: "新增"
+      lines_added: 148
+      lines_deleted: 0
+      language: "python"
+    - path: "backend/tests/integration/test_sync6_openui.py"
+      change_type: "新增"
+      lines_added: 139
+      lines_deleted: 0
+      language: "python"
+    - path: "backend/tests/integration/test_sync7_sketch.py"
+      change_type: "新增"
+      lines_added: 140
+      lines_deleted: 0
+      language: "python"
+    - path: "backend/tests/integration/test_sync8_wireframe.py"
+      change_type: "新增"
+      lines_added: 141
+      lines_deleted: 0
+      language: "python"
+    - path: "backend/tests/conftest.py"
+      change_type: "修改"
+      lines_added: ~35
+      lines_deleted: 0
+      language: "python"
+  total_lines_changed: 747
+  sizing_assessment: "Acceptable"
+  sizing_rationale: "总量 747 行，分布于 5 个独立测试模块（每模块 ≤150 行），属同一逻辑主题（集成测试套件扩展），按模块审查可行，无需强制拆分。"
+  scope: >
+    新增 5 个模块的端到端集成测试，覆盖 BindingRule、Bypass Approval、OpenUISpec、
+    Sketch、Wireframe 的 CRUD 主链路及异常边界。同时引入共享 async session 的
+    TestClient fixture，解决 Service 层 flush() 不 commit() 导致的跨请求数据不可见问题。
+  test_status: "已本地全量运行通过：540 passed, 4 skipped, 92.79% coverage"
+  known_issues: "test_sync1~3 使用旧模式（模块级 client），与 test_sync4~8 的 fixture-based 模式不一致，待统一。"

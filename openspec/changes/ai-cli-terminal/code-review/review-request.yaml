@@ -1,0 +1,74 @@
+review_request:
+  id: CR-2026-0613-ai-cli-terminal
+  change: ai-cli-terminal
+  title: AI CLI 终端功能实现
+  author: ai-agent
+  reviewer: code-review-pipeline
+  created_at: "2026-06-13T06:21:39+08:00"
+  scope:
+    description: 实现 AI 驱动的交互式 CLI 终端，支持 Bug 修复与架构治理两种工作模式。
+    includes:
+      - 后端 REST API 与 WebSocket 长连接会话管理
+      - CLI 会话生命周期、消息历史、模式切换
+      - Bug 记录、根因分析、修复方案生成与执行
+      - 架构问题扫描、治理方案生成与执行
+      - 前端 AI CLI 终端页面、xterm.js 终端组件、卡片交互
+      - 前后端路由集成与依赖配置
+    files_changed:
+      backend:
+        - backend/app/models/cli_session.py
+        - backend/app/schemas/cli.py
+        - backend/app/services/cli_service.py
+        - backend/app/services/bug_fix_service.py
+        - backend/app/services/ai_gateway.py
+        - backend/app/services/arch_governance_service.py
+        - backend/app/api/v1/cli.py
+        - backend/app/api/v1/router.py
+        - backend/tests/conftest.py
+        - backend/tests/unit/cli/__init__.py
+        - backend/tests/unit/cli/conftest.py
+        - backend/tests/unit/cli/test_cli_service.py
+        - backend/tests/unit/cli/test_bug_fix_service.py
+        - backend/tests/unit/cli/test_ai_gateway.py
+        - backend/tests/integration/test_cli.py
+      frontend:
+        - frontend/src/pages/AiCli/index.tsx
+        - frontend/src/pages/AiCli/components/Terminal.tsx
+        - frontend/src/pages/AiCli/components/CliCard.tsx
+        - frontend/src/pages/AiCli/hooks/useCliSession.ts
+        - frontend/src/pages/AiCli/types.ts
+        - frontend/src/App.tsx
+        - frontend/vite.config.ts
+        - frontend/package.json
+  risk_level: medium
+  known_issues:
+    - id: KI-001
+      severity: low
+      description: WebSocket 处理器中 `_current_user_id()` 为 MVP 占位实现，生产环境需替换为真实认证依赖。
+      file: backend/app/api/v1/cli.py
+    - id: KI-002
+      severity: low
+      description: `_handle_command` 在 bug 模式下硬编码 `project_id="project-mvp"`，后续应从会话或请求上下文中获取真实项目 ID。
+      file: backend/app/api/v1/cli.py
+    - id: KI-003
+      severity: low
+      description: AI Gateway 当前使用 mock 实现返回固定内容，真实 LLM 集成需在后续迭代中替换。
+      file: backend/app/services/ai_gateway.py
+    - id: KI-004
+      severity: low
+      description: 前端 `AiCliPage` 使用内联 style，未接入项目统一的 UI 组件库/样式系统，后续建议收敛到设计规范。
+      file: frontend/src/pages/AiCli/index.tsx
+  test_evidence:
+    unit_tests:
+      location: backend/tests/unit/cli/
+      files:
+        - test_cli_service.py
+        - test_bug_fix_service.py
+        - test_ai_gateway.py
+      status: passed
+    integration_tests:
+      location: backend/tests/integration/test_cli.py
+      status: passed
+    frontend:
+      status: typecheck_and_lint_ready
+      note: 前端已通过类型检查与 ESLint，尚未补充自动化单测。

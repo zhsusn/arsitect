@@ -1,0 +1,106 @@
+# Migration manifest for sdlc-visualizer
+
+Migrated: 91 files
+Skipped: 5 files
+
+## Migrated files
+
+- `brainstorming\ai-architecture-decision.md` → `changelog-sdlc-visualizer-167`
+- `brainstorming\brainstorming-log.md` → `changelog-sdlc-visualizer-293`
+- `brainstorming\doc-quality-report.md` → `changelog-sdlc-visualizer-899`
+- `brainstorming\market-positioning.md` → `changelog-sdlc-visualizer-864`
+- `brainstorming\requirement-draft.md` → `changelog-sdlc-visualizer-169`
+- `brainstorming\research-report.md` → `changelog-sdlc-visualizer-287`
+- `brainstorming\review-prep.md` → `changelog-sdlc-visualizer-118`
+- `code-review\decisions.md` → `changelog-sdlc-visualizer-522`
+- `competitive-analysis\competitive-analysis.md` → `changelog-sdlc-visualizer-146`
+- `competitive-analysis\design-input.md` → `changelog-sdlc-visualizer-392`
+- `competitive-analysis.md` → `changelog-sdlc-visualizer-146`
+- `design-input.md` → `changelog-sdlc-visualizer-392`
+- `detailed-design\_audit-batch-5.md` → `detail-design-sdlc-visualizer-842`
+- `detailed-design\_batch1-audit-report.md` → `detail-design-sdlc-visualizer-411`
+- `detailed-design\_batch2-audit-report.md` → `detail-design-sdlc-visualizer-251`
+- `detailed-design\_batch3-audit-report.md` → `detail-design-sdlc-visualizer-635`
+- `detailed-design\_batch4-audit-report.md` → `detail-design-sdlc-visualizer-088`
+- `detailed-design\_design-index.md` → `detail-design-sdlc-visualizer-305`
+- `detailed-design\feature-01-project-dashboard\module-design.md` → `detail-design-sdlc-visualizer-feat01-628`
+- `detailed-design\feature-03-stage-detail\module-design.md` → `detail-design-sdlc-visualizer-feat03-628`
+- `detailed-design\feature-04-gate-center\module-design.md` → `detail-design-sdlc-visualizer-feat04-628`
+- `detailed-design\feature-05-artifact-viewer\module-design.md` → `detail-design-sdlc-visualizer-feat05-628`
+- `detailed-design\feature-06-skill-registry\module-design.md` → `detail-design-sdlc-visualizer-feat06-628`
+- `detailed-design\feature-07-flow-engine\module-design.md` → `detail-design-sdlc-visualizer-feat07-628`
+- `detailed-design\feature-08-skill-executor\module-design.md` → `detail-design-sdlc-visualizer-feat08-628`
+- `detailed-design\feature-09-template-engine\module-design.md` → `detail-design-sdlc-visualizer-feat09-628`
+- `detailed-design\feature-10-complexity-router\module-design.md` → `detail-design-sdlc-visualizer-feat10-628`
+- `detailed-design\feature-11-c4-navigator\module-design.md` → `detail-design-sdlc-visualizer-feat11-628`
+- `detailed-design\feature-12-arch-validation\module-design.md` → `detail-design-sdlc-visualizer-feat12-628`
+- `detailed-design\feature-13-history\module-design.md` → `detail-design-sdlc-visualizer-feat13-628`
+- `detailed-design\feature-14-monitoring\module-design.md` → `detail-design-sdlc-visualizer-feat14-628`
+- `detailed-design\feature-15-app-module\module-design.md` → `detail-design-sdlc-visualizer-feat15-628`
+- `detailed-design\feature-16-pocketflow\module-design.md` → `detail-design-sdlc-visualizer-feat16-628`
+- `detailed-design\feature-17-bypass\module-design.md` → `detail-design-sdlc-visualizer-feat17-628`
+- `detailed-design\feature-18-openui\module-design.md` → `detail-design-sdlc-visualizer-feat18-628`
+- `detailed-design\feature-19-wireframe\module-design.md` → `detail-design-sdlc-visualizer-feat19-628`
+- `detailed-design\feature-20-proto-arch\module-design.md` → `detail-design-sdlc-visualizer-feat20-628`
+- `detailed-design\feature-21-pagespec\module-design.md` → `detail-design-sdlc-visualizer-feat21-628`
+- `detailed-design\shared\_index.md` → `detail-design-sdlc-visualizer-shared-258`
+- `detailed-design\shared\api-spec.md` → `api-design-sdlc-visualizer-shared-824`
+- `detailed-design\shared\db-schema.md` → `db-design-sdlc-visualizer-shared-607`
+- `detailed-design\shared\design.md` → `detail-design-sdlc-visualizer-shared-322`
+- `detailed-design\sketch-module-design.md` → `detail-design-sdlc-visualizer-078`
+- `detailed-requirements\_consistency-report.md` → `prd-sdlc-visualizer-700`
+- `detailed-requirements\_doc-quality-report.md` → `prd-sdlc-visualizer-885`
+- `detailed-requirements\_implementation-plan.md` → `prd-sdlc-visualizer-823`
+- `detailed-requirements\_modules-index.md` → `prd-sdlc-visualizer-087`
+- `detailed-requirements\feature-01-project-dashboard\module-requirements.md` → `prd-sdlc-visualizer-feat01-629`
+- `detailed-requirements\feature-02-flow-canvas\module-requirements.md` → `prd-sdlc-visualizer-feat02-629`
+- `detailed-requirements\feature-03-stage-detail\module-requirements.md` → `prd-sdlc-visualizer-feat03-629`
+- `detailed-requirements\feature-04-gate-center\module-requirements.md` → `prd-sdlc-visualizer-feat04-629`
+- `detailed-requirements\feature-05-artifact-viewer\module-requirements.md` → `prd-sdlc-visualizer-feat05-629`
+- `detailed-requirements\feature-06-skill-registry\module-requirements.md` → `prd-sdlc-visualizer-feat06-629`
+- `detailed-requirements\feature-07-flow-engine\module-requirements.md` → `prd-sdlc-visualizer-feat07-629`
+- `detailed-requirements\feature-08-skill-executor\module-requirements.md` → `prd-sdlc-visualizer-feat08-629`
+- `detailed-requirements\feature-09-template-engine\module-requirements.md` → `prd-sdlc-visualizer-feat09-629`
+- `detailed-requirements\feature-10-complexity-router\module-requirements.md` → `prd-sdlc-visualizer-feat10-629`
+- `detailed-requirements\feature-11-c4-navigator\module-requirements.md` → `prd-sdlc-visualizer-feat11-629`
+- `detailed-requirements\feature-12-arch-validation\module-requirements.md` → `prd-sdlc-visualizer-feat12-629`
+- `detailed-requirements\feature-13-history\module-requirements.md` → `prd-sdlc-visualizer-feat13-629`
+- `detailed-requirements\feature-14-monitoring\module-requirements.md` → `prd-sdlc-visualizer-feat14-629`
+- `detailed-requirements\feature-15-app-module\module-requirements.md` → `prd-sdlc-visualizer-feat15-629`
+- `detailed-requirements\feature-16-pocketflow\module-requirements.md` → `prd-sdlc-visualizer-feat16-629`
+- `detailed-requirements\feature-17-bypass\module-requirements.md` → `prd-sdlc-visualizer-feat17-629`
+- `detailed-requirements\feature-18-openui\module-requirements.md` → `prd-sdlc-visualizer-feat18-629`
+- `detailed-requirements\feature-19-wireframe\module-requirements.md` → `prd-sdlc-visualizer-feat19-629`
+- `detailed-requirements\feature-20-proto-arch\module-requirements.md` → `prd-sdlc-visualizer-feat20-629`
+- `detailed-requirements\feature-21-pagespec\module-requirements.md` → `prd-sdlc-visualizer-feat21-629`
+- `high-level-design\00-design-overview.md` → `arch-sdlc-visualizer-000`
+- `high-level-design\01-architecture-core.md` → `arch-sdlc-visualizer-001`
+- `high-level-design\02-data-flow.md` → `arch-sdlc-visualizer-002`
+- `high-level-design\03-runtime-behavior.md` → `arch-sdlc-visualizer-003`
+- `high-level-design\04-quality-attributes.md` → `arch-sdlc-visualizer-004`
+- `high-level-design\05-ops-governance.md` → `arch-sdlc-visualizer-005`
+- `high-level-design\_doc-quality-report.md` → `arch-sdlc-visualizer-885`
+- `high-level-design\self-check-report.md` → `arch-sdlc-visualizer-436`
+- `high-level-requirements\00-requirements-overview.md` → `prd-sdlc-visualizer-000`
+- `high-level-requirements\01-requirements-list.md` → `prd-sdlc-visualizer-001`
+- `high-level-requirements\02-functional-requirements.md` → `prd-sdlc-visualizer-002`
+- `high-level-requirements\coverage-analysis-report.md` → `prd-sdlc-visualizer-307`
+- `high-level-requirements\doc-quality-gate-report-v1.3.md` → `prd-sdlc-visualizer-813`
+- `high-level-requirements\doc-quality-report.md` → `prd-sdlc-visualizer-899`
+- `high-level-requirements\market-positioning.md` → `prd-sdlc-visualizer-864`
+- `interface-contracts\doc-quality-report-v2.md` → `api-design-sdlc-visualizer-737`
+- `interface-contracts\doc-quality-report.md` → `api-design-sdlc-visualizer-899`
+- `interface-contracts\mock-server-config.md` → `api-design-sdlc-visualizer-404`
+- `interface-contracts\parallel-dev-plan.md` → `api-design-sdlc-visualizer-119`
+- `sign-off\02-design.md` → `changelog-sdlc-visualizer-002`
+- `sign-off\02.5-interface-freeze.md` → `changelog-sdlc-visualizer-723`
+- `uat\uat-instructions.md` → `test-plan-sdlc-visualizer-356`
+- `uat\uat-report.md` → `test-plan-sdlc-visualizer-792`
+
+## Skipped files
+
+- `human-decisions.md`
+- `master-flow.md`
+- `plan.md`
+- `progress.md`
+- `tasks.md`

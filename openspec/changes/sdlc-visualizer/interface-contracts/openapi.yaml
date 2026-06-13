@@ -1,0 +1,6141 @@
+openapi: 3.1.0
+info:
+  title: Arsitect SDLC Visualizer API
+  version: 1.0.0
+  description: Arsitect 可视化驾驶舱 REST API 契约（基于详细设计 20/21 模块导出）
+servers:
+- url: /api/v1
+  description: API v1 基线
+paths:
+  /executions/trigger:
+    post:
+      tags:
+      - skill-executions
+      summary: Trigger Execution
+      description: '触发 Skill 执行。
+
+
+        根据触发动作创建新的 SkillExecution 记录。'
+      operationId: trigger_execution_api_v1_executions_trigger_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionTriggerDTO'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillExecutionResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/status:
+    get:
+      tags:
+      - skill-executions
+      summary: Get Execution Status
+      description: 查询执行状态。
+      operationId: get_execution_status_api_v1_executions__execution_id__status_get
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      - name: last_anchor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Anchor
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionStatusDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/logs:
+    get:
+      tags:
+      - skill-executions
+      summary: Get Execution Logs
+      description: 查询执行日志。
+      operationId: get_execution_logs_api_v1_executions__execution_id__logs_get
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Keyword
+      - name: level
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ALL
+          title: Level
+      - name: anchor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Anchor
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogQueryResultDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/retry:
+    post:
+      tags:
+      - skill-executions
+      summary: Retry Execution
+      description: 重试失败的执行。
+      operationId: retry_execution_api_v1_executions__execution_id__retry_post
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetryResultDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/confirm-release:
+    post:
+      tags:
+      - skill-executions
+      summary: Confirm Release
+      description: 确认发布类 Skill 的执行。
+      operationId: confirm_release_api_v1_executions__execution_id__confirm_release_post
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillExecutionResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/sse:
+    get:
+      tags:
+      - skill-executions
+      summary: Subscribe Sse
+      description: SSE 状态流推送。
+      operationId: subscribe_sse_api_v1_executions__execution_id__sse_get
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /applications:
+    post:
+      tags:
+      - applications
+      summary: Create Application
+      description: Create a new application.
+      operationId: create_application_api_v1_applications_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - applications
+      summary: List Applications
+      description: List all applications with pagination.
+      operationId: list_applications_api_v1_applications_get
+      parameters:
+      - name: workspace_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse_ApplicationResponseDTO_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /applications/{application_id}:
+    get:
+      tags:
+      - applications
+      summary: Get Application
+      description: Get a single application by ID.
+      operationId: get_application_api_v1_applications__application_id__get
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - applications
+      summary: Update Application
+      description: Partially update an existing application.
+      operationId: update_application_api_v1_applications__application_id__patch
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - applications
+      summary: Delete Application
+      description: Delete an application.
+      operationId: delete_application_api_v1_applications__application_id__delete
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Application Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/execution-plans:
+    post:
+      tags:
+      - execution-plans
+      summary: Create Execution Plan
+      description: 生成执行计划。
+      operationId: create_execution_plan_api_v1_projects__project_id__execution_plans_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/_GeneratePlanPayload'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionPlanResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /execution-plans/{plan_id}/validate:
+    post:
+      tags:
+      - execution-plans
+      summary: Validate Execution Plan
+      description: 校验计划调整。
+      operationId: validate_execution_plan_api_v1_execution_plans__plan_id__validate_post
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Plan Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PlanAdjustmentDTO'
+              title: Adjustments
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanValidationResultDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /execution-plans/{plan_id}/freeze:
+    post:
+      tags:
+      - execution-plans
+      summary: Freeze Execution Plan
+      description: 冻结计划。
+      operationId: freeze_execution_plan_api_v1_execution_plans__plan_id__freeze_post
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Plan Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionPlanResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /execution-plans/{plan_id}:
+    get:
+      tags:
+      - execution-plans
+      summary: Get Execution Plan
+      description: 获取执行计划。
+      operationId: get_execution_plan_api_v1_execution_plans__plan_id__get
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Plan Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionPlanResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /execution-plans/{plan_id}/execute:
+    post:
+      tags:
+      - execution-plans
+      summary: Execute Execution Plan
+      description: 启动执行（MVP 简化：调度第一个 Stage）。
+      operationId: execute_execution_plan_api_v1_execution_plans__plan_id__execute_post
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Plan Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StageExecutionResultDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /execution-plans/{execution_id}/status:
+    get:
+      tags:
+      - execution-plans
+      summary: Get Execution Status
+      description: 查询执行状态（MVP 简化：execution_id 即 plan_id）。
+      operationId: get_execution_status_api_v1_execution_plans__execution_id__status_get
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Execution Status Api V1 Execution Plans  Execution Id  Status Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/bypass:
+    post:
+      tags:
+      - execution-plans
+      summary: Create Bypass
+      description: 旁路审批执行。
+      operationId: create_bypass_api_v1_executions__execution_id__bypass_post
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BypassRequestDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BypassRecordDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /executions/{execution_id}/bypass-status:
+    get:
+      tags:
+      - execution-plans
+      summary: List Bypass Records
+      description: 旁路记录查询。
+      operationId: list_bypass_records_api_v1_executions__execution_id__bypass_status_get
+      parameters:
+      - name: execution_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Execution Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BypassRecordDTO'
+                title: Response List Bypass Records Api V1 Executions  Execution Id  Bypass Status Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/import/scan:
+    post:
+      tags:
+      - skills
+      summary: Scan Skills
+      description: Scan a directory for skills.
+      operationId: scan_skills_api_v1_skills_import_scan_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillScanRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillScanResultDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/import/confirm:
+    post:
+      tags:
+      - skills
+      summary: Confirm Skill Import
+      description: Confirm and import selected skills.
+      operationId: confirm_skill_import_api_v1_skills_import_confirm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillImportConfirmDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillImportSummaryDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills:
+    get:
+      tags:
+      - skills
+      summary: List Skills
+      description: List registered skills with optional filters.
+      operationId: list_skills_api_v1_skills_get
+      parameters:
+      - name: search
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Search
+      - name: pattern
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Pattern
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillListResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag:
+    get:
+      tags:
+      - skills
+      summary: Get Dag
+      description: Get the current DAG snapshot.
+      operationId: get_dag_api_v1_skills_dag_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DAGSnapshotDTO'
+  /skills/dag/nodes:
+    post:
+      tags:
+      - skills
+      summary: Add Dag Node
+      description: Add a node to the DAG canvas.
+      operationId: add_dag_node_api_v1_skills_dag_nodes_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDAGNodeRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DAGNodeDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag/nodes/{node_id}:
+    delete:
+      tags:
+      - skills
+      summary: Delete Dag Node
+      description: Delete a node from the DAG canvas.
+      operationId: delete_dag_node_api_v1_skills_dag_nodes__node_id__delete
+      parameters:
+      - name: node_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Node Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag/edges:
+    post:
+      tags:
+      - skills
+      summary: Add Dag Edge
+      description: Add an edge to the DAG canvas.
+      operationId: add_dag_edge_api_v1_skills_dag_edges_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDAGEdgeRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DAGEdgeDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag/edges/{edge_id}:
+    delete:
+      tags:
+      - skills
+      summary: Delete Dag Edge
+      description: Delete an edge from the DAG canvas.
+      operationId: delete_dag_edge_api_v1_skills_dag_edges__edge_id__delete
+      parameters:
+      - name: edge_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Edge Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag/undo:
+    post:
+      tags:
+      - skills
+      summary: Undo Dag
+      description: Undo the last DAG canvas operation.
+      operationId: undo_dag_api_v1_skills_dag_undo_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DAGUndoRedoRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Undo Dag Api V1 Skills Dag Undo Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag/redo:
+    post:
+      tags:
+      - skills
+      summary: Redo Dag
+      description: Redo the last undone DAG canvas operation.
+      operationId: redo_dag_api_v1_skills_dag_redo_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DAGUndoRedoRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Redo Dag Api V1 Skills Dag Redo Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/dag/save:
+    post:
+      tags:
+      - skills
+      summary: Save Dag
+      description: Persist the current DAG state to the database.
+      operationId: save_dag_api_v1_skills_dag_save_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Save Dag Api V1 Skills Dag Save Post
+  /skills/dag/changelog:
+    get:
+      tags:
+      - skills
+      summary: List Dag Changelog
+      description: List DAG change logs.
+      operationId: list_dag_changelog_api_v1_skills_dag_changelog_get
+      parameters:
+      - name: session_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DAGChangeLogDTO'
+                title: Response List Dag Changelog Api V1 Skills Dag Changelog Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /skills/{skill_id}:
+    get:
+      tags:
+      - skills
+      summary: Get Skill
+      description: Get a single skill by ID.
+      operationId: get_skill_api_v1_skills__skill_id__get
+      parameters:
+      - name: skill_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Skill Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - skills
+      summary: Delete Skill
+      description: Delete a skill by ID.
+      operationId: delete_skill_api_v1_skills__skill_id__delete
+      parameters:
+      - name: skill_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Skill Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /stages/{stage_id}:
+    get:
+      tags:
+      - stages
+      summary: Get Stage Detail
+      description: Get aggregated detail for a stage.
+      operationId: get_stage_detail_api_v1_stages__stage_id__get
+      parameters:
+      - name: stage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Stage Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Stage Detail Api V1 Stages  Stage Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /stages/{stage_id}/annotations:
+    get:
+      tags:
+      - stages
+      summary: List Annotations
+      description: List annotations for a stage.
+      operationId: list_annotations_api_v1_stages__stage_id__annotations_get
+      parameters:
+      - name: stage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Stage Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse_AnnotationResponseDTO_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - stages
+      summary: Create Annotation
+      description: Create a new annotation on a stage.
+      operationId: create_annotation_api_v1_stages__stage_id__annotations_post
+      parameters:
+      - name: stage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Stage Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /stages/{stage_id}/annotations/{annotation_id}:
+    put:
+      tags:
+      - stages
+      summary: Update Annotation
+      description: Update an existing annotation.
+      operationId: update_annotation_api_v1_stages__stage_id__annotations__annotation_id__put
+      parameters:
+      - name: stage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Stage Id
+      - name: annotation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Annotation Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - stages
+      summary: Delete Annotation
+      description: Delete an annotation.
+      operationId: delete_annotation_api_v1_stages__stage_id__annotations__annotation_id__delete
+      parameters:
+      - name: stage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Stage Id
+      - name: annotation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Annotation Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /templates:
+    get:
+      tags:
+      - templates
+      summary: List Templates
+      description: List all predefined templates.
+      operationId: list_templates_api_v1_templates_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TemplateResponseDTO'
+                type: array
+                title: Response List Templates Api V1 Templates Get
+  /templates/{level}:
+    get:
+      tags:
+      - templates
+      summary: Get Template
+      description: Get a template with its stage sequence.
+      operationId: get_template_api_v1_templates__level__get
+      parameters:
+      - name: level
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateDetailDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /templates/projects/{project_id}/stage-sequence:
+    get:
+      tags:
+      - templates
+      summary: Get Stage Sequence
+      description: Get the stage sequence for a project.
+      operationId: get_stage_sequence_api_v1_templates_projects__project_id__stage_sequence_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectStageDTO'
+                title: Response Get Stage Sequence Api V1 Templates Projects  Project Id  Stage Sequence Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /templates/projects/{project_id}/template-deviation/preview:
+    post:
+      tags:
+      - templates
+      summary: Preview Template Deviation
+      description: Preview the impact of switching to a different template.
+      operationId: preview_template_deviation_api_v1_templates_projects__project_id__template_deviation_preview_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateDeviationPreviewRequestDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateDeviationPreviewDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /templates/projects/{project_id}/template-deviation:
+    post:
+      tags:
+      - templates
+      summary: Confirm Template Deviation
+      description: Confirm and apply template switch.
+      operationId: confirm_template_deviation_api_v1_templates_projects__project_id__template_deviation_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateDeviationConfirmDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Confirm Template Deviation Api V1 Templates Projects  Project Id  Template Deviation Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /artifacts/tree:
+    get:
+      tags:
+      - artifacts
+      summary: Get Artifact Tree
+      description: Get artifact directory tree for a project.
+      operationId: get_artifact_tree_api_v1_artifacts_tree_get
+      parameters:
+      - name: project_id
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      - name: search
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Search
+      - name: filter_stage
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Filter Stage
+      - name: filter_skill
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Filter Skill
+      - name: filter_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Filter Type
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArtifactTreeDirectoryDTO'
+                title: Response Get Artifact Tree Api V1 Artifacts Tree Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /artifacts/{artifact_id}/content:
+    get:
+      tags:
+      - artifacts
+      summary: Get Artifact Content
+      description: Get artifact file content.
+      operationId: get_artifact_content_api_v1_artifacts__artifact_id__content_get
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Artifact Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactContentDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - artifacts
+      summary: Save Artifact Content
+      description: Save artifact content and create a snapshot version.
+      operationId: save_artifact_content_api_v1_artifacts__artifact_id__content_put
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Artifact Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveContentRequestDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactVersionDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /artifacts/{artifact_id}/versions:
+    get:
+      tags:
+      - artifacts
+      summary: List Artifact Versions
+      description: List artifact versions (latest 10).
+      operationId: list_artifact_versions_api_v1_artifacts__artifact_id__versions_get
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Artifact Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArtifactVersionDTO'
+                title: Response List Artifact Versions Api V1 Artifacts  Artifact Id  Versions Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /artifacts/{artifact_id}/versions/{version_number}/rollback:
+    post:
+      tags:
+      - artifacts
+      summary: Rollback Artifact Version
+      description: Rollback artifact to a specific version.
+      operationId: rollback_artifact_version_api_v1_artifacts__artifact_id__versions__version_number__rollback_post
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Artifact Id
+      - name: version_number
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Version Number
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactVersionDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /artifacts/{artifact_id}/versions/diff:
+    get:
+      tags:
+      - artifacts
+      summary: Diff Artifact Versions
+      description: 'Diff two artifact versions (simplified: return both contents).'
+      operationId: diff_artifact_versions_api_v1_artifacts__artifact_id__versions_diff_get
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Artifact Id
+      - name: from_version
+        in: query
+        required: true
+        schema:
+          type: integer
+          title: From Version
+      - name: to_version
+        in: query
+        required: true
+        schema:
+          type: integer
+          title: To Version
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates:
+    get:
+      tags:
+      - gates
+      summary: List Gates
+      description: List gate decisions for a project.
+      operationId: list_gates_api_v1_gates_get
+      parameters:
+      - name: project_id
+        in: query
+        required: true
+        schema:
+          type: string
+          description: Project ID
+          title: Project Id
+        description: Project ID
+      - name: gate_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Gate type filter
+          title: Gate Type
+        description: Gate type filter
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Status filter
+          title: Status
+        description: Status filter
+      - name: sort_by
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Sort field
+          title: Sort By
+        description: Sort field
+      - name: sort_order
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Sort order: asc or desc'
+          title: Sort Order
+        description: 'Sort order: asc or desc'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse_GateDecisionResponseDTO_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates/history:
+    get:
+      tags:
+      - gates
+      summary: List Gate History
+      description: List all gate history for a project.
+      operationId: list_gate_history_api_v1_gates_history_get
+      parameters:
+      - name: project_id
+        in: query
+        required: true
+        schema:
+          type: string
+          description: Project ID
+          title: Project Id
+        description: Project ID
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GateDecisionResponseDTO'
+                title: Response List Gate History Api V1 Gates History Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates/{gate_id}:
+    get:
+      tags:
+      - gates
+      summary: Get Gate
+      description: Get gate decision details.
+      operationId: get_gate_api_v1_gates__gate_id__get
+      parameters:
+      - name: gate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Gate Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDecisionResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates/{gate_id}/approve:
+    post:
+      tags:
+      - gates
+      summary: Approve Gate
+      description: Approve a gate decision.
+      operationId: approve_gate_api_v1_gates__gate_id__approve_post
+      parameters:
+      - name: gate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Gate Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDecisionResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates/{gate_id}/reject:
+    post:
+      tags:
+      - gates
+      summary: Reject Gate
+      description: Reject a gate decision.
+      operationId: reject_gate_api_v1_gates__gate_id__reject_post
+      parameters:
+      - name: gate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Gate Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GateRejectRequestDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDecisionResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates/{gate_id}/retry:
+    post:
+      tags:
+      - gates
+      summary: Retry Gate
+      description: Retry a gate decision (reset to pending).
+      operationId: retry_gate_api_v1_gates__gate_id__retry_post
+      parameters:
+      - name: gate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Gate Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDecisionResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/size-estimates:
+    post:
+      tags:
+      - complexity
+      summary: Create Size Estimate
+      description: Create a size estimate for a project.
+      operationId: create_size_estimate_api_v1_projects__project_id__size_estimates_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SizeEstimateCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SizeEstimateResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - complexity
+      summary: List Size Estimates
+      description: List size estimates for a project.
+      operationId: list_size_estimates_api_v1_projects__project_id__size_estimates_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SizeEstimateResponseDTO'
+                title: Response List Size Estimates Api V1 Projects  Project Id  Size Estimates Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /complexity/templates/{level}:
+    get:
+      tags:
+      - complexity
+      summary: Get Template Recommendation
+      description: Get template recommendation for a complexity level.
+      operationId: get_template_recommendation_api_v1_complexity_templates__level__get
+      parameters:
+      - name: level
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplexityTemplateDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/c4:
+    get:
+      tags:
+      - c4
+      summary: Get C4 Dsl
+      description: Get C4 DSL for a project and level.
+      operationId: get_c4_dsl_api_v1_projects__project_id__c4_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      - name: level
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/C4DslStoreDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - c4
+      summary: Save C4 Dsl
+      description: Save (create or update) C4 DSL for a project and level.
+      operationId: save_c4_dsl_api_v1_projects__project_id__c4_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/C4DslStoreDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/C4DslStoreDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/c4/{level}:
+    put:
+      tags:
+      - c4
+      summary: Update C4 Dsl
+      description: Update C4 DSL for a project and level.
+      operationId: update_c4_dsl_api_v1_projects__project_id__c4__level__put
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      - name: level
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Level
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/C4DslStoreDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/C4DslStoreDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/c4/{level}/generate:
+    post:
+      tags:
+      - c4
+      summary: Generate C4 Dsl
+      description: Auto-generate C4 DSL for a project and level.
+      operationId: generate_c4_dsl_api_v1_projects__project_id__c4__level__generate_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      - name: level
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/C4DslStoreDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /c4/validate:
+    post:
+      tags:
+      - c4
+      summary: Validate C4 Dsl
+      description: Validate C4 DSL syntax.
+      operationId: validate_c4_dsl_api_v1_c4_validate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/C4DslStoreDTO'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/C4DslValidationResultDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /monitoring/overview:
+    get:
+      tags:
+      - monitoring
+      summary: Get Overview
+      description: Get global monitoring overview.
+      operationId: get_overview_api_v1_monitoring_overview_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoringOverviewDTO'
+  /monitoring/projects/{project_id}/stats:
+    get:
+      tags:
+      - monitoring
+      summary: Get Project Stats
+      description: Get per-project monitoring stats.
+      operationId: get_project_stats_api_v1_monitoring_projects__project_id__stats_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatsDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /monitoring/projects/{project_id}/operation-logs:
+    get:
+      tags:
+      - monitoring
+      summary: List Operation Logs
+      description: List operation logs for a project.
+      operationId: list_operation_logs_api_v1_monitoring_projects__project_id__operation_logs_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      - name: action
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Action
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationLogListDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /applications/{application_id}/history/summary:
+    get:
+      tags:
+      - history
+      summary: Get Application Summary
+      description: Get history summary for an application.
+      operationId: get_application_summary_api_v1_applications__application_id__history_summary_get
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistorySummaryDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/history/timeline:
+    get:
+      tags:
+      - history
+      summary: Get Project Timeline
+      description: Get chronological timeline for a project.
+      operationId: get_project_timeline_api_v1_projects__project_id__history_timeline_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimelineEventDTO'
+                title: Response Get Project Timeline Api V1 Projects  Project Id  History Timeline Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/history/rework-analysis:
+    get:
+      tags:
+      - history
+      summary: Get Rework Analysis
+      description: Get rework analysis for a project.
+      operationId: get_rework_analysis_api_v1_projects__project_id__history_rework_analysis_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReworkAnalysisDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/arch-validation/trigger:
+    post:
+      tags:
+      - arch-validation
+      summary: Trigger Validation
+      description: Trigger arch validation for a project level.
+      operationId: trigger_validation_api_v1_projects__project_id__arch_validation_trigger_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchValidationTriggerDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchValidationDiffDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/arch-validation/diffs:
+    get:
+      tags:
+      - arch-validation
+      summary: Get Diffs
+      description: Get all validation diffs for a project.
+      operationId: get_diffs_api_v1_projects__project_id__arch_validation_diffs_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArchValidationDiffDTO'
+                title: Response Get Diffs Api V1 Projects  Project Id  Arch Validation Diffs Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/arch-validation/baseline/update:
+    post:
+      tags:
+      - arch-validation
+      summary: Update Baseline
+      description: Update baseline DSL for a project level.
+      operationId: update_baseline_api_v1_projects__project_id__arch_validation_baseline_update_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchValidationBaselineUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchValidationDiffDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gates/{gate_id}/bypass:
+    post:
+      tags:
+      - bypass
+      summary: Apply Bypass
+      description: Apply for a bypass approval on a gate.
+      operationId: apply_bypass_api_v1_gates__gate_id__bypass_post
+      parameters:
+      - name: gate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Gate Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BypassApplyDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BypassResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/bypass-applications:
+    get:
+      tags:
+      - bypass
+      summary: List Bypass Applications
+      description: List bypass applications for a project.
+      operationId: list_bypass_applications_api_v1_projects__project_id__bypass_applications_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BypassResponseDTO'
+                title: Response List Bypass Applications Api V1 Projects  Project Id  Bypass Applications Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /bypass-applications/{record_id}/approve:
+    post:
+      tags:
+      - bypass
+      summary: Approve Bypass
+      description: Approve a bypass application.
+      operationId: approve_bypass_api_v1_bypass_applications__record_id__approve_post
+      parameters:
+      - name: record_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Record Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BypassApproveDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BypassResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/open-ui-specs:
+    post:
+      tags:
+      - open-ui
+      summary: Create Spec
+      description: Create a new OpenUI spec for a project.
+      operationId: create_spec_api_v1_projects__project_id__open_ui_specs_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenUICreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenUIResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - open-ui
+      summary: List Specs
+      description: List OpenUI specs for a project.
+      operationId: list_specs_api_v1_projects__project_id__open_ui_specs_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OpenUIResponseDTO'
+                title: Response List Specs Api V1 Projects  Project Id  Open Ui Specs Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /open-ui-specs/{spec_id}:
+    get:
+      tags:
+      - open-ui
+      summary: Get Spec
+      description: Get a single OpenUI spec by ID.
+      operationId: get_spec_api_v1_open_ui_specs__spec_id__get
+      parameters:
+      - name: spec_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Spec Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenUIResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - open-ui
+      summary: Update Spec
+      description: Update an OpenUI spec.
+      operationId: update_spec_api_v1_open_ui_specs__spec_id__patch
+      parameters:
+      - name: spec_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Spec Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenUIUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenUIResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - open-ui
+      summary: Delete Spec
+      description: Delete an OpenUI spec.
+      operationId: delete_spec_api_v1_open_ui_specs__spec_id__delete
+      parameters:
+      - name: spec_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Spec Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/wireframes:
+    post:
+      tags:
+      - wireframes
+      summary: Create Wireframe
+      description: Create a new wireframe for a project.
+      operationId: create_wireframe_api_v1_projects__project_id__wireframes_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WireframeCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireframeResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - wireframes
+      summary: List Wireframes
+      description: List wireframes for a project.
+      operationId: list_wireframes_api_v1_projects__project_id__wireframes_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WireframeResponseDTO'
+                title: Response List Wireframes Api V1 Projects  Project Id  Wireframes Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /wireframes/{wireframe_id}:
+    get:
+      tags:
+      - wireframes
+      summary: Get Wireframe
+      description: Get a single wireframe by ID.
+      operationId: get_wireframe_api_v1_wireframes__wireframe_id__get
+      parameters:
+      - name: wireframe_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Wireframe Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireframeResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - wireframes
+      summary: Update Wireframe
+      description: Update a wireframe.
+      operationId: update_wireframe_api_v1_wireframes__wireframe_id__patch
+      parameters:
+      - name: wireframe_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Wireframe Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WireframeUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireframeResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - wireframes
+      summary: Delete Wireframe
+      description: Delete a wireframe.
+      operationId: delete_wireframe_api_v1_wireframes__wireframe_id__delete
+      parameters:
+      - name: wireframe_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Wireframe Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/binding-rules:
+    post:
+      tags:
+      - bindings
+      summary: Create Rule
+      description: Create a new binding rule for a project.
+      operationId: create_rule_api_v1_projects__project_id__binding_rules_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindingCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BindingResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - bindings
+      summary: List Rules
+      description: List binding rules for a project.
+      operationId: list_rules_api_v1_projects__project_id__binding_rules_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BindingResponseDTO'
+                title: Response List Rules Api V1 Projects  Project Id  Binding Rules Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /binding-rules/{rule_id}:
+    get:
+      tags:
+      - bindings
+      summary: Get Rule
+      description: Get a single binding rule by ID.
+      operationId: get_rule_api_v1_binding_rules__rule_id__get
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Rule Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BindingResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - bindings
+      summary: Update Rule
+      description: Update a binding rule.
+      operationId: update_rule_api_v1_binding_rules__rule_id__patch
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Rule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindingUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BindingResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - bindings
+      summary: Delete Rule
+      description: Delete a binding rule.
+      operationId: delete_rule_api_v1_binding_rules__rule_id__delete
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Rule Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/sketches:
+    post:
+      tags:
+      - sketches
+      summary: Create Sketch
+      description: Create a new sketch for a project.
+      operationId: create_sketch_api_v1_projects__project_id__sketches_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SketchCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SketchResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - sketches
+      summary: List Sketches
+      description: List sketches for a project.
+      operationId: list_sketches_api_v1_projects__project_id__sketches_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SketchResponseDTO'
+                title: Response List Sketches Api V1 Projects  Project Id  Sketches Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /sketches/{sketch_id}:
+    get:
+      tags:
+      - sketches
+      summary: Get Sketch
+      description: Get a single sketch by ID.
+      operationId: get_sketch_api_v1_sketches__sketch_id__get
+      parameters:
+      - name: sketch_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Sketch Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SketchResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - sketches
+      summary: Update Sketch
+      description: Update a sketch.
+      operationId: update_sketch_api_v1_sketches__sketch_id__patch
+      parameters:
+      - name: sketch_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Sketch Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SketchUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SketchResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - sketches
+      summary: Delete Sketch
+      description: Delete a sketch.
+      operationId: delete_sketch_api_v1_sketches__sketch_id__delete
+      parameters:
+      - name: sketch_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Sketch Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /applications/{app_id}/projects:
+    get:
+      tags:
+      - projects
+      summary: List Projects
+      description: List projects under an application with pagination.
+      operationId: list_projects_api_v1_applications__app_id__projects_get
+      parameters:
+      - name: app_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: App Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse_ProjectResponseDTO_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - projects
+      summary: Create Project
+      description: Create a new project under an application.
+      operationId: create_project_api_v1_applications__app_id__projects_post
+      parameters:
+      - name: app_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: App Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateDTO'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}:
+    get:
+      tags:
+      - projects
+      summary: Get Project
+      description: Get project details.
+      operationId: get_project_api_v1_projects__project_id__get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - projects
+      summary: Update Project
+      description: Update project info.
+      operationId: update_project_api_v1_projects__project_id__patch
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateDTO'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/archive:
+    post:
+      tags:
+      - projects
+      summary: Archive Project
+      description: Archive a project.
+      operationId: archive_project_api_v1_projects__project_id__archive_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                title: Response Archive Project Api V1 Projects  Project Id  Archive Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/activate:
+    post:
+      tags:
+      - projects
+      summary: Activate Project
+      description: Activate (confirm) a project.
+      operationId: activate_project_api_v1_projects__project_id__activate_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/cancel:
+    post:
+      tags:
+      - projects
+      summary: Cancel Project
+      description: Cancel a project.
+      operationId: cancel_project_api_v1_projects__project_id__cancel_post
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponseDTO'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/risk-alerts:
+    get:
+      tags:
+      - projects
+      summary: List Project Risk Alerts
+      description: Get risk alerts for a project.
+      operationId: list_project_risk_alerts_api_v1_projects__project_id__risk_alerts_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RiskAlertDTO'
+                title: Response List Project Risk Alerts Api V1 Projects  Project Id  Risk Alerts Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /projects/{project_id}/timebox:
+    get:
+      tags:
+      - projects
+      summary: Get Timebox
+      description: Get timebox configuration for a project (placeholder).
+      operationId: get_timebox_api_v1_projects__project_id__timebox_get
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Project Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeboxEntryDTO'
+                title: Response Get Timebox Api V1 Projects  Project Id  Timebox Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /health:
+    get:
+      summary: Health Check
+      description: Health check endpoint.
+      operationId: health_check_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Health Check Api V1 Health Get
+components:
+  schemas:
+    AddDAGEdgeRequestDTO:
+      properties:
+        edge_id:
+          type: string
+          title: Edge Id
+        source_node_id:
+          type: string
+          title: Source Node Id
+        target_node_id:
+          type: string
+          title: Target Node Id
+      type: object
+      required:
+      - edge_id
+      - source_node_id
+      - target_node_id
+      title: AddDAGEdgeRequestDTO
+      description: Request to add a DAG edge.
+    AddDAGNodeRequestDTO:
+      properties:
+        node_id:
+          type: string
+          title: Node Id
+        skill_id:
+          type: string
+          title: Skill Id
+        position_x:
+          type: number
+          title: Position X
+          default: 0.0
+        position_y:
+          type: number
+          title: Position Y
+          default: 0.0
+      type: object
+      required:
+      - node_id
+      - skill_id
+      title: AddDAGNodeRequestDTO
+      description: Request to add a DAG node.
+    AnnotationCreateDTO:
+      properties:
+        annotation_id:
+          type: string
+          maxLength: 36
+          title: Annotation Id
+        author:
+          type: string
+          maxLength: 64
+          title: Author
+        content:
+          type: string
+          maxLength: 2000
+          title: Content
+        annotation_type:
+          type: string
+          maxLength: 16
+          title: Annotation Type
+          default: comment
+        status:
+          type: string
+          maxLength: 16
+          title: Status
+          default: REVIEW_PENDING
+      type: object
+      required:
+      - annotation_id
+      - author
+      - content
+      title: AnnotationCreateDTO
+      description: Request body for creating an annotation.
+    AnnotationResponseDTO:
+      properties:
+        annotation_id:
+          type: string
+          title: Annotation Id
+        stage_id:
+          type: string
+          title: Stage Id
+        author:
+          type: string
+          title: Author
+        content:
+          type: string
+          title: Content
+        annotation_type:
+          type: string
+          title: Annotation Type
+        status:
+          type: string
+          title: Status
+        viewed_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Viewed At
+      type: object
+      required:
+      - annotation_id
+      - stage_id
+      - author
+      - content
+      - annotation_type
+      - status
+      - viewed_at
+      title: AnnotationResponseDTO
+      description: Response model for an annotation.
+    AnnotationUpdateDTO:
+      properties:
+        content:
+          type: string
+          maxLength: 2000
+          title: Content
+      type: object
+      required:
+      - content
+      title: AnnotationUpdateDTO
+      description: Request body for updating an annotation.
+    ApplicationCreateDTO:
+      properties:
+        application_id:
+          type: string
+          maxLength: 36
+          title: Application Id
+        application_name:
+          type: string
+          maxLength: 100
+          title: Application Name
+        local_path:
+          type: string
+          maxLength: 4096
+          title: Local Path
+        description:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Description
+        workspace_id:
+          type: string
+          maxLength: 36
+          title: Workspace Id
+          default: default
+      type: object
+      required:
+      - application_id
+      - application_name
+      - local_path
+      title: ApplicationCreateDTO
+      description: Request body for creating an application.
+    ApplicationResponseDTO:
+      properties:
+        application_id:
+          type: string
+          title: Application Id
+        application_name:
+          type: string
+          title: Application Name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        local_path:
+          type: string
+          title: Local Path
+        workspace_id:
+          type: string
+          title: Workspace Id
+        path_accessible:
+          type: boolean
+          title: Path Accessible
+      type: object
+      required:
+      - application_id
+      - application_name
+      - description
+      - local_path
+      - workspace_id
+      - path_accessible
+      title: ApplicationResponseDTO
+      description: Response model for application data.
+    ApplicationUpdateDTO:
+      properties:
+        application_name:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Application Name
+        local_path:
+          anyOf:
+          - type: string
+            maxLength: 4096
+          - type: 'null'
+          title: Local Path
+        description:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Description
+      type: object
+      title: ApplicationUpdateDTO
+      description: Request body for partially updating an application.
+    ArchValidationBaselineUpdateDTO:
+      properties:
+        level:
+          type: string
+          pattern: ^(L1|L2|L3|L4)$
+          title: Level
+      type: object
+      required:
+      - level
+      title: ArchValidationBaselineUpdateDTO
+      description: Update baseline request.
+    ArchValidationDiffDTO:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        project_id:
+          type: string
+          title: Project Id
+        level:
+          type: string
+          title: Level
+        diff_summary:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Diff Summary
+        status:
+          type: string
+          title: Status
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - session_id
+      - project_id
+      - level
+      - diff_summary
+      - status
+      - created_at
+      title: ArchValidationDiffDTO
+      description: Arch validation diff response.
+    ArchValidationTriggerDTO:
+      properties:
+        level:
+          type: string
+          pattern: ^(L1|L2|L3|L4)$
+          title: Level
+      type: object
+      required:
+      - level
+      title: ArchValidationTriggerDTO
+      description: Trigger arch validation request.
+    ArtifactContentDTO:
+      properties:
+        artifact_id:
+          type: string
+          title: Artifact Id
+          description: 产物ID
+        content:
+          type: string
+          title: Content
+          description: 文件内容
+      type: object
+      required:
+      - artifact_id
+      - content
+      title: ArtifactContentDTO
+      description: Artifact content response.
+    ArtifactTreeDirectoryDTO:
+      properties:
+        directory:
+          type: string
+          title: Directory
+          description: 目录路径
+        files:
+          items:
+            $ref: '#/components/schemas/ArtifactTreeFileDTO'
+          type: array
+          title: Files
+          description: 文件列表
+      type: object
+      required:
+      - directory
+      - files
+      title: ArtifactTreeDirectoryDTO
+      description: Directory entry in artifact tree.
+    ArtifactTreeFileDTO:
+      properties:
+        artifact_id:
+          type: string
+          title: Artifact Id
+          description: 产物ID
+        file_name:
+          type: string
+          title: File Name
+          description: 文件名
+        file_type:
+          type: string
+          title: File Type
+          description: 文件类型
+        file_size_bytes:
+          type: integer
+          title: File Size Bytes
+          description: 文件大小（字节）
+        current_version:
+          type: integer
+          title: Current Version
+          description: 当前版本号
+        external_status:
+          type: string
+          title: External Status
+          description: 外部状态
+        stale_flag:
+          type: boolean
+          title: Stale Flag
+          description: 过期标记
+        updated_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Updated At
+          description: 更新时间
+      type: object
+      required:
+      - artifact_id
+      - file_name
+      - file_type
+      - file_size_bytes
+      - current_version
+      - external_status
+      - stale_flag
+      title: ArtifactTreeFileDTO
+      description: File entry in artifact tree.
+    ArtifactVersionDTO:
+      properties:
+        version_id:
+          type: string
+          title: Version Id
+          description: 版本ID
+        artifact_id:
+          type: string
+          title: Artifact Id
+          description: 产物ID
+        version_number:
+          type: integer
+          title: Version Number
+          description: 版本号
+        operation_type:
+          type: string
+          title: Operation Type
+          description: 操作类型
+        created_by:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created By
+          description: 创建人
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 创建时间
+      type: object
+      required:
+      - version_id
+      - artifact_id
+      - version_number
+      - operation_type
+      - created_at
+      title: ArtifactVersionDTO
+      description: Artifact version snapshot.
+    BindingCreateDTO:
+      properties:
+        source_field:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Source Field
+        target_field:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Target Field
+        transform_type:
+          type: string
+          title: Transform Type
+          default: DIRECT
+        transform_config:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Transform Config
+        status:
+          type: string
+          title: Status
+          default: ACTIVE
+      type: object
+      required:
+      - source_field
+      - target_field
+      title: BindingCreateDTO
+      description: Create binding rule request.
+    BindingResponseDTO:
+      properties:
+        rule_id:
+          type: string
+          title: Rule Id
+        project_id:
+          type: string
+          title: Project Id
+        source_field:
+          type: string
+          title: Source Field
+        target_field:
+          type: string
+          title: Target Field
+        transform_type:
+          type: string
+          title: Transform Type
+        transform_config:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Transform Config
+        status:
+          type: string
+          title: Status
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - rule_id
+      - project_id
+      - source_field
+      - target_field
+      - transform_type
+      - transform_config
+      - status
+      - created_at
+      - updated_at
+      title: BindingResponseDTO
+      description: Binding rule response.
+    BindingUpdateDTO:
+      properties:
+        source_field:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Source Field
+        target_field:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Target Field
+        transform_type:
+          anyOf:
+          - type: string
+            pattern: ^(DIRECT|MAP|FORMAT|FILTER)$
+          - type: 'null'
+          title: Transform Type
+        transform_config:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Transform Config
+        status:
+          anyOf:
+          - type: string
+            pattern: ^(ACTIVE|INACTIVE)$
+          - type: 'null'
+          title: Status
+      type: object
+      title: BindingUpdateDTO
+      description: Update binding rule request.
+    BypassApplyDTO:
+      properties:
+        plan_id:
+          type: string
+          title: Plan Id
+        stage_id:
+          type: string
+          title: Stage Id
+        skill_id:
+          type: string
+          title: Skill Id
+        triggered_by:
+          type: string
+          title: Triggered By
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 5
+          title: Reason
+        authorizer_token:
+          type: string
+          title: Authorizer Token
+        deadline_hours:
+          type: integer
+          title: Deadline Hours
+          default: 24
+      type: object
+      required:
+      - plan_id
+      - stage_id
+      - skill_id
+      - triggered_by
+      - reason
+      - authorizer_token
+      title: BypassApplyDTO
+      description: Apply for bypass request.
+    BypassApproveDTO:
+      properties:
+        approved_by:
+          type: string
+          title: Approved By
+      type: object
+      required:
+      - approved_by
+      title: BypassApproveDTO
+      description: Approve bypass request.
+    BypassRecordDTO:
+      properties:
+        record_id:
+          type: string
+          title: Record Id
+          description: 记录 ID
+        plan_id:
+          type: string
+          title: Plan Id
+          description: 计划 ID
+        stage_id:
+          type: string
+          title: Stage Id
+          description: Stage ID
+        skill_id:
+          type: string
+          title: Skill Id
+          description: Skill ID
+        triggered_by:
+          type: string
+          title: Triggered By
+          description: 触发者
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+          description: 旁路理由
+        status:
+          type: string
+          title: Status
+          description: 状态
+        deadline_at:
+          type: string
+          format: date-time
+          title: Deadline At
+          description: 截止时间
+        closed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Closed At
+          description: 关闭时间
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 创建时间
+      type: object
+      required:
+      - record_id
+      - plan_id
+      - stage_id
+      - skill_id
+      - triggered_by
+      - status
+      - deadline_at
+      - created_at
+      title: BypassRecordDTO
+      description: 旁路审批记录 DTO.
+    BypassRequestDTO:
+      properties:
+        stage_id:
+          type: string
+          title: Stage Id
+          description: Stage ID
+        skill_id:
+          type: string
+          title: Skill Id
+          description: Skill ID
+        authorization_token:
+          type: string
+          maxLength: 128
+          minLength: 32
+          title: Authorization Token
+          description: 授权令牌
+        acknowledged:
+          type: boolean
+          title: Acknowledged
+          description: 是否确认风险
+        reason:
+          type: string
+          title: Reason
+          description: 旁路理由
+          default: 紧急执行
+      type: object
+      required:
+      - stage_id
+      - skill_id
+      - authorization_token
+      - acknowledged
+      title: BypassRequestDTO
+      description: 旁路审批请求 DTO.
+    BypassResponseDTO:
+      properties:
+        record_id:
+          type: string
+          title: Record Id
+        plan_id:
+          type: string
+          title: Plan Id
+        stage_id:
+          type: string
+          title: Stage Id
+        skill_id:
+          type: string
+          title: Skill Id
+        triggered_by:
+          type: string
+          title: Triggered By
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+        status:
+          type: string
+          title: Status
+        deadline_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Deadline At
+        closed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Closed At
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - record_id
+      - plan_id
+      - stage_id
+      - skill_id
+      - triggered_by
+      - reason
+      - status
+      - deadline_at
+      - closed_at
+      - created_at
+      title: BypassResponseDTO
+      description: Bypass record response.
+    C4DslStoreDTO:
+      properties:
+        store_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Store Id
+        project_id:
+          type: string
+          title: Project Id
+        level:
+          type: string
+          pattern: ^(L1|L2|L3|L4)$
+          title: Level
+        dsl_text:
+          type: string
+          title: Dsl Text
+        generation_mode:
+          anyOf:
+          - type: string
+            pattern: ^(auto|manual)$
+          - type: 'null'
+          title: Generation Mode
+        confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - project_id
+      - level
+      - dsl_text
+      title: C4DslStoreDTO
+      description: DTO for C4 DSL store request/response.
+    C4DslValidationResultDTO:
+      properties:
+        valid:
+          type: boolean
+          title: Valid
+        errors:
+          items:
+            additionalProperties:
+              anyOf:
+              - type: string
+              - type: integer
+            type: object
+          type: array
+          title: Errors
+      type: object
+      required:
+      - valid
+      - errors
+      title: C4DslValidationResultDTO
+      description: DTO for DSL validation result.
+    ComplexityTemplateDTO:
+      properties:
+        level:
+          type: string
+          title: Level
+        label:
+          type: string
+          title: Label
+        recommended_template:
+          type: string
+          title: Recommended Template
+        description:
+          type: string
+          title: Description
+        stage_count:
+          type: integer
+          title: Stage Count
+        estimated_skill_count:
+          type: integer
+          title: Estimated Skill Count
+      type: object
+      required:
+      - level
+      - label
+      - recommended_template
+      - description
+      - stage_count
+      - estimated_skill_count
+      title: ComplexityTemplateDTO
+      description: DTO for complexity template recommendation.
+    DAGChangeLogDTO:
+      properties:
+        log_id:
+          type: string
+          title: Log Id
+        session_id:
+          type: string
+          title: Session Id
+        operation_type:
+          type: string
+          title: Operation Type
+        target_id:
+          type: string
+          title: Target Id
+        before_snapshot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Before Snapshot
+        after_snapshot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: After Snapshot
+      type: object
+      required:
+      - log_id
+      - session_id
+      - operation_type
+      - target_id
+      title: DAGChangeLogDTO
+      description: DTO for DAG change log.
+    DAGEdgeDTO:
+      properties:
+        edge_id:
+          type: string
+          title: Edge Id
+        source_node_id:
+          type: string
+          title: Source Node Id
+        target_node_id:
+          type: string
+          title: Target Node Id
+        confidence:
+          type: integer
+          title: Confidence
+          default: 100
+        is_auto_parsed:
+          type: boolean
+          title: Is Auto Parsed
+          default: false
+      type: object
+      required:
+      - edge_id
+      - source_node_id
+      - target_node_id
+      title: DAGEdgeDTO
+      description: DTO for a DAG edge.
+    DAGNodeDTO:
+      properties:
+        node_id:
+          type: string
+          title: Node Id
+        skill_id:
+          type: string
+          title: Skill Id
+        position_x:
+          type: number
+          title: Position X
+          default: 0.0
+        position_y:
+          type: number
+          title: Position Y
+          default: 0.0
+      type: object
+      required:
+      - node_id
+      - skill_id
+      title: DAGNodeDTO
+      description: DTO for a DAG node.
+    DAGSnapshotDTO:
+      properties:
+        nodes:
+          items:
+            $ref: '#/components/schemas/DAGNodeDTO'
+          type: array
+          title: Nodes
+        edges:
+          items:
+            $ref: '#/components/schemas/DAGEdgeDTO'
+          type: array
+          title: Edges
+      type: object
+      required:
+      - nodes
+      - edges
+      title: DAGSnapshotDTO
+      description: Full DAG snapshot.
+    DAGUndoRedoRequestDTO:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+      type: object
+      required:
+      - session_id
+      title: DAGUndoRedoRequestDTO
+      description: Request to undo/redo DAG operation.
+    DiffResponseDTO:
+      properties:
+        from_version:
+          type: integer
+          title: From Version
+          description: 起始版本
+        to_version:
+          type: integer
+          title: To Version
+          description: 目标版本
+        from_content:
+          type: string
+          title: From Content
+          description: 起始版本内容
+        to_content:
+          type: string
+          title: To Content
+          description: 目标版本内容
+      type: object
+      required:
+      - from_version
+      - to_version
+      - from_content
+      - to_content
+      title: DiffResponseDTO
+      description: Diff between two versions.
+    ExecutionPlanResponseDTO:
+      properties:
+        plan_id:
+          type: string
+          title: Plan Id
+          description: 计划 ID
+        project_id:
+          type: string
+          title: Project Id
+          description: 项目 ID
+        version:
+          type: string
+          title: Version
+          description: 版本号
+        is_frozen:
+          type: boolean
+          title: Is Frozen
+          description: 是否冻结
+        template_level:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Template Level
+          description: 模板级别
+        node_order:
+          items:
+            type: string
+          type: array
+          title: Node Order
+          description: 节点执行顺序
+        parallel_groups:
+          items:
+            $ref: '#/components/schemas/ParallelGroupDTO'
+          type: array
+          title: Parallel Groups
+          description: 并行组
+        dependency_matrix:
+          additionalProperties: true
+          type: object
+          title: Dependency Matrix
+          description: 依赖矩阵
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+          description: 创建时间
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+          description: 更新时间
+      type: object
+      required:
+      - plan_id
+      - project_id
+      - version
+      - is_frozen
+      title: ExecutionPlanResponseDTO
+      description: 执行计划响应 DTO.
+    ExecutionStatusDTO:
+      properties:
+        execution_id:
+          type: string
+          title: Execution Id
+          description: 执行 ID
+        current_phase:
+          type: string
+          title: Current Phase
+          description: '当前阶段: PREP | EXEC | POST | NONE'
+        phase_status:
+          type: string
+          title: Phase Status
+          description: '阶段状态: RUNNING | COMPLETED | FAILED'
+        overall_status:
+          type: string
+          title: Overall Status
+          description: '整体状态: NOT_STARTED | RUNNING | SUCCESS | FAILED | UNKNOWN'
+        stage_progress_percent:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Stage Progress Percent
+          description: Stage 进度百分比
+        status_timestamp:
+          type: string
+          format: date-time
+          title: Status Timestamp
+          description: 状态时间戳
+        artifact_paths:
+          items:
+            type: string
+          type: array
+          title: Artifact Paths
+          description: 产物路径列表
+        error_summary:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Summary
+          description: 错误摘要
+      type: object
+      required:
+      - execution_id
+      - current_phase
+      - phase_status
+      - overall_status
+      - stage_progress_percent
+      - status_timestamp
+      title: ExecutionStatusDTO
+      description: 执行状态 DTO.
+    ExecutionTriggerDTO:
+      properties:
+        trigger_action:
+          type: string
+          title: Trigger Action
+          description: '触发动作: SINGLE_EXECUTE | BATCH_EXECUTE | RETRY'
+        target_stage_id:
+          type: string
+          title: Target Stage Id
+          description: 目标 Stage ID
+        target_skill_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Skill Name
+          description: SINGLE_EXECUTE 时必填
+        confirm_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Confirm Release
+          description: 发布类 Skill 必须 true
+        previous_execution_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Previous Execution Id
+          description: RETRY 时必填
+      type: object
+      required:
+      - trigger_action
+      - target_stage_id
+      title: ExecutionTriggerDTO
+      description: 执行触发请求 DTO.
+    GateDecisionResponseDTO:
+      properties:
+        decision_id:
+          type: string
+          title: Decision Id
+        gate_id:
+          type: string
+          title: Gate Id
+        project_id:
+          type: string
+          title: Project Id
+        gate_type:
+          type: string
+          title: Gate Type
+        status:
+          type: string
+          title: Status
+        confidence:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Confidence
+        decision_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision Type
+        decision_by:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision By
+        decision_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Decision At
+        duration_sec:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Duration Sec
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+        unlocked_stages:
+          items:
+            type: string
+          type: array
+          title: Unlocked Stages
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - decision_id
+      - gate_id
+      - project_id
+      - gate_type
+      - status
+      - confidence
+      - decision_type
+      - decision_by
+      - decision_at
+      - duration_sec
+      - reason
+      title: GateDecisionResponseDTO
+      description: DTO for gate decision response.
+    GateRejectRequestDTO:
+      properties:
+        reason:
+          type: string
+          title: Reason
+      type: object
+      required:
+      - reason
+      title: GateRejectRequestDTO
+      description: DTO for rejecting a gate decision.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HistorySummaryDTO:
+      properties:
+        total_projects:
+          type: integer
+          title: Total Projects
+        completed_projects:
+          type: integer
+          title: Completed Projects
+        rework_count:
+          type: integer
+          title: Rework Count
+      type: object
+      required:
+      - total_projects
+      - completed_projects
+      - rework_count
+      title: HistorySummaryDTO
+      description: Application history summary response.
+    LogEntryDTO:
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: 时间戳
+        level:
+          type: string
+          title: Level
+          description: 级别
+        content:
+          type: string
+          title: Content
+          description: 内容
+      type: object
+      required:
+      - timestamp
+      - level
+      - content
+      title: LogEntryDTO
+      description: 日志条目 DTO.
+    LogQueryResultDTO:
+      properties:
+        log_entries:
+          items:
+            $ref: '#/components/schemas/LogEntryDTO'
+          type: array
+          title: Log Entries
+          description: 日志条目
+        total_count:
+          type: integer
+          minimum: 0.0
+          title: Total Count
+          description: 总条数
+        next_anchor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Next Anchor
+          description: 下一页游标
+      type: object
+      required:
+      - total_count
+      title: LogQueryResultDTO
+      description: 日志查询结果 DTO.
+    MonitoringOverviewDTO:
+      properties:
+        total_projects:
+          type: integer
+          title: Total Projects
+        active_projects:
+          type: integer
+          title: Active Projects
+        risk_projects:
+          type: integer
+          title: Risk Projects
+        pending_gates:
+          type: integer
+          title: Pending Gates
+        total_executions:
+          type: integer
+          title: Total Executions
+      type: object
+      required:
+      - total_projects
+      - active_projects
+      - risk_projects
+      - pending_gates
+      - total_executions
+      title: MonitoringOverviewDTO
+      description: Global monitoring overview response.
+    OpenUICreateDTO:
+      properties:
+        spec_name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Spec Name
+        dsl_json:
+          type: string
+          title: Dsl Json
+          default: '{}'
+        status:
+          type: string
+          title: Status
+          default: DRAFT
+      type: object
+      required:
+      - spec_name
+      title: OpenUICreateDTO
+      description: Create OpenUI spec request.
+    OpenUIResponseDTO:
+      properties:
+        spec_id:
+          type: string
+          title: Spec Id
+        project_id:
+          type: string
+          title: Project Id
+        spec_name:
+          type: string
+          title: Spec Name
+        dsl_json:
+          type: string
+          title: Dsl Json
+        status:
+          type: string
+          title: Status
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - spec_id
+      - project_id
+      - spec_name
+      - dsl_json
+      - status
+      - created_at
+      - updated_at
+      title: OpenUIResponseDTO
+      description: OpenUI spec response.
+    OpenUIUpdateDTO:
+      properties:
+        spec_name:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Spec Name
+        dsl_json:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Dsl Json
+        status:
+          anyOf:
+          - type: string
+            pattern: ^(DRAFT|ACTIVE|ARCHIVED)$
+          - type: 'null'
+          title: Status
+      type: object
+      title: OpenUIUpdateDTO
+      description: Update OpenUI spec request.
+    OperationLogDTO:
+      properties:
+        log_id:
+          type: string
+          title: Log Id
+        project_id:
+          type: string
+          title: Project Id
+        operator_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Operator Id
+        action:
+          type: string
+          title: Action
+        target_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Type
+        target_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Id
+        detail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Detail
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - log_id
+      - project_id
+      - operator_id
+      - action
+      - target_type
+      - target_id
+      - detail
+      - created_at
+      title: OperationLogDTO
+      description: Operation log entry response.
+    OperationLogListDTO:
+      properties:
+        logs:
+          items:
+            $ref: '#/components/schemas/OperationLogDTO'
+          type: array
+          title: Logs
+        total:
+          type: integer
+          title: Total
+      type: object
+      required:
+      - logs
+      - total
+      title: OperationLogListDTO
+      description: Paginated operation log list response.
+    PageResponse_AnnotationResponseDTO_:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/AnnotationResponseDTO'
+          type: array
+          title: Data
+          description: 当前页数据
+        total_count:
+          type: integer
+          minimum: 0.0
+          title: Total Count
+          description: 总记录数
+        page:
+          type: integer
+          minimum: 1.0
+          title: Page
+          description: 当前页码
+        page_size:
+          type: integer
+          minimum: 1.0
+          title: Page Size
+          description: 每页条数
+        total_pages:
+          type: integer
+          minimum: 0.0
+          title: Total Pages
+          description: 总页数
+        has_next:
+          type: boolean
+          title: Has Next
+          description: 是否有下一页
+        has_previous:
+          type: boolean
+          title: Has Previous
+          description: 是否有上一页
+      type: object
+      required:
+      - data
+      - total_count
+      - page
+      - page_size
+      - total_pages
+      - has_next
+      - has_previous
+      title: PageResponse[AnnotationResponseDTO]
+    PageResponse_ApplicationResponseDTO_:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/ApplicationResponseDTO'
+          type: array
+          title: Data
+          description: 当前页数据
+        total_count:
+          type: integer
+          minimum: 0.0
+          title: Total Count
+          description: 总记录数
+        page:
+          type: integer
+          minimum: 1.0
+          title: Page
+          description: 当前页码
+        page_size:
+          type: integer
+          minimum: 1.0
+          title: Page Size
+          description: 每页条数
+        total_pages:
+          type: integer
+          minimum: 0.0
+          title: Total Pages
+          description: 总页数
+        has_next:
+          type: boolean
+          title: Has Next
+          description: 是否有下一页
+        has_previous:
+          type: boolean
+          title: Has Previous
+          description: 是否有上一页
+      type: object
+      required:
+      - data
+      - total_count
+      - page
+      - page_size
+      - total_pages
+      - has_next
+      - has_previous
+      title: PageResponse[ApplicationResponseDTO]
+    PageResponse_GateDecisionResponseDTO_:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/GateDecisionResponseDTO'
+          type: array
+          title: Data
+          description: 当前页数据
+        total_count:
+          type: integer
+          minimum: 0.0
+          title: Total Count
+          description: 总记录数
+        page:
+          type: integer
+          minimum: 1.0
+          title: Page
+          description: 当前页码
+        page_size:
+          type: integer
+          minimum: 1.0
+          title: Page Size
+          description: 每页条数
+        total_pages:
+          type: integer
+          minimum: 0.0
+          title: Total Pages
+          description: 总页数
+        has_next:
+          type: boolean
+          title: Has Next
+          description: 是否有下一页
+        has_previous:
+          type: boolean
+          title: Has Previous
+          description: 是否有上一页
+      type: object
+      required:
+      - data
+      - total_count
+      - page
+      - page_size
+      - total_pages
+      - has_next
+      - has_previous
+      title: PageResponse[GateDecisionResponseDTO]
+    PageResponse_ProjectResponseDTO_:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/ProjectResponseDTO'
+          type: array
+          title: Data
+          description: 当前页数据
+        total_count:
+          type: integer
+          minimum: 0.0
+          title: Total Count
+          description: 总记录数
+        page:
+          type: integer
+          minimum: 1.0
+          title: Page
+          description: 当前页码
+        page_size:
+          type: integer
+          minimum: 1.0
+          title: Page Size
+          description: 每页条数
+        total_pages:
+          type: integer
+          minimum: 0.0
+          title: Total Pages
+          description: 总页数
+        has_next:
+          type: boolean
+          title: Has Next
+          description: 是否有下一页
+        has_previous:
+          type: boolean
+          title: Has Previous
+          description: 是否有上一页
+      type: object
+      required:
+      - data
+      - total_count
+      - page
+      - page_size
+      - total_pages
+      - has_next
+      - has_previous
+      title: PageResponse[ProjectResponseDTO]
+    ParallelGroupDTO:
+      properties:
+        group_id:
+          type: string
+          title: Group Id
+          description: 组 ID
+        stage_id:
+          type: string
+          title: Stage Id
+          description: Stage ID
+        skill_ids:
+          items:
+            type: string
+          type: array
+          title: Skill Ids
+          description: 组内 Skill ID 列表
+        group_type:
+          type: string
+          title: Group Type
+          description: '组类型: primary_serial | auxiliary_parallel'
+      type: object
+      required:
+      - group_id
+      - stage_id
+      - group_type
+      title: ParallelGroupDTO
+      description: 并行组 DTO.
+    PlanAdjustmentDTO:
+      properties:
+        node_id:
+          type: string
+          title: Node Id
+          description: 节点 ID
+        action:
+          type: string
+          title: Action
+          description: '操作: move_stage | move_group | add_dependency | remove_dependency | reorder'
+        target_stage_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Stage Id
+          description: 目标 Stage ID
+        target_group_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Group Id
+          description: 目标组 ID
+        source_node_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Node Id
+          description: 源节点 ID
+      type: object
+      required:
+      - node_id
+      - action
+      title: PlanAdjustmentDTO
+      description: 计划调整项 DTO.
+    PlanValidationResultDTO:
+      properties:
+        passed:
+          type: boolean
+          title: Passed
+          description: 是否通过校验
+        errors:
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+          type: array
+          title: Errors
+          description: 错误列表
+      type: object
+      required:
+      - passed
+      title: PlanValidationResultDTO
+      description: 计划校验结果 DTO.
+    ProjectCreateDTO:
+      properties:
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
+          description: Optional project ID
+        project_name:
+          type: string
+          maxLength: 64
+          title: Project Name
+        project_description:
+          anyOf:
+          - type: string
+            maxLength: 256
+          - type: 'null'
+          title: Project Description
+        template_level:
+          type: string
+          title: Template Level
+      type: object
+      required:
+      - project_name
+      - template_level
+      title: ProjectCreateDTO
+      description: DTO for creating a project.
+    ProjectResponseDTO:
+      properties:
+        project_id:
+          type: string
+          title: Project Id
+        project_name:
+          type: string
+          title: Project Name
+        project_description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Description
+        project_status:
+          type: string
+          title: Project Status
+        application_id:
+          type: string
+          title: Application Id
+        template_level:
+          type: string
+          title: Template Level
+        progress_percent:
+          type: integer
+          title: Progress Percent
+        current_stage:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Current Stage
+        risk_level:
+          type: string
+          title: Risk Level
+        last_activity_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Activity At
+        last_activity_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Activity Type
+        size_estimate_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Size Estimate Id
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - project_id
+      - project_name
+      - project_description
+      - project_status
+      - application_id
+      - template_level
+      - progress_percent
+      - current_stage
+      - risk_level
+      - last_activity_type
+      - size_estimate_id
+      title: ProjectResponseDTO
+      description: DTO for project response.
+    ProjectStageDTO:
+      properties:
+        project_stage_id:
+          type: string
+          title: Project Stage Id
+        project_id:
+          type: string
+          title: Project Id
+        stage_id:
+          type: string
+          title: Stage Id
+        order_index:
+          type: integer
+          title: Order Index
+        status:
+          type: string
+          title: Status
+        primary_skill_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Primary Skill Id
+        skippable:
+          type: boolean
+          title: Skippable
+          default: false
+        is_frozen:
+          type: boolean
+          title: Is Frozen
+          default: false
+        merge_group_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Merge Group Id
+        execution_status:
+          type: string
+          title: Execution Status
+      type: object
+      required:
+      - project_stage_id
+      - project_id
+      - stage_id
+      - order_index
+      - status
+      - execution_status
+      title: ProjectStageDTO
+      description: DTO for a project stage.
+    ProjectStatsDTO:
+      properties:
+        stage_count:
+          type: integer
+          title: Stage Count
+        execution_count:
+          type: integer
+          title: Execution Count
+        gate_count:
+          type: integer
+          title: Gate Count
+        log_count:
+          type: integer
+          title: Log Count
+      type: object
+      required:
+      - stage_count
+      - execution_count
+      - gate_count
+      - log_count
+      title: ProjectStatsDTO
+      description: Per-project monitoring stats response.
+    ProjectUpdateDTO:
+      properties:
+        project_name:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: Project Name
+        project_description:
+          anyOf:
+          - type: string
+            maxLength: 256
+          - type: 'null'
+          title: Project Description
+      type: object
+      title: ProjectUpdateDTO
+      description: DTO for updating a project.
+    RetryResultDTO:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          description: 是否成功
+        new_execution_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: New Execution Id
+          description: 新执行 ID
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+          description: 消息
+      type: object
+      required:
+      - success
+      title: RetryResultDTO
+      description: 重试结果 DTO.
+    ReworkAnalysisDTO:
+      properties:
+        total_reworks:
+          type: integer
+          title: Total Reworks
+        events:
+          items:
+            $ref: '#/components/schemas/ReworkEventDTO'
+          type: array
+          title: Events
+      type: object
+      required:
+      - total_reworks
+      - events
+      title: ReworkAnalysisDTO
+      description: Rework analysis response.
+    ReworkEventDTO:
+      properties:
+        event_id:
+          type: string
+          title: Event Id
+        event_type:
+          type: string
+          title: Event Type
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - event_id
+      - event_type
+      - reason
+      - created_at
+      title: ReworkEventDTO
+      description: Single rework event.
+    RiskAlertDTO:
+      properties:
+        alert_type:
+          type: string
+          title: Alert Type
+        severity:
+          type: string
+          title: Severity
+        message:
+          type: string
+          title: Message
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
+        stage_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Stage Id
+      type: object
+      required:
+      - alert_type
+      - severity
+      - message
+      title: RiskAlertDTO
+      description: DTO for a risk alert.
+    SaveContentRequestDTO:
+      properties:
+        content:
+          type: string
+          title: Content
+          description: 文件内容
+      type: object
+      required:
+      - content
+      title: SaveContentRequestDTO
+      description: Request to save artifact content.
+    SizeEstimateCreateDTO:
+      properties:
+        module_count:
+          type: integer
+          maximum: 50.0
+          minimum: 1.0
+          title: Module Count
+        interface_count:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Interface Count
+        page_count:
+          type: integer
+          maximum: 50.0
+          minimum: 0.0
+          title: Page Count
+        tech_complexity:
+          type: string
+          pattern: ^(Low|Medium|High)$
+          title: Tech Complexity
+        risk_level:
+          type: string
+          pattern: ^(Low|Medium|High)$
+          title: Risk Level
+      type: object
+      required:
+      - module_count
+      - interface_count
+      - page_count
+      - tech_complexity
+      - risk_level
+      title: SizeEstimateCreateDTO
+      description: DTO for creating a size estimate.
+    SizeEstimateResponseDTO:
+      properties:
+        estimate_id:
+          type: string
+          title: Estimate Id
+        project_id:
+          type: string
+          title: Project Id
+        module_count:
+          type: integer
+          title: Module Count
+        interface_count:
+          type: integer
+          title: Interface Count
+        page_count:
+          type: integer
+          title: Page Count
+        tech_complexity:
+          type: string
+          title: Tech Complexity
+        risk_level:
+          type: string
+          title: Risk Level
+        optimistic_score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Optimistic Score
+        expected_score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Expected Score
+        conservative_score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Conservative Score
+        complexity_level:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Complexity Level
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - estimate_id
+      - project_id
+      - module_count
+      - interface_count
+      - page_count
+      - tech_complexity
+      - risk_level
+      - optimistic_score
+      - expected_score
+      - conservative_score
+      - complexity_level
+      title: SizeEstimateResponseDTO
+      description: DTO for size estimate response.
+    SketchCreateDTO:
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+        image_url:
+          type: string
+          maxLength: 512
+          minLength: 1
+          title: Image Url
+        annotations:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Annotations
+        status:
+          type: string
+          title: Status
+          default: DRAFT
+      type: object
+      required:
+      - name
+      - image_url
+      title: SketchCreateDTO
+      description: Create sketch request.
+    SketchResponseDTO:
+      properties:
+        sketch_id:
+          type: string
+          title: Sketch Id
+        project_id:
+          type: string
+          title: Project Id
+        name:
+          type: string
+          title: Name
+        image_url:
+          type: string
+          title: Image Url
+        annotations:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Annotations
+        status:
+          type: string
+          title: Status
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - sketch_id
+      - project_id
+      - name
+      - image_url
+      - annotations
+      - status
+      - created_at
+      - updated_at
+      title: SketchResponseDTO
+      description: Sketch response.
+    SketchUpdateDTO:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Name
+        image_url:
+          anyOf:
+          - type: string
+            maxLength: 512
+            minLength: 1
+          - type: 'null'
+          title: Image Url
+        annotations:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Annotations
+        status:
+          anyOf:
+          - type: string
+            pattern: ^(DRAFT|ACTIVE|ARCHIVED)$
+          - type: 'null'
+          title: Status
+      type: object
+      title: SketchUpdateDTO
+      description: Update sketch request.
+    SkillExecutionResponseDTO:
+      properties:
+        execution_id:
+          type: string
+          title: Execution Id
+          description: 执行 ID
+        project_id:
+          type: string
+          title: Project Id
+          description: 项目 ID
+        stage_id:
+          type: string
+          title: Stage Id
+          description: Stage ID
+        skill_id:
+          type: string
+          title: Skill Id
+          description: Skill ID
+        skill_name:
+          type: string
+          title: Skill Name
+          description: Skill 名称
+        trigger_action:
+          type: string
+          title: Trigger Action
+          description: 触发动作
+        current_phase:
+          type: string
+          title: Current Phase
+          description: 当前阶段
+        phase_status:
+          type: string
+          title: Phase Status
+          description: 阶段状态
+        overall_status:
+          type: string
+          title: Overall Status
+          description: 整体状态
+        retry_count:
+          type: integer
+          title: Retry Count
+          description: 重试次数
+        previous_execution_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Previous Execution Id
+          description: 前次执行 ID
+        is_release_skill:
+          type: boolean
+          title: Is Release Skill
+          description: 是否为发布类 Skill
+        release_confirmed:
+          type: boolean
+          title: Release Confirmed
+          description: 是否已确认发布
+        started_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Started At
+          description: 开始时间
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+          description: 完成时间
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 创建时间
+      type: object
+      required:
+      - execution_id
+      - project_id
+      - stage_id
+      - skill_id
+      - skill_name
+      - trigger_action
+      - current_phase
+      - phase_status
+      - overall_status
+      - retry_count
+      - is_release_skill
+      - release_confirmed
+      - created_at
+      title: SkillExecutionResponseDTO
+      description: SkillExecution 响应 DTO.
+    SkillImportConfirmDTO:
+      properties:
+        skills_to_import:
+          items:
+            $ref: '#/components/schemas/SkillScanResultItemDTO'
+          type: array
+          title: Skills To Import
+      type: object
+      required:
+      - skills_to_import
+      title: SkillImportConfirmDTO
+      description: Request to confirm skill import.
+    SkillImportSummaryDTO:
+      properties:
+        imported:
+          type: integer
+          title: Imported
+        skipped:
+          type: integer
+          title: Skipped
+        errors:
+          items:
+            type: string
+          type: array
+          title: Errors
+      type: object
+      required:
+      - imported
+      - skipped
+      - errors
+      title: SkillImportSummaryDTO
+      description: Summary after importing skills.
+    SkillListResponseDTO:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/SkillResponseDTO'
+          type: array
+          title: Data
+        total_count:
+          type: integer
+          title: Total Count
+      type: object
+      required:
+      - data
+      - total_count
+      title: SkillListResponseDTO
+      description: Response model for skill list.
+    SkillResponseDTO:
+      properties:
+        skill_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Skill Id
+        skill_name:
+          type: string
+          title: Skill Name
+        version:
+          type: string
+          title: Version
+        pattern:
+          type: string
+          title: Pattern
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+        platforms:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Platforms
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        directory_path:
+          type: string
+          title: Directory Path
+        parse_status:
+          type: string
+          title: Parse Status
+          default: PARSED
+      type: object
+      required:
+      - skill_name
+      - version
+      - pattern
+      - directory_path
+      title: SkillResponseDTO
+      description: Response model for Skill data.
+    SkillScanRequestDTO:
+      properties:
+        directory_path:
+          type: string
+          maxLength: 4096
+          title: Directory Path
+      type: object
+      required:
+      - directory_path
+      title: SkillScanRequestDTO
+      description: Request to scan a directory for skills.
+    SkillScanResultDTO:
+      properties:
+        parsed_skills:
+          items:
+            $ref: '#/components/schemas/SkillScanResultItemDTO'
+          type: array
+          title: Parsed Skills
+        conflicts:
+          items:
+            $ref: '#/components/schemas/SkillScanResultItemDTO'
+          type: array
+          title: Conflicts
+        errors:
+          items:
+            type: string
+          type: array
+          title: Errors
+      type: object
+      required:
+      - parsed_skills
+      - conflicts
+      - errors
+      title: SkillScanResultDTO
+      description: Result of scanning a directory.
+    SkillScanResultItemDTO:
+      properties:
+        skill_name:
+          type: string
+          title: Skill Name
+        version:
+          type: string
+          title: Version
+        pattern:
+          type: string
+          title: Pattern
+        tags:
+          items:
+            type: string
+          type: array
+          title: Tags
+        platforms:
+          items:
+            type: string
+          type: array
+          title: Platforms
+        description:
+          type: string
+          title: Description
+        directory_path:
+          type: string
+          title: Directory Path
+        parse_status:
+          type: string
+          title: Parse Status
+          default: PARSED
+        parse_error_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parse Error Reason
+      type: object
+      required:
+      - skill_name
+      - version
+      - pattern
+      - tags
+      - platforms
+      - description
+      - directory_path
+      title: SkillScanResultItemDTO
+      description: A single parsed skill in scan result.
+    StageExecutionResultDTO:
+      properties:
+        stage_id:
+          type: string
+          title: Stage Id
+          description: Stage ID
+        status:
+          type: string
+          title: Status
+          description: 状态
+        node_results:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Node Results
+          description: 节点执行结果
+      type: object
+      required:
+      - stage_id
+      - status
+      title: StageExecutionResultDTO
+      description: Stage 执行结果 DTO.
+    TemplateDetailDTO:
+      properties:
+        template:
+          $ref: '#/components/schemas/TemplateResponseDTO'
+        stages:
+          items:
+            $ref: '#/components/schemas/TemplateStageDTO'
+          type: array
+          title: Stages
+      type: object
+      required:
+      - template
+      - stages
+      title: TemplateDetailDTO
+      description: Template with its stage sequence.
+    TemplateDeviationConfirmDTO:
+      properties:
+        new_template_id:
+          type: string
+          title: New Template Id
+          description: 目标模板 ID
+      type: object
+      required:
+      - new_template_id
+      title: TemplateDeviationConfirmDTO
+      description: Request to confirm template deviation.
+    TemplateDeviationPreviewDTO:
+      properties:
+        frozen_count:
+          type: integer
+          title: Frozen Count
+        removed_count:
+          type: integer
+          title: Removed Count
+        added_count:
+          type: integer
+          title: Added Count
+        retained_count:
+          type: integer
+          title: Retained Count
+      type: object
+      required:
+      - frozen_count
+      - removed_count
+      - added_count
+      - retained_count
+      title: TemplateDeviationPreviewDTO
+      description: Preview of template switch impact.
+    TemplateDeviationPreviewRequestDTO:
+      properties:
+        new_template_id:
+          type: string
+          title: New Template Id
+          description: 目标模板 ID
+      type: object
+      required:
+      - new_template_id
+      title: TemplateDeviationPreviewRequestDTO
+      description: Request to preview template deviation.
+    TemplateResponseDTO:
+      properties:
+        template_id:
+          type: string
+          title: Template Id
+        template_name:
+          type: string
+          title: Template Name
+        description:
+          type: string
+          title: Description
+        stage_count:
+          type: integer
+          title: Stage Count
+        estimated_skill_count:
+          type: integer
+          title: Estimated Skill Count
+        applicable_complexity:
+          type: string
+          title: Applicable Complexity
+        config_json:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Config Json
+      type: object
+      required:
+      - template_id
+      - template_name
+      - description
+      - stage_count
+      - estimated_skill_count
+      - applicable_complexity
+      title: TemplateResponseDTO
+      description: DTO for a template.
+    TemplateStageDTO:
+      properties:
+        stage_id:
+          type: string
+          title: Stage Id
+        stage_name:
+          type: string
+          title: Stage Name
+        order_index:
+          type: integer
+          title: Order Index
+        template_id:
+          type: string
+          title: Template Id
+        primary_skill_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Primary Skill Id
+        auxiliary_skill_ids:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Auxiliary Skill Ids
+        gate_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Gate Id
+        skippable:
+          type: boolean
+          title: Skippable
+          default: false
+        merge_group_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Merge Group Id
+      type: object
+      required:
+      - stage_id
+      - stage_name
+      - order_index
+      - template_id
+      title: TemplateStageDTO
+      description: DTO for a template stage.
+    TimeboxEntryDTO:
+      properties:
+        stage_id:
+          type: string
+          title: Stage Id
+        stage_name:
+          type: string
+          title: Stage Name
+        planned_days:
+          type: number
+          title: Planned Days
+        elapsed_days:
+          type: number
+          title: Elapsed Days
+        remaining_days:
+          type: number
+          title: Remaining Days
+        deviation_percent:
+          type: number
+          title: Deviation Percent
+        alert_level:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alert Level
+      type: object
+      required:
+      - stage_id
+      - stage_name
+      - planned_days
+      - elapsed_days
+      - remaining_days
+      - deviation_percent
+      - alert_level
+      title: TimeboxEntryDTO
+      description: DTO for a timebox entry.
+    TimelineEventDTO:
+      properties:
+        type:
+          type: string
+          title: Type
+        timestamp:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Timestamp
+        action:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Action
+        detail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Detail
+      type: object
+      required:
+      - type
+      - timestamp
+      - action
+      - detail
+      title: TimelineEventDTO
+      description: Single timeline event.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    ValidationErrorItem:
+      properties:
+        node_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Node Id
+          description: 相关节点 ID
+        error_code:
+          type: string
+          title: Error Code
+          description: 错误码
+        message:
+          type: string
+          title: Message
+          description: 错误消息
+      type: object
+      required:
+      - error_code
+      - message
+      title: ValidationErrorItem
+      description: 校验错误项.
+    WireframeCreateDTO:
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+        nodes:
+          type: string
+          title: Nodes
+          default: '[]'
+        edges:
+          type: string
+          title: Edges
+          default: '[]'
+        status:
+          type: string
+          title: Status
+          default: DRAFT
+      type: object
+      required:
+      - name
+      title: WireframeCreateDTO
+      description: Create wireframe request.
+    WireframeResponseDTO:
+      properties:
+        wireframe_id:
+          type: string
+          title: Wireframe Id
+        project_id:
+          type: string
+          title: Project Id
+        name:
+          type: string
+          title: Name
+        nodes:
+          type: string
+          title: Nodes
+        edges:
+          type: string
+          title: Edges
+        status:
+          type: string
+          title: Status
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - wireframe_id
+      - project_id
+      - name
+      - nodes
+      - edges
+      - status
+      - created_at
+      - updated_at
+      title: WireframeResponseDTO
+      description: Wireframe response.
+    WireframeUpdateDTO:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Name
+        nodes:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Nodes
+        edges:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Edges
+        status:
+          anyOf:
+          - type: string
+            pattern: ^(DRAFT|ACTIVE|ARCHIVED)$
+          - type: 'null'
+          title: Status
+      type: object
+      title: WireframeUpdateDTO
+      description: Update wireframe request.
+    _GeneratePlanPayload:
+      properties:
+        template_level:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Template Level
+        skill_nodes:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Skill Nodes
+      type: object
+      title: _GeneratePlanPayload
+      description: 生成执行计划请求体。
+    Problem:
+      type: object
+      description: RFC 7807 Problem Details
+      properties:
+        type:
+          type: string
+          format: uri
+          description: 问题类型URI
+        title:
+          type: string
+          description: 简短可读标题
+        status:
+          type: integer
+          description: HTTP状态码
+        detail:
+          type: string
+          description: 详细描述
+        instance:
+          type: string
+          format: uri
+          description: 问题发生实例URI
+      required:
+      - type
+      - title
+      - status
+  responses:
+    BadRequest:
+      description: 请求参数校验失败
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://api.arsitect.local/errors/400
+            title: 请求参数校验失败
+            status: 400
+            detail: Detailed error message here.
+            instance: /api/v1/example
+    Unauthorized:
+      description: 未认证
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://api.arsitect.local/errors/401
+            title: 未认证
+            status: 401
+            detail: Detailed error message here.
+            instance: /api/v1/example
+    NotFound:
+      description: 资源不存在
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://api.arsitect.local/errors/404
+            title: 资源不存在
+            status: 404
+            detail: Detailed error message here.
+            instance: /api/v1/example
+    TooManyRequests:
+      description: 请求频率限制
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://api.arsitect.local/errors/429
+            title: 请求频率限制
+            status: 429
+            detail: Detailed error message here.
+            instance: /api/v1/example
+    Conflict:
+      description: 资源冲突
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://api.arsitect.local/errors/409
+            title: 资源冲突
+            status: 409
+            detail: Detailed error message here.
+            instance: /api/v1/example
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: MVP 阶段为本地会话占位，P1 升级为 JWT
+tags:
+- name: System
+  description: 系统级接口（健康检查、搜索、文件上传）
+- name: Applications
+  description: Application 与模块治理（DR-015）
+- name: Projects
+  description: 项目工作台（DR-001）
+- name: Stages
+  description: 阶段详情面板（DR-003）
+- name: Gates
+  description: 审批中心（DR-004）
+- name: Artifacts
+  description: 产物浏览器（DR-005）
+- name: Skills
+  description: Skill 注册与 DAG 管理（DR-006）
+- name: Execution Plans
+  description: Skill Flow 编排引擎（DR-007）
+- name: Executions
+  description: Skill 调度与执行（DR-008）
+- name: Templates
+  description: 模板引擎（DR-009）
+- name: Complexity
+  description: 复杂度路由面板（DR-010）
+- name: C4
+  description: C4 架构浏览器（DR-011）
+- name: Arch Validation
+  description: 架构验证中心（DR-012）
+- name: History
+  description: 历史回溯（DR-013）
+- name: Monitoring
+  description: 监控看板（DR-014）
+- name: Modules
+  description: 模块治理（DR-015）
+- name: PocketFlow
+  description: PocketFlow 执行引擎（DR-016）
+- name: Bypass
+  description: HITL 旁路审批（DR-017）
+- name: OpenUI
+  description: OpenUI 原型服务（DR-018）
+- name: Wireframe
+  description: WireframeEngine（DR-019）
+- name: Binding
+  description: 原型-架构双向绑定（DR-020）
+- name: Sketches
+  description: 需求草图服务（DR-021）

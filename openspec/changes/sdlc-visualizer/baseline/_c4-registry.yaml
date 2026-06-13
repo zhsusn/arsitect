@@ -1,0 +1,5662 @@
+systems:
+  sdlc-visualizer:
+    name: SDLC Visualizer
+    aliases:
+    - Arsitect 可视化驾驶舱
+    - Pg_Viz
+    level: L1
+  kimi-cli:
+    name: Kimi CLI
+    aliases:
+    - AI Skill 执行器
+    - Pg_Kimi
+    level: L1
+  openui-service:
+    name: OpenUI Service
+    aliases:
+    - OpenUI Docker
+    - Pg_OpenUI
+    level: L1
+  git:
+    name: Git
+    aliases:
+    - 产物版本管理
+    - Pg_Git
+    level: L1
+  local-filesystem:
+    name: 本地文件系统
+    aliases:
+    - openspec/changes/
+    - Pg_FS
+    level: L1
+actors:
+  developer:
+    name: 超级个体
+    aliases:
+    - 独立开发者
+    - Tech Lead
+    - Pg_User
+    level: L1
+containers:
+  frontend-spa:
+    name: React 19 SPA
+    aliases:
+    - Frontend
+    - 前端
+    - Pg_SPA
+    - SPA
+    level: L2
+  backend-api:
+    name: FastAPI
+    aliases:
+    - REST API
+    - REST API + SSE
+    - Pg_API
+    level: L2
+  skill-orchestrator:
+    name: Skill Orchestrator
+    aliases:
+    - PocketFlow 三阶段调度
+    - 编排引擎
+    - Pg_Orchestrator
+    level: L2
+  c4-dsl-engine:
+    name: C4 DSL Engine
+    aliases:
+    - 自研解析渲染
+    - Pg_C4Engine
+    level: L2
+  wireframe-engine:
+    name: WireframeEngine
+    aliases:
+    - 领域感知线框
+    - Pg_Wireframe
+    level: L2
+  sqlite-db:
+    name: SQLite
+    aliases:
+    - 元数据与状态
+    - Pg_SQLite
+    level: L2
+  git-repo:
+    name: Git 仓库
+    aliases:
+    - 每项目独立 .git
+    - Pg_GitLocal
+    level: L2
+  artifact-store:
+    name: 产物目录
+    aliases:
+    - openspec/changes/
+    - Pg_Artifacts
+    level: L2
+  kimi-cli-process:
+    name: Kimi CLI
+    aliases:
+    - 子进程 STDIO
+    - Pg_KimiCLI
+    level: L2
+  openui-docker:
+    name: OpenUI Docker
+    aliases:
+    - HTTP :7878
+    - Pg_OpenUI_Docker
+    level: L2
+components:
+  project-api:
+    name: Project API
+    aliases:
+    - projectApi
+    - Pg_ProjectAPI
+    - projectapi
+    - project-api
+    - 项目 / 应用 / 模块 CRUD
+    level: L3
+    container_id: frontend-spa
+    source: doc
+    implemented: true
+    source_code_file: frontend/src/services/project.ts
+    kind: service-module
+  canvas-api:
+    name: Canvas API
+    aliases:
+    - canvasApi
+    - Pg_CanvasAPI
+    - canvasapi
+    - canvas-api
+    - 节点 / 边 / 布局
+    level: L3
+    container_id: frontend-spa
+    source: doc
+    implemented: true
+    source_code_file: frontend/src/services/canvas.ts
+    kind: service-module
+  skill-api:
+    name: Skill API
+    aliases:
+    - skill-api
+    - 导入 / 解析 / 执行
+    - Pg_SkillAPI
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  artifact-api:
+    name: Artifact API
+    aliases:
+    - 产物 / 版本 / diff
+    - Pg_ArtifactAPI
+    - artifact-api
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  gate-api:
+    name: Gate API
+    aliases:
+    - Pg_GateAPI
+    - 审批 / 摘要 / 历史
+    - gateApi
+    - gateapi
+    - gate-api
+    level: L3
+    container_id: frontend-spa
+    source: doc
+    implemented: true
+    source_code_file: frontend/src/services/gate.ts
+    kind: service-module
+  c4-api:
+    name: C4 API
+    aliases:
+    - c4Api
+    - DSL / 渲染 / 导出
+    - c4api
+    - c4-api
+    - Pg_C4API
+    level: L3
+    container_id: frontend-spa
+    source: doc
+    implemented: true
+    source_code_file: frontend/src/services/c4.ts
+    kind: service-module
+  prototype-api:
+    name: Prototype API
+    aliases:
+    - OpenUI / Wireframe
+    - prototype-api
+    - Pg_ProtoAPI
+    level: L3
+    container_id: wireframe-engine
+    source: doc
+    implemented: false
+  project-service:
+    name: Project Service
+    aliases:
+    - Pg_ProjectSvc
+    - projectservice
+    - ProjectService 项目 CRUD
+    - 双态管理 / Timebox
+    - S_Project
+    - project-service
+    - ProjectService
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: true
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-01-project-dashboard/module-design.md
+    source_code_file: backend/app/services/project_service.py
+    kind: class
+  orchestrator-service:
+    name: Orchestrator Service
+    aliases:
+    - DAG 调度 / 并行执行
+    - orchestrator-service
+    - Pg_OrcheSvc
+    level: L3
+    container_id: skill-orchestrator
+    source: doc
+    implemented: false
+  skill-service:
+    name: Skill Service
+    aliases:
+    - CLI 适配 / 日志捕获
+    - Pg_SkillSvc
+    - skill-service
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  artifact-service:
+    name: Artifact Service
+    aliases:
+    - Git 快照 / 冲突检测
+    - artifact-service
+    - Pg_ArtifactSvc
+    - artifactservice
+    - ArtifactService
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: true
+    source_code_file: backend/app/services/artifact_service.py
+    kind: class
+  gate-service:
+    name: Gate Service
+    aliases:
+    - Pg_GateSvc
+    - 自检摘要 / HITL
+    - gate-service
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  size-estimate-service:
+    name: SizeEstimate Service
+    aliases:
+    - 五维度评估 / 路由
+    - size-estimate-service
+    - Pg_SizeSvc
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  c4-service:
+    name: C4 Service
+    aliases:
+    - c4-service
+    - Pg_C4Svc
+    - DSL 生成 / 层级穿透
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    implemented: false
+  prototype-service:
+    name: Prototype Service
+    aliases:
+    - Pg_ProtoSvc
+    - OpenUI 适配 / Wireframe
+    - prototype-service
+    level: L3
+    container_id: wireframe-engine
+    source: doc
+    implemented: false
+  db-repository:
+    name: Repository
+    aliases:
+    - db-repository
+    - Pg_DBRepo
+    - SQLAlchemy 2.0
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  file-repository:
+    name: File Repository
+    aliases:
+    - 本地文件系统
+    - file-repository
+    - Pg_FileRepo
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  git-repository:
+    name: Git Repository
+    aliases:
+    - GitPython
+    - git-repository
+    - Pg_GitRepo
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: false
+  cli-adapter:
+    name: CLI Adapter
+    aliases:
+    - cli-adapter
+    - cliadapter
+    - CLIAdapter
+    - Kimi STDIO
+    - Pg_CLIAdapter
+    level: L3
+    container_id: backend-api
+    source: doc
+    implemented: true
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-02-validation-prototype-engine/module-design.md
+    source_code_file: backend/app/engine/pocketflow_engine.py
+    kind: class
+  sse-manager:
+    name: SSE Manager
+    aliases:
+    - 事件推送
+    - sse-manager
+    - Pg_SSEMgr
+    level: L3
+    container_id: frontend-spa
+    source: doc
+    implemented: false
+  artifactstore:
+    name: ArtifactStore
+    aliases:
+    - ArtifactStore
+    - artifactstore
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-01-c4-dsl-sketch/module-design.md
+    implemented: true
+    source_code_file: backend/app/common/artifact_store.py
+    kind: class
+  documenttemplateengine:
+    name: DocumentTemplateEngine
+    aliases:
+    - documenttemplateengine
+    - DocumentTemplateEngine
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-01-c4-dsl-sketch/module-design.md
+    implemented: true
+    source_code_file: backend/app/docforge/template_engine.py
+    kind: class
+    intentional_orphan: true
+  c4baselinestore:
+    name: C4BaselineStore
+    aliases:
+    - c4baselinestore
+    - C4BaselineStore
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-01-c4-dsl-sketch/module-design.md
+    implemented: true
+    source_code_file: backend/app/c4/baseline_store.py
+    kind: class
+  c4dslmanager:
+    name: C4DSLManager
+    aliases:
+    - c4dslmanager
+    - C4DSLManager
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-01-c4-dsl-sketch/module-design.md
+    implemented: true
+    source_code_file: backend/app/c4/dsl_manager.py
+    kind: class
+  wireframeengine:
+    name: WireframeEngine
+    aliases:
+    - WireframeEngine
+    - wireframeengine
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-01-c4-dsl-sketch/module-design.md
+    implemented: true
+    source_code_file: backend/app/c4/wireframe_engine.py
+    kind: class
+  sketchgenerator:
+    name: SketchGenerator
+    aliases:
+    - sketchgenerator
+    - SketchGenerator
+    - S4
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/sketch-module-design.md
+    implemented: true
+    source_code_file: backend/app/c4/sketch_generator.py
+    kind: class
+    intentional_orphan: true
+  crosslayervalidator:
+    name: CrossLayerValidator
+    aliases:
+    - CrossLayerValidator
+    - crosslayervalidator
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-02-validation-prototype-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/c4/cross_layer_validator.py
+    kind: class
+  interfacecontractstore:
+    name: InterfaceContractStore
+    aliases:
+    - InterfaceContractStore
+    - interfacecontractstore
+    level: L3
+    container_id: c4-dsl-engine
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-02-validation-prototype-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/c4/interface_contract_store.py
+    kind: class
+  kimicliadapter:
+    name: KimiCLIAdapter
+    aliases:
+    - KimiCLIAdapter
+    - kimicliadapter
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-02-validation-prototype-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/engine/pocketflow_engine.py
+    kind: class
+  pocketflowengine:
+    name: PocketFlowEngine
+    aliases:
+    - pocketflowengine
+    - PocketFlowEngine
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-02-validation-prototype-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/engine/pocketflow_engine.py
+    kind: class
+  dagscheduler:
+    name: DAGScheduler
+    aliases:
+    - DAGScheduler
+    - dagscheduler
+    level: L3
+    container_id: skill-orchestrator
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-03-orchestration-hitl-push/module-design.md
+    implemented: true
+    source_code_file: backend/app/scheduler/dag_scheduler.py
+    kind: class
+  statemachinemanager:
+    name: StateMachineManager
+    aliases:
+    - StateMachineManager
+    - statemachinemanager
+    level: L3
+    container_id: skill-orchestrator
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-03-orchestration-hitl-push/module-design.md
+    implemented: true
+    source_code_file: backend/app/scheduler/state_machine.py
+    kind: class
+  gatecontroller:
+    name: GateController
+    aliases:
+    - GateController
+    - gatecontroller
+    level: L3
+    container_id: skill-orchestrator
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-03-orchestration-hitl-push/module-design.md
+    implemented: true
+    source_code_file: backend/app/scheduler/gate_controller.py
+    kind: class
+  complexityrouter:
+    name: ComplexityRouter
+    aliases:
+    - ComplexityRouter
+    - complexityrouter
+    level: L3
+    container_id: frontend-spa
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-04-governance-fallback-version/module-design.md
+    implemented: true
+    source_code_file: frontend/src/pages/ComplexityRouter/index.tsx
+    kind: router
+  templateengine:
+    name: TemplateEngine
+    aliases:
+    - TemplateEngine
+    - templateengine
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-04-governance-fallback-version/module-design.md
+    implemented: true
+    source_code_file: backend/app/governance/template_engine.py
+    kind: class
+  artifactversionmanager:
+    name: ArtifactVersionManager
+    aliases:
+    - artifactversionmanager
+    - ArtifactVersionManager
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-04-governance-fallback-version/module-design.md
+    implemented: true
+    source_code_file: backend/app/governance/artifact_version_manager.py
+    kind: class
+  gitadapter:
+    name: GitAdapter
+    aliases:
+    - GitAdapter
+    - gitadapter
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-04-governance-fallback-version/module-design.md
+    implemented: true
+    source_code_file: backend/app/governance/artifact_version_manager.py
+    kind: class
+  artifacteventhandler:
+    name: ArtifactEventHandler
+    aliases:
+    - ArtifactEventHandler
+    - artifacteventhandler
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-04-governance-fallback-version/module-design.md
+    implemented: true
+    source_code_file: backend/app/common/file_system_watcher.py
+    kind: class
+    intentional_orphan: true
+  fallbackmanager:
+    name: FallbackManager
+    aliases:
+    - fallbackmanager
+    - FallbackManager
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-04-governance-fallback-version/module-design.md
+    implemented: true
+    source_code_file: backend/app/common/fallback_manager.py
+    kind: class
+  permissionmanager:
+    name: PermissionManager
+    aliases:
+    - PermissionManager
+    - permissionmanager
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-05-advanced-enterprise/module-design.md
+    implemented: true
+    source_code_file: backend/app/advanced/permission_manager.py
+    kind: class
+  metricscollector:
+    name: MetricsCollector
+    aliases:
+    - MetricsCollector
+    - metricscollector
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-05-advanced-enterprise/module-design.md
+    implemented: true
+    source_code_file: backend/app/advanced/metrics_collector.py
+    kind: class
+  searchengine:
+    name: SearchEngine
+    aliases:
+    - searchengine
+    - SearchEngine
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-05-advanced-enterprise/module-design.md
+    implemented: true
+    source_code_file: backend/app/advanced/search_engine.py
+    kind: class
+  notificationmanager:
+    name: NotificationManager
+    aliases:
+    - notificationmanager
+    - NotificationManager
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-05-advanced-enterprise/module-design.md
+    implemented: true
+    source_code_file: backend/app/advanced/notification_manager.py
+    kind: class
+  importexportmanager:
+    name: ImportExportManager
+    aliases:
+    - importexportmanager
+    - ImportExportManager
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/batch-05-advanced-enterprise/module-design.md
+    implemented: true
+    source_code_file: backend/app/advanced/import_export_manager.py
+    kind: class
+  riskscannerservice:
+    name: RiskScannerService
+    aliases:
+    - RiskScannerService
+    - riskscannerservice
+    - RiskScannerService 风险扫描与聚合
+    - S_Risk
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-01-project-dashboard/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/risk_scanner_service.py
+    kind: class
+  timeboxservice:
+    name: TimeboxService
+    aliases:
+    - TimeboxService Timebox 计算与预警
+    - TimeboxService
+    - timeboxservice
+    - S_Timebox
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-01-project-dashboard/module-design.md
+    implemented: false
+  projectrepository:
+    name: ProjectRepository
+    aliases:
+    - projectrepository
+    - ProjectRepository
+    - Repo_Project
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-01-project-dashboard/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/project_repo.py
+    kind: class
+  projecttimeboxrepository:
+    name: ProjectTimeboxRepository
+    aliases:
+    - Repo_Timebox
+    - ProjectTimeboxRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-01-project-dashboard/module-design.md
+    implemented: false
+  skillimportservice:
+    name: SkillImportService
+    aliases:
+    - skillimportservice
+    - SkillImportService 扫描
+    - SkillImportService
+    - S_Import
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-06-skill-registry/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/skill_import_service.py
+    kind: class
+  skillparser:
+    name: SkillParser
+    aliases:
+    - SkillParser
+    - SkillParser Frontmatter 解析
+    - S_Parser
+    - skillparser
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-06-skill-registry/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/skill_parser.py
+    kind: class
+  dageditorservice:
+    name: DAGEditorService
+    aliases:
+    - DAGEditorService 画布操作
+    - S_DAGEditor
+    - DAGEditorService
+    - dageditorservice
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-06-skill-registry/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/dag_editor_service.py
+    kind: class
+  skillrepository:
+    name: SkillRepository
+    aliases:
+    - Repo_Skill
+    - SkillRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-06-skill-registry/module-design.md
+    implemented: false
+  executionplangenerator:
+    name: ExecutionPlanGenerator
+    aliases:
+    - S_PlanGen
+    - executionplangenerator
+    - ExecutionPlanGenerator
+    - ExecutionPlanGenerator 计划生成
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/execution_plan_generator.py
+    kind: class
+  stageorchestrator:
+    name: StageOrchestrator
+    aliases:
+    - S_Orchestrator
+    - stageorchestrator
+    - StageOrchestrator
+    - StageOrchestrator Stage 就绪检查
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/stage_orchestrator.py
+    kind: class
+  bypassapprovalservice:
+    name: BypassApprovalService
+    aliases:
+    - BypassApprovalService 旁路授权校验
+    - BypassApprovalService
+    - S_Bypass
+    - bypassapprovalservice
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/bypass_approval_service.py
+    kind: class
+  executionplanrepository:
+    name: ExecutionPlanRepository
+    aliases:
+    - Repo_Plan
+    - executionplanrepository
+    - ExecutionPlanRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/execution_plan_repo.py
+    kind: class
+  plannoderepository:
+    name: PlanNodeRepository
+    aliases:
+    - plannoderepository
+    - Repo_Node
+    - PlanNodeRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/plan_node_repo.py
+    kind: class
+  parallelgrouprepository:
+    name: ParallelGroupRepository
+    aliases:
+    - ParallelGroupRepository
+    - parallelgrouprepository
+    - Repo_Group
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/parallel_group_repo.py
+    kind: class
+  bypassrecordrepository:
+    name: BypassRecordRepository
+    aliases:
+    - bypassrecordrepository
+    - Repo_Bypass
+    - BypassRecordRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-07-flow-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/bypass_record_repo.py
+    kind: class
+  triggervalidator:
+    name: TriggerValidator
+    aliases:
+    - TriggerValidator 触发校验
+    - triggervalidator
+    - TriggerValidator
+    - S_Trigger
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-08-skill-executor/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/trigger_validator.py
+    kind: class
+  statusaggregator:
+    name: StatusAggregator
+    aliases:
+    - StatusAggregator
+    - S_Status
+    - StatusAggregator 状态聚合
+    - statusaggregator
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-08-skill-executor/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/status_aggregator.py
+    kind: class
+  logcollector:
+    name: LogCollector
+    aliases:
+    - LogCollector
+    - logcollector
+    - LogCollector 日志捕获
+    - S_Log
+    level: L3
+    container_id: skill-orchestrator
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-08-skill-executor/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/pocketflow/log_collector.py
+    kind: class
+  retrymanager:
+    name: RetryManager
+    aliases:
+    - S_Retry
+    - retrymanager
+    - RetryManager
+    - RetryManager 重试计数
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-08-skill-executor/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/retry_manager.py
+    kind: class
+  skillexecutionrepository:
+    name: SkillExecutionRepository
+    aliases:
+    - SkillExecutionRepository
+    - skillexecutionrepository
+    - Repo_Exec
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-08-skill-executor/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/skill_execution_repo.py
+    kind: class
+  executionlogrepository:
+    name: ExecutionLogRepository
+    aliases:
+    - ExecutionLogRepository
+    - executionlogrepository
+    - Repo_Log
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-08-skill-executor/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/execution_log_repo.py
+    kind: class
+  templateservice:
+    name: TemplateService
+    aliases:
+    - S_Template
+    - templateservice
+    - TemplateService 模板定义查询
+    - TemplateService
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: false
+  deviationservice:
+    name: DeviationService
+    aliases:
+    - deviationservice
+    - DeviationService 偏离确认
+    - S_Deviation
+    - DeviationService
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: false
+  impactscopecalculator:
+    name: ImpactScopeCalculator
+    aliases:
+    - S_Impact
+    - ImpactScopeCalculator
+    - impactscopecalculator
+    - ImpactScopeCalculator 切换影响范围计算
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/impact_scope_calculator.py
+    kind: class
+  stageconfigservice:
+    name: StageConfigService
+    aliases:
+    - S_StageConfig
+    - StageConfigService Stage 序列管理
+    - StageConfigService
+    - stageconfigservice
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/stage_config_service.py
+    kind: class
+  templaterepository:
+    name: TemplateRepository
+    aliases:
+    - templaterepository
+    - Repo_Template
+    - TemplateRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/template_repo.py
+    kind: class
+  templatedeviationrepository:
+    name: TemplateDeviationRepository
+    aliases:
+    - Repo_Deviation
+    - TemplateDeviationRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: false
+  templatestagerepository:
+    name: TemplateStageRepository
+    aliases:
+    - Repo_Stage
+    - TemplateStageRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-09-template-engine/module-design.md
+    implemented: false
+  applicationservice:
+    name: ApplicationService
+    aliases:
+    - ApplicationService
+    - applicationservice
+    - S_App
+    - ApplicationService CRUD
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-15-app-module/module-design.md
+    implemented: true
+    source_code_file: backend/app/services/application_service.py
+    kind: class
+  moduleservice:
+    name: ModuleService
+    aliases:
+    - moduleservice
+    - ModuleService 定义
+    - S_Module
+    - ModuleService
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-15-app-module/module-design.md
+    implemented: false
+  coststatsservice:
+    name: CostStatsService
+    aliases:
+    - coststatsservice
+    - S_Stats
+    - CostStatsService Token 聚合
+    - CostStatsService
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-15-app-module/module-design.md
+    implemented: false
+  applicationrepository:
+    name: ApplicationRepository
+    aliases:
+    - ApplicationRepository
+    - applicationrepository
+    - Repo_App
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-15-app-module/module-design.md
+    implemented: true
+    source_code_file: backend/app/infrastructure/database/repositories/application_repo.py
+    kind: class
+  modulerepository:
+    name: ModuleRepository
+    aliases:
+    - Repo_Module
+    - ModuleRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-15-app-module/module-design.md
+    implemented: false
+  coststatsrepository:
+    name: CostStatsRepository
+    aliases:
+    - Repo_Stats
+    - CostStatsRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-15-app-module/module-design.md
+    implemented: false
+  execservice:
+    name: ExecService
+    aliases:
+    - execservice
+    - ExecService CLI 调用
+    - ExecService
+    - S_Exec
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-16-pocketflow/module-design.md
+    implemented: false
+  pocketflowexecutionrepository:
+    name: PocketFlowExecutionRepository
+    aliases:
+    - Repo_Exec
+    - PocketFlowExecutionRepository
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-16-pocketflow/module-design.md
+    implemented: false
+  git:
+    name: Git 仓库
+    aliases:
+    - Ext_Git
+    - Git 仓库
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/feature-16-pocketflow/module-design.md
+    implemented: false
+  filesystemadapter:
+    name: FileSystemAdapter
+    aliases:
+    - FileSystemAdapter
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/shared/design.md
+    implemented: false
+    intentional_orphan: true
+  localfilesystemadapter:
+    name: LocalFileSystemAdapter
+    aliases:
+    - LocalFileSystemAdapter
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/shared/design.md
+    implemented: false
+    intentional_orphan: true
+  sketchservice:
+    name: SketchService
+    aliases:
+    - S1
+    - sketchservice
+    - SketchService
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/sketch-module-design.md
+    implemented: true
+    source_code_file: backend/app/services/sketch_service.py
+    kind: class
+  sketchpageservice:
+    name: SketchPageService
+    aliases:
+    - sketchpageservice
+    - S2
+    - SketchPageService
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/sketch-module-design.md
+    implemented: true
+    source_code_file: backend/app/services/sketch_page_service.py
+    kind: class
+  storypathvalidator:
+    name: StoryPathValidator
+    aliases:
+    - StoryPathValidator
+    - S5
+    - storypathvalidator
+    level: L3
+    container_id: backend-api
+    source: doc
+    source_file: openspec/changes/sdlc-visualizer/detailed-design/sketch-module-design.md
+    implemented: true
+    source_code_file: backend/app/services/story_path_validator.py
+    kind: class
+  advancedrouter:
+    name: AdvancedRouter
+    aliases:
+    - AdvancedRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/advanced.py
+    kind: router
+    implemented: true
+  annotationsrouter:
+    name: AnnotationsRouter
+    aliases:
+    - AnnotationsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/annotations.py
+    kind: router
+    implemented: true
+  applicationsrouter:
+    name: ApplicationsRouter
+    aliases:
+    - ApplicationsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/applications.py
+    kind: router
+    implemented: true
+  archvalidationrouter:
+    name: ArchValidationRouter
+    aliases:
+    - ArchValidationRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/arch_validation.py
+    kind: router
+    implemented: true
+  artifactsrouter:
+    name: ArtifactsRouter
+    aliases:
+    - ArtifactsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/artifacts.py
+    kind: router
+    implemented: true
+  bindingrouter:
+    name: BindingRouter
+    aliases:
+    - BindingRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/binding.py
+    kind: router
+    implemented: true
+  bypassrouter:
+    name: BypassRouter
+    aliases:
+    - BypassRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/bypass.py
+    kind: router
+    implemented: true
+  c4router:
+    name: C4Router
+    aliases:
+    - C4Router
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/c4.py
+    kind: router
+    implemented: true
+  canvasstaterouter:
+    name: CanvasStateRouter
+    aliases:
+    - CanvasStateRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/canvas_state.py
+    kind: router
+    implemented: true
+  contractsrouter:
+    name: ContractsRouter
+    aliases:
+    - ContractsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/contracts.py
+    kind: router
+    implemented: true
+  docforgeadminrouter:
+    name: DocforgeAdminRouter
+    aliases:
+    - DocforgeAdminRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/docforge_admin.py
+    kind: router
+    implemented: true
+  enginerouter:
+    name: EngineRouter
+    aliases:
+    - EngineRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/engine.py
+    kind: router
+    implemented: true
+  executionplansrouter:
+    name: ExecutionPlansRouter
+    aliases:
+    - ExecutionPlansRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/execution_plans.py
+    kind: router
+    implemented: true
+  governancerouter:
+    name: GovernanceRouter
+    aliases:
+    - GovernanceRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/governance.py
+    kind: router
+    implemented: true
+  locatorrouter:
+    name: LocatorRouter
+    aliases:
+    - LocatorRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/locator.py
+    kind: router
+    implemented: true
+  monitoringrouter:
+    name: MonitoringRouter
+    aliases:
+    - MonitoringRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/monitoring.py
+    kind: router
+    implemented: true
+  openuirouter:
+    name: OpenUiRouter
+    aliases:
+    - OpenUiRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/open_ui.py
+    kind: router
+    implemented: true
+  projectsrouter:
+    name: ProjectsRouter
+    aliases:
+    - ProjectsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/projects.py
+    kind: router
+    implemented: true
+  apiv1router:
+    name: ApiV1Router
+    aliases:
+    - ApiV1Router
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/router.py
+    kind: router
+    implemented: true
+  schedulerrouter:
+    name: SchedulerRouter
+    aliases:
+    - SchedulerRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/scheduler.py
+    kind: router
+    implemented: true
+  sketchrouter:
+    name: SketchRouter
+    aliases:
+    - SketchRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/sketch.py
+    kind: router
+    implemented: true
+  skillsrouter:
+    name: SkillsRouter
+    aliases:
+    - SkillsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/skills.py
+    kind: router
+    implemented: true
+  skillexecutionsrouter:
+    name: SkillExecutionsRouter
+    aliases:
+    - SkillExecutionsRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/skill_executions.py
+    kind: router
+    implemented: true
+  stagesrouter:
+    name: StagesRouter
+    aliases:
+    - StagesRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/stages.py
+    kind: router
+    implemented: true
+  templatesrouter:
+    name: TemplatesRouter
+    aliases:
+    - TemplatesRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/templates.py
+    kind: router
+    implemented: true
+  userstoriesrouter:
+    name: UserStoriesRouter
+    aliases:
+    - UserStoriesRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/user_stories.py
+    kind: router
+    implemented: true
+  validationrouter:
+    name: ValidationRouter
+    aliases:
+    - ValidationRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/validation.py
+    kind: router
+    implemented: true
+  wireframerouter:
+    name: WireframeRouter
+    aliases:
+    - WireframeRouter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/api/v1/wireframe.py
+    kind: router
+    implemented: true
+  httpadapter:
+    name: HTTPAdapter
+    aliases:
+    - HTTPAdapter
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/engine/pocketflow_engine.py
+    kind: class
+    implemented: true
+  artifactrepository:
+    name: ArtifactRepository
+    aliases:
+    - ArtifactRepository
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/infrastructure/database/repositories/artifact_repo.py
+    kind: class
+    implemented: true
+  artifactversionrepository:
+    name: ArtifactVersionRepository
+    aliases:
+    - ArtifactVersionRepository
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/infrastructure/database/repositories/artifact_repo.py
+    kind: class
+    implemented: true
+  canvasstaterepository:
+    name: CanvasStateRepository
+    aliases:
+    - CanvasStateRepository
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/infrastructure/database/repositories/canvas_state_repo.py
+    kind: class
+    implemented: true
+  gaterepository:
+    name: GateRepository
+    aliases:
+    - GateRepository
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/infrastructure/database/repositories/gate_repo.py
+    kind: class
+    implemented: true
+  annotationservice:
+    name: AnnotationService
+    aliases:
+    - AnnotationService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/annotation_service.py
+    kind: class
+    implemented: true
+  archvalidationservice:
+    name: ArchValidationService
+    aliases:
+    - ArchValidationService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/arch_validation_service.py
+    kind: class
+    implemented: true
+  bindingservice:
+    name: BindingService
+    aliases:
+    - BindingService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/binding_service.py
+    kind: class
+    implemented: true
+  bypassservice:
+    name: BypassService
+    aliases:
+    - BypassService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/bypass_service.py
+    kind: class
+    implemented: true
+  complexityservice:
+    name: ComplexityService
+    aliases:
+    - ComplexityService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/complexity_service.py
+    kind: class
+    implemented: true
+  logcollectorservice:
+    name: LogCollectorService
+    aliases:
+    - LogCollectorService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/log_collector_service.py
+    kind: class
+    implemented: true
+  monitoringservice:
+    name: MonitoringService
+    aliases:
+    - MonitoringService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/monitoring_service.py
+    kind: class
+    implemented: true
+  openuipageservice:
+    name: OpenUIPageService
+    aliases:
+    - OpenUIPageService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/open_ui_page_service.py
+    kind: class
+    implemented: true
+  openuiservice:
+    name: OpenUIService
+    aliases:
+    - OpenUIService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/open_ui_service.py
+    kind: class
+    implemented: true
+  requirementimportservice:
+    name: RequirementImportService
+    aliases:
+    - RequirementImportService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/requirement_import_service.py
+    kind: class
+    implemented: true
+  skillregistryservice:
+    name: SkillRegistryService
+    aliases:
+    - SkillRegistryService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/skill_registry_service.py
+    kind: class
+    implemented: true
+  stagedetailservice:
+    name: StageDetailService
+    aliases:
+    - StageDetailService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/stage_detail_service.py
+    kind: class
+    implemented: true
+  userstoryservice:
+    name: UserStoryService
+    aliases:
+    - UserStoryService
+    level: L3
+    container_id: backend-api
+    source: code
+    source_file: backend/app/services/user_story_service.py
+    kind: class
+    implemented: true
+  wireframenavlinkservice:
+    name: WireframeNavLinkService
+    aliases:
+    - WireframeNavLinkService
+    level: L3
+    container_id: wireframe-engine
+    source: code
+    source_file: backend/app/services/wireframe_nav_link_service.py
+    kind: class
+    implemented: true
+  wireframepageservice:
+    name: WireframePageService
+    aliases:
+    - WireframePageService
+    level: L3
+    container_id: wireframe-engine
+    source: code
+    source_file: backend/app/services/wireframe_page_service.py
+    kind: class
+    implemented: true
+  wireframeservice:
+    name: WireframeService
+    aliases:
+    - WireframeService
+    level: L3
+    container_id: wireframe-engine
+    source: code
+    source_file: backend/app/services/wireframe_service.py
+    kind: class
+    implemented: true
+  lockmanager:
+    name: LockManager
+    aliases:
+    - LockManager
+    level: L3
+    container_id: skill-orchestrator
+    source: code
+    source_file: backend/app/services/pocketflow/lock_manager.py
+    kind: class
+    implemented: true
+  annotationapi:
+    name: annotationApi
+    aliases:
+    - annotationApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/annotation.ts
+    kind: service-module
+    implemented: true
+  apiapi:
+    name: apiApi
+    aliases:
+    - apiApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/api.ts
+    kind: service-module
+    implemented: true
+  archvalidationapi:
+    name: archValidationApi
+    aliases:
+    - archValidationApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/archValidation.ts
+    kind: service-module
+    implemented: true
+  bindingapi:
+    name: bindingApi
+    aliases:
+    - bindingApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/binding.ts
+    kind: service-module
+    implemented: true
+  bypassapi:
+    name: bypassApi
+    aliases:
+    - bypassApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/bypass.ts
+    kind: service-module
+    implemented: true
+  complexityapi:
+    name: complexityApi
+    aliases:
+    - complexityApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/complexity.ts
+    kind: service-module
+    implemented: true
+  executionplanapi:
+    name: executionPlanApi
+    aliases:
+    - executionPlanApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/executionPlan.ts
+    kind: service-module
+    implemented: true
+  healthapi:
+    name: healthApi
+    aliases:
+    - healthApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/health.ts
+    kind: service-module
+    implemented: true
+  historyapi:
+    name: historyApi
+    aliases:
+    - historyApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/history.ts
+    kind: service-module
+    implemented: true
+  monitoringapi:
+    name: monitoringApi
+    aliases:
+    - monitoringApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/monitoring.ts
+    kind: service-module
+    implemented: true
+  openuiapi:
+    name: openUiApi
+    aliases:
+    - openUiApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/openUi.ts
+    kind: service-module
+    implemented: true
+  selfcheckapi:
+    name: selfCheckApi
+    aliases:
+    - selfCheckApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/selfCheck.ts
+    kind: service-module
+    implemented: true
+  sketchapi:
+    name: sketchApi
+    aliases:
+    - sketchApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/sketch.ts
+    kind: service-module
+    implemented: true
+  sketchpageapi:
+    name: sketchPageApi
+    aliases:
+    - sketchPageApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/sketchPage.ts
+    kind: service-module
+    implemented: true
+  templateapi:
+    name: templateApi
+    aliases:
+    - templateApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/template.ts
+    kind: service-module
+    implemented: true
+  userstoryapi:
+    name: userStoryApi
+    aliases:
+    - userStoryApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/userStory.ts
+    kind: service-module
+    implemented: true
+  wireframeapi:
+    name: wireframeApi
+    aliases:
+    - wireframeApi
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/services/wireframe.ts
+    kind: service-module
+    implemented: true
+  useappdashboardstore:
+    name: useAppDashboardStore
+    aliases:
+    - useAppDashboardStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/appDashboardStore.ts
+    kind: store
+    implemented: true
+  useappstore:
+    name: useAppStore
+    aliases:
+    - useAppStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/appStore.ts
+    kind: store
+    implemented: true
+  useartifactviewerstore:
+    name: useArtifactViewerStore
+    aliases:
+    - useArtifactViewerStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/artifactViewerStore.ts
+    kind: store
+    implemented: true
+  usec4navigatorstore:
+    name: useC4NavigatorStore
+    aliases:
+    - useC4NavigatorStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/c4NavigatorStore.ts
+    kind: store
+    implemented: true
+  usecanvasstore:
+    name: useCanvasStore
+    aliases:
+    - useCanvasStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/canvasStore.ts
+    kind: store
+    implemented: true
+  usecomplexitystore:
+    name: useComplexityStore
+    aliases:
+    - useComplexityStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/complexityStore.ts
+    kind: store
+    implemented: true
+  useexecutionmonitorstore:
+    name: useExecutionMonitorStore
+    aliases:
+    - useExecutionMonitorStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/executionMonitorStore.ts
+    kind: store
+    implemented: true
+  useexecutionplanstore:
+    name: useExecutionPlanStore
+    aliases:
+    - useExecutionPlanStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/executionPlanStore.ts
+    kind: store
+    implemented: true
+  usegatecenterstore:
+    name: useGateCenterStore
+    aliases:
+    - useGateCenterStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/gateCenterStore.ts
+    kind: store
+    implemented: true
+  useprojectdashboardstore:
+    name: useProjectDashboardStore
+    aliases:
+    - useProjectDashboardStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/projectDashboardStore.ts
+    kind: store
+    implemented: true
+  useskillregistrystore:
+    name: useSkillRegistryStore
+    aliases:
+    - useSkillRegistryStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/skillRegistryStore.ts
+    kind: store
+    implemented: true
+  usestagedetailstore:
+    name: useStageDetailStore
+    aliases:
+    - useStageDetailStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/stageDetailStore.ts
+    kind: store
+    implemented: true
+  usetemplatestore:
+    name: useTemplateStore
+    aliases:
+    - useTemplateStore
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/stores/templateStore.ts
+    kind: store
+    implemented: true
+  sidebar:
+    name: Sidebar
+    aliases:
+    - Sidebar
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/App.tsx
+    kind: component
+    implemented: true
+  topbar:
+    name: TopBar
+    aliases:
+    - TopBar
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/App.tsx
+    kind: component
+    implemented: true
+  applayout:
+    name: AppLayout
+    aliases:
+    - AppLayout
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/App.tsx
+    kind: component
+    implemented: true
+  app:
+    name: App
+    aliases:
+    - App
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/App.tsx
+    kind: component
+    implemented: true
+  artifactrenderer:
+    name: ArtifactRenderer
+    aliases:
+    - ArtifactRenderer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ArtifactRenderer.tsx
+    kind: component
+    implemented: true
+  markdownview:
+    name: MarkdownView
+    aliases:
+    - MarkdownView
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ArtifactRenderer.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  mermaidview:
+    name: MermaidView
+    aliases:
+    - MermaidView
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ArtifactRenderer.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  codeview:
+    name: CodeView
+    aliases:
+    - CodeView
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ArtifactRenderer.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  htmlview:
+    name: HTMLView
+    aliases:
+    - HTMLView
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ArtifactRenderer.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  c4renderer:
+    name: C4Renderer
+    aliases:
+    - C4Renderer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/C4Renderer.tsx
+    kind: component
+    implemented: true
+  diagnosticspanel:
+    name: DiagnosticsPanel
+    aliases:
+    - DiagnosticsPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/C4Renderer.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  flowcanvas:
+    name: FlowCanvas
+    aliases:
+    - FlowCanvas
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/FlowCanvas.tsx
+    kind: component
+    implemented: true
+  globaltoast:
+    name: GlobalToast
+    aliases:
+    - GlobalToast
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/GlobalToast.tsx
+    kind: component
+    implemented: true
+  projectselector:
+    name: ProjectSelector
+    aliases:
+    - ProjectSelector
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ProjectSelector.tsx
+    kind: component
+    implemented: true
+  scoreradarchart:
+    name: ScoreRadarChart
+    aliases:
+    - ScoreRadarChart
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/ScoreRadarChart.tsx
+    kind: component
+    implemented: true
+  sketchviewer:
+    name: SketchViewer
+    aliases:
+    - SketchViewer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/SketchViewer.tsx
+    kind: component
+    implemented: true
+  templatedeviationmodal:
+    name: TemplateDeviationModal
+    aliases:
+    - TemplateDeviationModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/TemplateDeviationModal.tsx
+    kind: component
+    implemented: true
+  modaloverlay:
+    name: ModalOverlay
+    aliases:
+    - ModalOverlay
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/TemplateDeviationModal.tsx
+    kind: component
+    implemented: true
+  impactcard:
+    name: ImpactCard
+    aliases:
+    - ImpactCard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/TemplateDeviationModal.tsx
+    kind: component
+    implemented: true
+  wireframeviewer:
+    name: WireframeViewer
+    aliases:
+    - WireframeViewer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/WireframeViewer.tsx
+    kind: component
+    implemented: true
+  sdlccanvas:
+    name: SDLCCanvas
+    aliases:
+    - SDLCCanvas
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/SDLCCanvas/index.tsx
+    kind: component
+    implemented: true
+  gatenode:
+    name: GateNode
+    aliases:
+    - GateNode
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/SDLCCanvas/components/GateNode.tsx
+    kind: component
+    implemented: true
+  stagenode:
+    name: StageNode
+    aliases:
+    - StageNode
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/SDLCCanvas/components/StageNode.tsx
+    kind: component
+    implemented: true
+  tabs:
+    name: TABS
+    aliases:
+    - TABS
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/index.tsx
+    kind: component
+    implemented: true
+  stagedetailpanel:
+    name: StageDetailPanel
+    aliases:
+    - StageDetailPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/index.tsx
+    kind: component
+    implemented: true
+  annotationtab:
+    name: AnnotationTab
+    aliases:
+    - AnnotationTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/AnnotationTab.tsx
+    kind: component
+    implemented: true
+  artifactcardstab:
+    name: ArtifactCardsTab
+    aliases:
+    - ArtifactCardsTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/ArtifactCardsTab.tsx
+    kind: component
+    implemented: true
+  badgemanager:
+    name: BadgeManager
+    aliases:
+    - BadgeManager
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/BadgeManager.tsx
+    kind: component
+    implemented: true
+  executionlogstab:
+    name: ExecutionLogsTab
+    aliases:
+    - ExecutionLogsTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/ExecutionLogsTab.tsx
+    kind: component
+    implemented: true
+  gatelinktab:
+    name: GateLinkTab
+    aliases:
+    - GateLinkTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/GateLinkTab.tsx
+    kind: component
+    implemented: true
+  pocketflowstatustab:
+    name: PocketFlowStatusTab
+    aliases:
+    - PocketFlowStatusTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/PocketFlowStatusTab.tsx
+    kind: component
+    implemented: true
+  resizehandle:
+    name: ResizeHandle
+    aliases:
+    - ResizeHandle
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/ResizeHandle.tsx
+    kind: component
+    implemented: true
+  skillsnapshottab:
+    name: SkillSnapshotTab
+    aliases:
+    - SkillSnapshotTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageDetailPanel/components/SkillSnapshotTab.tsx
+    kind: component
+    implemented: true
+  stagetimeline:
+    name: StageTimeline
+    aliases:
+    - StageTimeline
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageTimeline/index.tsx
+    kind: component
+    implemented: true
+  legenditem:
+    name: LegendItem
+    aliases:
+    - LegendItem
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/components/StageTimeline/index.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  appdashboard:
+    name: AppDashboard
+    aliases:
+    - AppDashboard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/AppDashboard/index.tsx
+    kind: component
+    implemented: true
+  appcard:
+    name: AppCard
+    aliases:
+    - AppCard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/AppDashboard/components/AppCard.tsx
+    kind: component
+    implemented: true
+  appcreatemodal:
+    name: AppCreateModal
+    aliases:
+    - AppCreateModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/AppDashboard/components/AppCreateModal.tsx
+    kind: component
+    implemented: true
+  appdeleteconfirm:
+    name: AppDeleteConfirm
+    aliases:
+    - AppDeleteConfirm
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/AppDashboard/components/AppDeleteConfirm.tsx
+    kind: component
+    implemented: true
+  archgovernancepage:
+    name: ArchGovernancePage
+    aliases:
+    - ArchGovernancePage
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchGovernance/index.tsx
+    kind: component
+    implemented: true
+  emptystate:
+    name: EmptyState
+    aliases:
+    - EmptyState
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchValidation/index.tsx
+    kind: component
+    implemented: true
+  diffpanel:
+    name: DiffPanel
+    aliases:
+    - DiffPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchValidation/index.tsx
+    kind: component
+    implemented: true
+  archvalidation:
+    name: ArchValidation
+    aliases:
+    - ArchValidation
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArchValidation/index.tsx
+    kind: component
+    implemented: true
+  artifactviewer:
+    name: ArtifactViewer
+    aliases:
+    - ArtifactViewer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/index.tsx
+    kind: component
+    implemented: true
+  artifacteditor:
+    name: ArtifactEditor
+    aliases:
+    - ArtifactEditor
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/ArtifactEditor.tsx
+    kind: component
+    implemented: true
+  artifactpreview:
+    name: ArtifactPreview
+    aliases:
+    - ArtifactPreview
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/ArtifactPreview.tsx
+    kind: component
+    implemented: true
+  artifacttree:
+    name: ArtifactTree
+    aliases:
+    - ArtifactTree
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/ArtifactTree.tsx
+    kind: component
+    implemented: true
+  conflictconfirmdialog:
+    name: ConflictConfirmDialog
+    aliases:
+    - ConflictConfirmDialog
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/ConflictConfirmDialog.tsx
+    kind: component
+    implemented: true
+  diffviewermodal:
+    name: DiffViewerModal
+    aliases:
+    - DiffViewerModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/DiffViewerModal.tsx
+    kind: component
+    implemented: true
+  rollbackconfirmdialog:
+    name: RollbackConfirmDialog
+    aliases:
+    - RollbackConfirmDialog
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/RollbackConfirmDialog.tsx
+    kind: component
+    implemented: true
+  versionhistorydrawer:
+    name: VersionHistoryDrawer
+    aliases:
+    - VersionHistoryDrawer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ArtifactViewer/components/VersionHistoryDrawer.tsx
+    kind: component
+    implemented: true
+  bindingpanel:
+    name: BindingPanel
+    aliases:
+    - BindingPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/BindingPanel/index.tsx
+    kind: component
+    implemented: true
+  statcard:
+    name: StatCard
+    aliases:
+    - StatCard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/BindingPanel/index.tsx
+    kind: component
+    implemented: true
+  bypassmanager:
+    name: BypassManager
+    aliases:
+    - BypassManager
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/BypassManager/index.tsx
+    kind: component
+    implemented: true
+  applybypassmodal:
+    name: ApplyBypassModal
+    aliases:
+    - ApplyBypassModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/BypassManager/index.tsx
+    kind: component
+    implemented: true
+  levels:
+    name: LEVELS
+    aliases:
+    - LEVELS
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/index.tsx
+    kind: component
+    implemented: true
+  c4navigator:
+    name: C4Navigator
+    aliases:
+    - C4Navigator
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/index.tsx
+    kind: component
+    implemented: true
+  breadcrumb:
+    name: Breadcrumb
+    aliases:
+    - Breadcrumb
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/components/Breadcrumb.tsx
+    kind: component
+    implemented: true
+  react:
+    name: React
+    aliases:
+    - React
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/components/Breadcrumb.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  directions:
+    name: DIRECTIONS
+    aliases:
+    - DIRECTIONS
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/components/C4Editor.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  c4editor:
+    name: C4Editor
+    aliases:
+    - C4Editor
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/components/C4Editor.tsx
+    kind: component
+    implemented: true
+  exportpanel:
+    name: ExportPanel
+    aliases:
+    - ExportPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/components/ExportPanel.tsx
+    kind: component
+    implemented: true
+  nodedetailpanel:
+    name: NodeDetailPanel
+    aliases:
+    - NodeDetailPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/C4Navigator/components/NodeDetailPanel.tsx
+    kind: component
+    implemented: true
+  canvaspage:
+    name: CanvasPage
+    aliases:
+    - CanvasPage
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/index.tsx
+    kind: component
+    implemented: true
+  batchexecutionpanel:
+    name: BatchExecutionPanel
+    aliases:
+    - BatchExecutionPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/BatchExecutionPanel.tsx
+    kind: component
+    implemented: true
+  canvaslist:
+    name: CanvasList
+    aliases:
+    - CanvasList
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/CanvasList.tsx
+    kind: component
+    implemented: true
+  sortheader:
+    name: SortHeader
+    aliases:
+    - SortHeader
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/CanvasList.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  canvasswimlane:
+    name: CanvasSwimlane
+    aliases:
+    - CanvasSwimlane
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/CanvasSwimlane.tsx
+    kind: component
+    implemented: true
+  filterpanel:
+    name: FilterPanel
+    aliases:
+    - FilterPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/FilterPanel.tsx
+    kind: component
+    implemented: true
+  nodecontextmenu:
+    name: NodeContextMenu
+    aliases:
+    - NodeContextMenu
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/NodeContextMenu.tsx
+    kind: component
+    implemented: true
+  releaseconfirmmodal:
+    name: ReleaseConfirmModal
+    aliases:
+    - ReleaseConfirmModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/ReleaseConfirmModal.tsx
+    kind: component
+    implemented: true
+  skillnode:
+    name: SkillNode
+    aliases:
+    - SkillNode
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/SkillNode.tsx
+    kind: component
+    implemented: true
+  stagemergemodal:
+    name: StageMergeModal
+    aliases:
+    - StageMergeModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/StageMergeModal.tsx
+    kind: component
+    implemented: true
+  zoomcontrols:
+    name: ZoomControls
+    aliases:
+    - ZoomControls
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/Canvas/components/ZoomControls.tsx
+    kind: component
+    implemented: true
+  decisionpanel:
+    name: DecisionPanel
+    aliases:
+    - DecisionPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ComplexityRouter/components/DecisionPanel.tsx
+    kind: component
+    implemented: true
+  downgrademodal:
+    name: DowngradeModal
+    aliases:
+    - DowngradeModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ComplexityRouter/components/DowngradeModal.tsx
+    kind: component
+    implemented: true
+  docforgeadmin:
+    name: DocForgeAdmin
+    aliases:
+    - DocForgeAdmin
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/DocForgeAdmin/index.tsx
+    kind: component
+    implemented: true
+  executionmonitor:
+    name: ExecutionMonitor
+    aliases:
+    - ExecutionMonitor
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ExecutionMonitor/index.tsx
+    kind: component
+    implemented: true
+  executionlogstream:
+    name: ExecutionLogStream
+    aliases:
+    - ExecutionLogStream
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ExecutionMonitor/components/ExecutionLogStream.tsx
+    kind: component
+    implemented: true
+  retrybutton:
+    name: RetryButton
+    aliases:
+    - RetryButton
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ExecutionMonitor/components/RetryButton.tsx
+    kind: component
+    implemented: true
+  stopbutton:
+    name: StopButton
+    aliases:
+    - StopButton
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ExecutionMonitor/components/StopButton.tsx
+    kind: component
+    implemented: true
+  gatecenter:
+    name: GateCenter
+    aliases:
+    - GateCenter
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/index.tsx
+    kind: component
+    implemented: true
+  bypassmodal:
+    name: BypassModal
+    aliases:
+    - BypassModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/BypassModal.tsx
+    kind: component
+    implemented: true
+  bypasstrigger:
+    name: BypassTrigger
+    aliases:
+    - BypassTrigger
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/BypassTrigger.tsx
+    kind: component
+    implemented: true
+  bypassbadge:
+    name: BypassBadge
+    aliases:
+    - BypassBadge
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/GateCardList.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  gatecardlist:
+    name: GateCardList
+    aliases:
+    - GateCardList
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/GateCardList.tsx
+    kind: component
+    implemented: true
+  bypasscountdowndisplay:
+    name: BypassCountdownDisplay
+    aliases:
+    - BypassCountdownDisplay
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/GateDetailPage.tsx
+    kind: component
+    implemented: true
+  gatedetailpage:
+    name: GateDetailPage
+    aliases:
+    - GateDetailPage
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/GateDetailPage.tsx
+    kind: component
+    implemented: true
+  gatehistorypage:
+    name: GateHistoryPage
+    aliases:
+    - GateHistoryPage
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/GateHistoryPage.tsx
+    kind: component
+    implemented: true
+  historytable:
+    name: HistoryTable
+    aliases:
+    - HistoryTable
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/HistoryTable.tsx
+    kind: component
+    implemented: true
+  selfcheckpanel:
+    name: SelfCheckPanel
+    aliases:
+    - SelfCheckPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/SelfCheckPanel.tsx
+    kind: component
+    implemented: true
+  statcards:
+    name: StatCards
+    aliases:
+    - StatCards
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/GateCenter/components/StatCards.tsx
+    kind: component
+    implemented: true
+  historyviewer:
+    name: HistoryViewer
+    aliases:
+    - HistoryViewer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/HistoryViewer/index.tsx
+    kind: component
+    implemented: true
+  monitoringdashboard:
+    name: MonitoringDashboard
+    aliases:
+    - MonitoringDashboard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/MonitoringDashboard/index.tsx
+    kind: component
+    implemented: true
+  openuipreview:
+    name: OpenUIPreview
+    aliases:
+    - OpenUIPreview
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/OpenUIPreview/index.tsx
+    kind: component
+    implemented: true
+  steps:
+    name: STEPS
+    aliases:
+    - STEPS
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/OpenUIPreview/components/ServiceSetupGuide.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  servicesetupguide:
+    name: ServiceSetupGuide
+    aliases:
+    - ServiceSetupGuide
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/OpenUIPreview/components/ServiceSetupGuide.tsx
+    kind: component
+    implemented: true
+  projectcreate:
+    name: ProjectCreate
+    aliases:
+    - ProjectCreate
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectCreate/index.tsx
+    kind: component
+    implemented: true
+  complexityform:
+    name: ComplexityForm
+    aliases:
+    - ComplexityForm
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectCreate/components/ComplexityForm.tsx
+    kind: component
+    implemented: true
+  templatepreviewmodal:
+    name: TemplatePreviewModal
+    aliases:
+    - TemplatePreviewModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectCreate/components/TemplatePreviewModal.tsx
+    kind: component
+    implemented: true
+  templateselector:
+    name: TemplateSelector
+    aliases:
+    - TemplateSelector
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectCreate/components/TemplateSelector.tsx
+    kind: component
+    implemented: true
+  projectdashboard:
+    name: ProjectDashboard
+    aliases:
+    - ProjectDashboard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/index.tsx
+    kind: component
+    implemented: true
+  complexitybadge:
+    name: ComplexityBadge
+    aliases:
+    - ComplexityBadge
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ComplexityBadge.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  deleteconfirmdialog:
+    name: DeleteConfirmDialog
+    aliases:
+    - DeleteConfirmDialog
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/DeleteConfirmDialog.tsx
+    kind: component
+    implemented: true
+  projectcard:
+    name: ProjectCard
+    aliases:
+    - ProjectCard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectCard.tsx
+    kind: component
+    implemented: true
+  menuitem:
+    name: MenuItem
+    aliases:
+    - MenuItem
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectCard.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  projectcreatemodal:
+    name: ProjectCreateModal
+    aliases:
+    - ProjectCreateModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectCreateModal.tsx
+    kind: component
+    implemented: true
+  projectdetaildrawer:
+    name: ProjectDetailDrawer
+    aliases:
+    - ProjectDetailDrawer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  overviewtab:
+    name: OverviewTab
+    aliases:
+    - OverviewTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  inforow:
+    name: InfoRow
+    aliases:
+    - InfoRow
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  scorecard:
+    name: ScoreCard
+    aliases:
+    - ScoreCard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  stagestab:
+    name: StagesTab
+    aliases:
+    - StagesTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  artifactstab:
+    name: ArtifactsTab
+    aliases:
+    - ArtifactsTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  logstab:
+    name: LogsTab
+    aliases:
+    - LogsTab
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectDetailDrawer.tsx
+    kind: component
+    implemented: true
+  projectlistview:
+    name: ProjectListView
+    aliases:
+    - ProjectListView
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectListView.tsx
+    kind: component
+    implemented: true
+  actionbtn:
+    name: ActionBtn
+    aliases:
+    - ActionBtn
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ProjectListView.tsx
+    kind: component
+    implemented: true
+    intentional_orphan: true
+  riskalertpanel:
+    name: RiskAlertPanel
+    aliases:
+    - RiskAlertPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/RiskAlertPanel.tsx
+    kind: component
+    implemented: true
+  scalemismatchbanner:
+    name: ScaleMismatchBanner
+    aliases:
+    - ScaleMismatchBanner
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/ScaleMismatchBanner.tsx
+    kind: component
+    implemented: true
+  sizeestimatewizard:
+    name: SizeEstimateWizard
+    aliases:
+    - SizeEstimateWizard
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/SizeEstimateWizard.tsx
+    kind: component
+    implemented: true
+  scoreblock:
+    name: ScoreBlock
+    aliases:
+    - ScoreBlock
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/ProjectDashboard/components/SizeEstimateWizard.tsx
+    kind: component
+    implemented: true
+  sketchgallery:
+    name: SketchGallery
+    aliases:
+    - SketchGallery
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SketchGallery/index.tsx
+    kind: component
+    implemented: true
+  editstoryform:
+    name: EditStoryForm
+    aliases:
+    - EditStoryForm
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SketchGallery/index.tsx
+    kind: component
+    implemented: true
+  sketchreviewpanel:
+    name: SketchReviewPanel
+    aliases:
+    - SketchReviewPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SketchGallery/components/SketchReviewPanel.tsx
+    kind: component
+    implemented: true
+  skillregistry:
+    name: SkillRegistry
+    aliases:
+    - SkillRegistry
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/index.tsx
+    kind: component
+    implemented: true
+  changelogbar:
+    name: ChangeLogBar
+    aliases:
+    - ChangeLogBar
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/ChangeLogBar.tsx
+    kind: component
+    implemented: true
+  conflictresolvemodal:
+    name: ConflictResolveModal
+    aliases:
+    - ConflictResolveModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/ConflictResolveModal.tsx
+    kind: component
+    implemented: true
+  dagcontextmenu:
+    name: DAGContextMenu
+    aliases:
+    - DAGContextMenu
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/DAGContextMenu.tsx
+    kind: component
+    implemented: true
+  white:
+    name: WHITE
+    aliases:
+    - WHITE
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/SkillDAGCanvas.tsx
+    kind: component
+    implemented: true
+  skilldagcanvas:
+    name: SkillDAGCanvas
+    aliases:
+    - SkillDAGCanvas
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/SkillDAGCanvas.tsx
+    kind: component
+    implemented: true
+  copyablepath:
+    name: CopyablePath
+    aliases:
+    - CopyablePath
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/SkillDetailDrawer.tsx
+    kind: component
+    implemented: true
+  skilldetaildrawer:
+    name: SkillDetailDrawer
+    aliases:
+    - SkillDetailDrawer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/SkillDetailDrawer.tsx
+    kind: component
+    implemented: true
+  skillimportmodal:
+    name: SkillImportModal
+    aliases:
+    - SkillImportModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/SkillImportModal.tsx
+    kind: component
+    implemented: true
+  skillnodelibrarypanel:
+    name: SkillNodeLibraryPanel
+    aliases:
+    - SkillNodeLibraryPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/SkillRegistry/components/SkillNodeLibraryPanel.tsx
+    kind: component
+    implemented: true
+  templatestageconfig:
+    name: TemplateStageConfig
+    aliases:
+    - TemplateStageConfig
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/TemplateStageConfig/index.tsx
+    kind: component
+    implemented: true
+  deviationconfirmmodal:
+    name: DeviationConfirmModal
+    aliases:
+    - DeviationConfirmModal
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/TemplateStageConfig/components/DeviationConfirmModal.tsx
+    kind: component
+    implemented: true
+  deviationlogdrawer:
+    name: DeviationLogDrawer
+    aliases:
+    - DeviationLogDrawer
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/TemplateStageConfig/components/DeviationLogDrawer.tsx
+    kind: component
+    implemented: true
+  stagedefinitionpanel:
+    name: StageDefinitionPanel
+    aliases:
+    - StageDefinitionPanel
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/TemplateStageConfig/components/StageDefinitionPanel.tsx
+    kind: component
+    implemented: true
+  wireframecanvas:
+    name: WireframeCanvas
+    aliases:
+    - WireframeCanvas
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/WireframeCanvas/index.tsx
+    kind: component
+    implemented: true
+  navrelationgraph:
+    name: NavRelationGraph
+    aliases:
+    - NavRelationGraph
+    level: L3
+    container_id: frontend-spa
+    source: code
+    source_file: frontend/src/pages/WireframeCanvas/components/NavRelationGraph.tsx
+    kind: component
+    implemented: true
+interfaces:
+- id: get-api-v1-stages-stage-id-detail
+  method: GET
+  path: /api/v1/stages/{stage_id}/detail
+  source_container: canvas-api
+- id: get-api-v1-stages-stage-id-annotations
+  method: GET
+  path: /api/v1/stages/{stage_id}/annotations
+  source_container: canvas-api
+- id: post-api-v1-stages-stage-id-annotations
+  method: POST
+  path: /api/v1/stages/{stage_id}/annotations
+  source_container: canvas-api
+- id: put-api-v1-stages-stage-id-annotations-annotation-id
+  method: PUT
+  path: /api/v1/stages/{stage_id}/annotations/{annotation_id}
+  source_container: canvas-api
+- id: delete-api-v1-stages-stage-id-annotations-annotation-id
+  method: DELETE
+  path: /api/v1/stages/{stage_id}/annotations/{annotation_id}
+  source_container: canvas-api
+- id: post-api-v1-stages-stage-id-review-submit
+  method: POST
+  path: /api/v1/stages/{stage_id}/review/submit
+  source_container: canvas-api
+- id: post-api-v1-stages-stage-id-regenerate
+  method: POST
+  path: /api/v1/stages/{stage_id}/regenerate
+  source_container: canvas-api
+- id: get-api-v1-stages-stage-id-versions
+  method: GET
+  path: /api/v1/stages/{stage_id}/versions
+  source_container: canvas-api
+- id: post-api-v1-stages-stage-id-versions-version-number-rollback
+  method: POST
+  path: /api/v1/stages/{stage_id}/versions/{version_number}/rollback
+  source_container: canvas-api
+- id: get-api-v1-stages-stage-id-versions-diff
+  method: GET
+  path: /api/v1/stages/{stage_id}/versions/diff
+  source_container: canvas-api
+- id: get-api-v1-skills-skill-id
+  method: GET
+  path: /api/v1/skills/{skill_id}
+  source_container: skill-api
+- id: get-api-v1-executions-execution-id-logs
+  method: GET
+  path: /api/v1/executions/{execution_id}/logs
+  source_container: skill-api
+- id: ws-ws-executions-execution-id-logs
+  method: WS
+  path: /ws/executions/{execution_id}/logs
+  source_container: skill-api
+- id: get-api-v1-pocketflow-execution-id-status
+  method: GET
+  path: /api/v1/pocketflow/{execution_id}/status
+  source_container: skill-orchestrator
+- id: get-api-v1-artifacts-artifact-id-content
+  method: GET
+  path: /api/v1/artifacts/{artifact_id}/content
+  source_container: artifact-api
+- id: post-api-v1-gates-gate-id-summary
+  method: POST
+  path: /api/v1/gates/{gate_id}/summary
+  source_container: null
+- id: post-api-v1-gates-gate-id-review
+  method: POST
+  path: /api/v1/gates/{gate_id}/review
+  source_container: null
+- id: get-api-v1-gates
+  method: GET
+  path: /api/v1/gates
+  source_container: null
+- id: get-api-v1-gates-gate-id
+  method: GET
+  path: /api/v1/gates/{gate_id}
+  source_container: null
+- id: post-api-v1-gates-gate-id-approve
+  method: POST
+  path: /api/v1/gates/{gate_id}/approve
+  source_container: null
+- id: post-api-v1-gates-gate-id-reject
+  method: POST
+  path: /api/v1/gates/{gate_id}/reject
+  source_container: null
+- id: post-api-v1-gates-gate-id-retry
+  method: POST
+  path: /api/v1/gates/{gate_id}/retry
+  source_container: null
+- id: get-api-v1-gates-history
+  method: GET
+  path: /api/v1/gates/history
+  source_container: backend-api
+- id: get-api-v1-gates-history-export
+  method: GET
+  path: /api/v1/gates/history/export
+  source_container: backend-api
+- id: get-api-v1-quality-gate-results
+  method: GET
+  path: /api/v1/quality-gate/results
+  source_container: null
+- id: post-api-v1-ai-summary
+  method: POST
+  path: /api/v1/ai/summary
+  source_container: null
+- id: get-api-v1-stages-stage-id-downstream
+  method: GET
+  path: /api/v1/stages/{stage_id}/downstream
+  source_container: canvas-api
+- id: put-api-v1-stages-stage-id-unlock
+  method: PUT
+  path: /api/v1/stages/{stage_id}/unlock
+  source_container: canvas-api
+- id: put-api-v1-stages-stage-id-review-status
+  method: PUT
+  path: /api/v1/stages/{stage_id}/review-status
+  source_container: canvas-api
+- id: post-api-v1-bypass
+  method: POST
+  path: /api/v1/bypass
+  source_container: gate-api
+- id: get-api-v1-artifacts-tree
+  method: GET
+  path: /api/v1/artifacts/tree
+  source_container: artifact-api
+- id: put-api-v1-artifacts-artifact-id-content
+  method: PUT
+  path: /api/v1/artifacts/{artifact_id}/content
+  source_container: artifact-api
+- id: get-api-v1-artifacts-artifact-id-versions
+  method: GET
+  path: /api/v1/artifacts/{artifact_id}/versions
+  source_container: artifact-api
+- id: get-api-v1-artifacts-artifact-id-versions-diff
+  method: GET
+  path: /api/v1/artifacts/{artifact_id}/versions/diff
+  source_container: artifact-api
+- id: post-api-v1-artifacts-artifact-id-versions-version-number-rollback
+  method: POST
+  path: /api/v1/artifacts/{artifact_id}/versions/{version_number}/rollback
+  source_container: artifact-api
+- id: get-api-v1-artifacts-artifact-id-external-status
+  method: GET
+  path: /api/v1/artifacts/{artifact_id}/external-status
+  source_container: artifact-api
+- id: get-api-v1-projects-project-id-template-map
+  method: GET
+  path: /api/v1/projects/{project_id}/template-map
+  source_container: project-api
+- id: get-api-v1-stages-stage-id
+  method: GET
+  path: /api/v1/stages/{stage_id}
+  source_container: canvas-api
+- id: post-api-v1-git-snapshot
+  method: POST
+  path: /api/v1/git/snapshot
+  source_container: null
+- id: get-api-v1-git-snapshots
+  method: GET
+  path: /api/v1/git/snapshots
+  source_container: null
+- id: post-api-v1-git-diff
+  method: POST
+  path: /api/v1/git/diff
+  source_container: null
+- id: post-api-v1-git-rollback
+  method: POST
+  path: /api/v1/git/rollback
+  source_container: null
+- id: get-api-v1-fs-hash
+  method: GET
+  path: /api/v1/fs/hash
+  source_container: null
+- id: put-api-v1-fs-write
+  method: PUT
+  path: /api/v1/fs/write
+  source_container: null
+- id: put-templates-level-stages-stage-id
+  method: PUT
+  path: /templates/{level}/stages/{stage_id}
+  source_container: canvas-api
+- id: post-api-v1-complexity-triage
+  method: POST
+  path: /api/v1/complexity/triage
+  source_container: backend-api
+- id: post-api-v1-complexity-calculate
+  method: POST
+  path: /api/v1/complexity/calculate
+  source_container: backend-api
+- id: get-api-v1-complexity-paths
+  method: GET
+  path: /api/v1/complexity/paths
+  source_container: backend-api
+- id: post-api-v1-complexity-select-path
+  method: POST
+  path: /api/v1/complexity/select-path
+  source_container: backend-api
+- id: get-api-v1-complexity-decisions
+  method: GET
+  path: /api/v1/complexity/decisions
+  source_container: backend-api
+- id: get-api-v1-templates-definitions
+  method: GET
+  path: /api/v1/templates/definitions
+  source_container: canvas-api
+- id: get-api-v1-projects-project-id
+  method: GET
+  path: /api/v1/projects/{project_id}
+  source_container: project-api
+- id: get-api-v1-artifacts-scan
+  method: GET
+  path: /api/v1/artifacts/scan
+  source_container: artifact-api
+- id: post-api-v1-c4-generate
+  method: POST
+  path: /api/v1/c4/generate
+  source_container: c4-api
+- id: get-api-v1-c4-dsl-project-id
+  method: GET
+  path: /api/v1/c4/dsl/{project_id}
+  source_container: c4-api
+- id: put-api-v1-c4-dsl-project-id-level
+  method: PUT
+  path: /api/v1/c4/dsl/{project_id}/{level}
+  source_container: c4-api
+- id: post-api-v1-c4-export
+  method: POST
+  path: /api/v1/c4/export
+  source_container: c4-api
+- id: put-api-v1-c4-nodes-node-id-file-mapping
+  method: PUT
+  path: /api/v1/c4/nodes/{node_id}/file-mapping
+  source_container: c4-api
+- id: get-api-v1-artifacts-content
+  method: GET
+  path: /api/v1/artifacts/content
+  source_container: artifact-api
+- id: post-api-v1-fs-open
+  method: POST
+  path: /api/v1/fs/open
+  source_container: null
+- id: post-api-v1-arch-validation-project-id-detect
+  method: POST
+  path: /api/v1/arch-validation/{project_id}/detect
+  source_container: backend-api
+- id: get-api-v1-arch-validation-project-id-status
+  method: GET
+  path: /api/v1/arch-validation/{project_id}/status
+  source_container: backend-api
+- id: get-api-v1-arch-validation-project-id-diffs
+  method: GET
+  path: /api/v1/arch-validation/{project_id}/diffs
+  source_container: backend-api
+- id: get-api-v1-arch-validation-project-id-diffs-diff-id
+  method: GET
+  path: /api/v1/arch-validation/{project_id}/diffs/{diff_id}
+  source_container: backend-api
+- id: get-api-v1-arch-validation-project-id-scans
+  method: GET
+  path: /api/v1/arch-validation/{project_id}/scans
+  source_container: backend-api
+- id: post-api-v1-arch-validation-project-id-export
+  method: POST
+  path: /api/v1/arch-validation/{project_id}/export
+  source_container: backend-api
+- id: get-api-v1-arch-validation-project-id-config
+  method: GET
+  path: /api/v1/arch-validation/{project_id}/config
+  source_container: backend-api
+- id: put-api-v1-arch-validation-project-id-config
+  method: PUT
+  path: /api/v1/arch-validation/{project_id}/config
+  source_container: backend-api
+- id: get-api-v1-arch-validation-project-id-baseline
+  method: GET
+  path: /api/v1/arch-validation/{project_id}/baseline
+  source_container: backend-api
+- id: get-api-v1-c4-render-state
+  method: GET
+  path: /api/v1/c4/render-state
+  source_container: c4-api
+- id: get-api-v1-history-app-id-summary
+  method: GET
+  path: /api/v1/history/{app_id}/summary
+  source_container: backend-api
+- id: get-api-v1-history-app-id-timeline
+  method: GET
+  path: /api/v1/history/{app_id}/timeline
+  source_container: backend-api
+- id: get-api-v1-history-app-id-comparison
+  method: GET
+  path: /api/v1/history/{app_id}/comparison
+  source_container: backend-api
+- id: get-api-v1-history-app-id-heatmap
+  method: GET
+  path: /api/v1/history/{app_id}/heatmap
+  source_container: backend-api
+- id: get-api-v1-history-app-id-projects-project-id-detail
+  method: GET
+  path: /api/v1/history/{app_id}/projects/{project_id}/detail
+  source_container: backend-api
+- id: post-api-v1-history-app-id-export
+  method: POST
+  path: /api/v1/history/{app_id}/export
+  source_container: backend-api
+- id: get-api-v1-projects
+  method: GET
+  path: /api/v1/projects
+  source_container: project-api
+- id: get-api-v1-templates
+  method: GET
+  path: /api/v1/templates
+  source_container: canvas-api
+- id: get-api-v1-stages-project-id-executions
+  method: GET
+  path: /api/v1/stages/{project_id}/executions
+  source_container: canvas-api
+- id: get-api-v1-gate-decisions-project-id
+  method: GET
+  path: /api/v1/gate-decisions/{project_id}
+  source_container: gate-api
+- id: get-api-v1-artifacts-project-id-history
+  method: GET
+  path: /api/v1/artifacts/{project_id}/history
+  source_container: artifact-api
+- id: get-api-v1-skill-executions-project-id
+  method: GET
+  path: /api/v1/skill-executions/{project_id}
+  source_container: skill-api
+- id: get-api-v1-monitoring-project-id-overview
+  method: GET
+  path: /api/v1/monitoring/{project_id}/overview
+  source_container: backend-api
+- id: get-api-v1-monitoring-project-id-stages-stage-id-stats
+  method: GET
+  path: /api/v1/monitoring/{project_id}/stages/{stage_id}/stats
+  source_container: backend-api
+- id: get-api-v1-monitoring-project-id-tokens
+  method: GET
+  path: /api/v1/monitoring/{project_id}/tokens
+  source_container: backend-api
+- id: get-api-v1-monitoring-project-id-bottlenecks
+  method: GET
+  path: /api/v1/monitoring/{project_id}/bottlenecks
+  source_container: backend-api
+- id: get-api-v1-monitoring-project-id-members
+  method: GET
+  path: /api/v1/monitoring/{project_id}/members
+  source_container: backend-api
+- id: post-api-v1-monitoring-project-id-members
+  method: POST
+  path: /api/v1/monitoring/{project_id}/members
+  source_container: backend-api
+- id: patch-api-v1-monitoring-project-id-members-user-id-role
+  method: PATCH
+  path: /api/v1/monitoring/{project_id}/members/{user_id}/role
+  source_container: backend-api
+- id: get-api-v1-monitoring-project-id-operation-logs
+  method: GET
+  path: /api/v1/monitoring/{project_id}/operation-logs
+  source_container: backend-api
+- id: post-api-v1-monitoring-project-id-export
+  method: POST
+  path: /api/v1/monitoring/{project_id}/export
+  source_container: backend-api
+- id: get-api-v1-stages-project-id
+  method: GET
+  path: /api/v1/stages/{project_id}
+  source_container: canvas-api
+- id: get-api-v1-skill-executions-project-id-tokens
+  method: GET
+  path: /api/v1/skill-executions/{project_id}/tokens
+  source_container: skill-api
+- id: post-api-v1-bypass-applications
+  method: POST
+  path: /api/v1/bypass/applications
+  source_container: gate-api
+- id: get-api-v1-bypass-applications-application-id
+  method: GET
+  path: /api/v1/bypass/applications/{application_id}
+  source_container: gate-api
+- id: post-api-v1-bypass-applications-application-id-authorize
+  method: POST
+  path: /api/v1/bypass/applications/{application_id}/authorize
+  source_container: gate-api
+- id: post-api-v1-bypass-applications-application-id-reject
+  method: POST
+  path: /api/v1/bypass/applications/{application_id}/reject
+  source_container: gate-api
+- id: post-api-v1-bypass-applications-application-id-execute-start
+  method: POST
+  path: /api/v1/bypass/applications/{application_id}/execute-start
+  source_container: gate-api
+- id: post-api-v1-bypass-applications-application-id-execute-complete
+  method: POST
+  path: /api/v1/bypass/applications/{application_id}/execute-complete
+  source_container: gate-api
+- id: post-api-v1-bypass-applications-application-id-review
+  method: POST
+  path: /api/v1/bypass/applications/{application_id}/review
+  source_container: gate-api
+- id: get-api-v1-bypass-countdown-application-id
+  method: GET
+  path: /api/v1/bypass/countdown/{application_id}
+  source_container: gate-api
+- id: get-api-v1-bypass-records
+  method: GET
+  path: /api/v1/bypass/records
+  source_container: gate-api
+- id: get-api-v1-users-roles
+  method: GET
+  path: /api/v1/users/roles
+  source_container: null
+- id: put-api-v1-gates-gate-id-bypass
+  method: PUT
+  path: /api/v1/gates/{gate_id}/bypass
+  source_container: gate-api
+- id: post-api-v1-notifications-send
+  method: POST
+  path: /api/v1/notifications/send
+  source_container: null
+- id: put-api-v1-projects-project-id-status
+  method: PUT
+  path: /api/v1/projects/{project_id}/status
+  source_container: project-api
+- id: get-api-v1-openui-status
+  method: GET
+  path: /api/v1/openui/status
+  source_container: null
+- id: post-api-v1-openui-generate
+  method: POST
+  path: /api/v1/openui/generate
+  source_container: null
+- id: post-api-v1-openui-launch
+  method: POST
+  path: /api/v1/openui/launch
+  source_container: null
+- id: get-api-v1-openui-history
+  method: GET
+  path: /api/v1/openui/history
+  source_container: backend-api
+- id: get-api-v1-contracts-project-id
+  method: GET
+  path: /api/v1/contracts/{project_id}
+  source_container: backend-api
+- id: post-api-v1-openui-service-generate
+  method: POST
+  path: /api/v1/openui-service/generate
+  source_container: null
+- id: get-api-v1-docker-status
+  method: GET
+  path: /api/v1/docker/status
+  source_container: null
+- id: post-api-v1-wireframe-generate
+  method: POST
+  path: /api/v1/wireframe/generate
+  source_container: prototype-api
+- id: put-api-v1-wireframe-mappings-page-id
+  method: PUT
+  path: /api/v1/wireframe/mappings/{page_id}
+  source_container: prototype-api
+- id: post-api-v1-wireframe-missing-interfaces
+  method: POST
+  path: /api/v1/wireframe/missing-interfaces
+  source_container: prototype-api
+- id: get-api-v1-wireframe-pages-page-id
+  method: GET
+  path: /api/v1/wireframe/pages/{page_id}
+  source_container: prototype-api
+- id: post-api-v1-binding-marks
+  method: POST
+  path: /api/v1/binding/marks
+  source_container: canvas-api
+- id: post-api-v1-projects-project-id-coverage-scans
+  method: POST
+  path: /api/v1/projects/{project_id}/coverage-scans
+  source_container: project-api
+- id: get-api-v1-projects-project-id-coverage-scans
+  method: GET
+  path: /api/v1/projects/{project_id}/coverage-scans
+  source_container: project-api
+- id: get-api-v1-coverage-scans-scan-id
+  method: GET
+  path: /api/v1/coverage-scans/{scan_id}
+  source_container: null
+- id: get-api-v1-coverage-scans-scan-id-writeback-preview
+  method: GET
+  path: /api/v1/coverage-scans/{scan_id}/writeback-preview
+  source_container: null
+- id: patch-api-v1-coverage-scan-items-item-id-writeback
+  method: PATCH
+  path: /api/v1/coverage-scan-items/{item_id}/writeback
+  source_container: null
+- id: post-api-v1-coverage-scans-scan-id-writeback
+  method: POST
+  path: /api/v1/coverage-scans/{scan_id}/writeback
+  source_container: null
+- id: post-api-v1-coverage-scan-items-item-id-review
+  method: POST
+  path: /api/v1/coverage-scan-items/{item_id}/review
+  source_container: null
+- id: get-api-v1-wireframe-pages
+  method: GET
+  path: /api/v1/wireframe/pages
+  source_container: prototype-api
+- id: get-api-v1-openui-generations
+  method: GET
+  path: /api/v1/openui/generations
+  source_container: null
+- id: put-api-v1-c4-dsl-project-id
+  method: PUT
+  path: /api/v1/c4/dsl/{project_id}
+  source_container: c4-api
+- id: post-api-v1-gates-review
+  method: POST
+  path: /api/v1/gates/review
+  source_container: null
+- id: post-api-v1-sketches-generate
+  method: POST
+  path: /api/v1/sketches/generate
+  source_container: null
+- id: post-api-v1-sketches-sketch-id-review
+  method: POST
+  path: /api/v1/sketches/{sketch_id}/review
+  source_container: null
+- id: post-api-v1-sketches-sketch-id-approve
+  method: POST
+  path: /api/v1/sketches/{sketch_id}/approve
+  source_container: null
+- id: post-api-v1-sketches-sketch-id-reject
+  method: POST
+  path: /api/v1/sketches/{sketch_id}/reject
+  source_container: null
+- id: post-api-v1-sketches-sketch-id-regenerate
+  method: POST
+  path: /api/v1/sketches/{sketch_id}/regenerate
+  source_container: null
+- id: get-api-v1-sketches
+  method: GET
+  path: /api/v1/sketches
+  source_container: null
+- id: get-api-v1-stories
+  method: GET
+  path: /api/v1/stories
+  source_container: null
+- id: get-api-v1-stories-story-id
+  method: GET
+  path: /api/v1/stories/{story_id}
+  source_container: null
+- id: get-api-v1-search
+  method: GET
+  path: /api/v1/search
+  source_container: null
+- id: post-api-v1-files-upload
+  method: POST
+  path: /api/v1/files/upload
+  source_container: null
+- id: get-api-v1-health
+  method: GET
+  path: /api/v1/health
+  source_container: null
+- id: post-api-v1-c4-registry-extract
+  method: POST
+  path: /api/v1/c4/registry/extract
+  source_container: c4-api
+- id: get-sketch-sync-status
+  method: GET
+  path: /sketch-sync-status
+  source_container: null
+- id: post-sketches-regenerate
+  method: POST
+  path: /sketches/regenerate
+  source_container: null
+relationships:
+- source: developer
+  target: sdlc-visualizer
+  description: 浏览 / 执行 / 审批
+- source: sdlc-visualizer
+  target: kimi-cli
+  description: 子进程 STDIO JSON Lines
+- source: sdlc-visualizer
+  target: openui-service
+  description: HTTP API 原型渲染
+- source: sdlc-visualizer
+  target: git
+  description: GitPython / simple-git
+- source: sdlc-visualizer
+  target: local-filesystem
+  description: 读写产物文件
+- source: kimi-cli
+  target: local-filesystem
+  description: 写产物文件
+- source: git
+  target: local-filesystem
+  description: 版本快照
+- source: frontend-spa
+  target: backend-api
+  description: REST + SSE
+- source: backend-api
+  target: sqlite-db
+  description: SQLAlchemy 2.0 AsyncSession
+- source: backend-api
+  target: skill-orchestrator
+  description: 调度
+- source: backend-api
+  target: c4-dsl-engine
+  description: 调用
+- source: backend-api
+  target: wireframe-engine
+  description: 调用
+- source: skill-orchestrator
+  target: kimi-cli-process
+  description: subprocess JSON Lines
+- source: skill-orchestrator
+  target: git-repo
+  description: GitPython
+- source: backend-api
+  target: artifact-store
+  description: 文件读写
+- source: c4-dsl-engine
+  target: artifact-store
+  description: 读取 / 写入
+- source: wireframe-engine
+  target: artifact-store
+  description: 读取
+- source: frontend-spa
+  target: openui-docker
+  description: iframe / HTTP
+- source: kimi-cli-process
+  target: artifact-store
+  description: 写产物
+- source: git-repo
+  target: artifact-store
+  description: 版本快照
+- source: project-api
+  target: project-service
+  description: ''
+- source: canvas-api
+  target: orchestrator-service
+  description: ''
+- source: skill-api
+  target: skill-service
+  description: ''
+- source: artifact-api
+  target: artifact-service
+  description: ''
+- source: gate-api
+  target: gate-service
+  description: ''
+- source: c4-api
+  target: c4-service
+  description: ''
+- source: prototype-api
+  target: prototype-service
+  description: ''
+- source: project-service
+  target: db-repository
+  description: ''
+- source: orchestrator-service
+  target: db-repository
+  description: ''
+- source: orchestrator-service
+  target: cli-adapter
+  description: ''
+- source: skill-service
+  target: cli-adapter
+  description: ''
+- source: skill-service
+  target: db-repository
+  description: ''
+- source: artifact-service
+  target: file-repository
+  description: ''
+- source: artifact-service
+  target: git-repository
+  description: ''
+- source: artifact-service
+  target: db-repository
+  description: ''
+- source: gate-service
+  target: db-repository
+  description: ''
+- source: gate-service
+  target: sse-manager
+  description: ''
+- source: size-estimate-service
+  target: db-repository
+  description: ''
+- source: c4-service
+  target: file-repository
+  description: ''
+- source: prototype-service
+  target: file-repository
+  description: ''
+- source: prototype-service
+  target: openui-docker
+  description: HTTP
+- source: skill-orchestrator
+  target: skill-service
+  description: 执行计划
+- source: prototype-service
+  target: c4-service
+  description: 接口缺失时回退
+- source: searchengine
+  target: c4baselinestore
+  description: 依赖
+- source: advancedrouter
+  target: importexportmanager
+  description: 调用
+- source: advancedrouter
+  target: metricscollector
+  description: 依赖
+- source: advancedrouter
+  target: notificationmanager
+  description: 调用
+- source: advancedrouter
+  target: permissionmanager
+  description: 调用
+- source: advancedrouter
+  target: searchengine
+  description: 调用
+- source: advancedrouter
+  target: c4baselinestore
+  description: 调用
+- source: advancedrouter
+  target: interfacecontractstore
+  description: 调用
+- source: annotationsrouter
+  target: annotationservice
+  description: 调用
+- source: applicationsrouter
+  target: applicationservice
+  description: 调用
+- source: archvalidationrouter
+  target: archvalidationservice
+  description: 调用
+- source: artifactsrouter
+  target: artifactstore
+  description: 调用
+- source: artifactsrouter
+  target: artifact-service
+  description: 调用
+- source: bindingrouter
+  target: bindingservice
+  description: 调用
+- source: bypassrouter
+  target: bypassservice
+  description: 调用
+- source: c4router
+  target: c4baselinestore
+  description: 调用
+- source: c4router
+  target: c4dslmanager
+  description: 调用
+- source: canvasstaterouter
+  target: canvasstaterepository
+  description: 依赖
+- source: canvasstaterouter
+  target: templaterepository
+  description: 依赖
+- source: complexityrouter
+  target: complexityservice
+  description: 调用
+- source: contractsrouter
+  target: interfacecontractstore
+  description: 调用
+- source: docforgeadminrouter
+  target: c4baselinestore
+  description: 调用
+- source: enginerouter
+  target: cli-adapter
+  description: 调用
+- source: enginerouter
+  target: kimicliadapter
+  description: 调用
+- source: enginerouter
+  target: httpadapter
+  description: 调用
+- source: enginerouter
+  target: pocketflowengine
+  description: 调用
+- source: executionplansrouter
+  target: bypassrecordrepository
+  description: 依赖
+- source: executionplansrouter
+  target: executionplanrepository
+  description: 依赖
+- source: executionplansrouter
+  target: parallelgrouprepository
+  description: 依赖
+- source: executionplansrouter
+  target: plannoderepository
+  description: 依赖
+- source: executionplansrouter
+  target: bypassapprovalservice
+  description: 调用
+- source: executionplansrouter
+  target: executionplangenerator
+  description: 依赖
+- source: executionplansrouter
+  target: stageorchestrator
+  description: 依赖
+- source: governancerouter
+  target: artifactversionmanager
+  description: 调用
+- source: governancerouter
+  target: gitadapter
+  description: 调用
+- source: locatorrouter
+  target: c4baselinestore
+  description: 调用
+- source: monitoringrouter
+  target: monitoringservice
+  description: 调用
+- source: openuirouter
+  target: openuipageservice
+  description: 调用
+- source: openuirouter
+  target: openuiservice
+  description: 调用
+- source: projectsrouter
+  target: project-service
+  description: 调用
+- source: projectsrouter
+  target: riskscannerservice
+  description: 调用
+- source: apiv1router
+  target: advancedrouter
+  description: 依赖
+- source: apiv1router
+  target: annotationsrouter
+  description: 依赖
+- source: apiv1router
+  target: applicationsrouter
+  description: 依赖
+- source: apiv1router
+  target: archvalidationrouter
+  description: 依赖
+- source: apiv1router
+  target: artifactsrouter
+  description: 依赖
+- source: apiv1router
+  target: bindingrouter
+  description: 依赖
+- source: apiv1router
+  target: bypassrouter
+  description: 依赖
+- source: apiv1router
+  target: c4router
+  description: 依赖
+- source: apiv1router
+  target: canvasstaterouter
+  description: 依赖
+- source: apiv1router
+  target: contractsrouter
+  description: 依赖
+- source: apiv1router
+  target: docforgeadminrouter
+  description: 依赖
+- source: apiv1router
+  target: enginerouter
+  description: 依赖
+- source: apiv1router
+  target: executionplansrouter
+  description: 依赖
+- source: apiv1router
+  target: governancerouter
+  description: 依赖
+- source: apiv1router
+  target: locatorrouter
+  description: 依赖
+- source: apiv1router
+  target: monitoringrouter
+  description: 依赖
+- source: apiv1router
+  target: openuirouter
+  description: 依赖
+- source: apiv1router
+  target: projectsrouter
+  description: 依赖
+- source: apiv1router
+  target: schedulerrouter
+  description: 依赖
+- source: apiv1router
+  target: sketchrouter
+  description: 依赖
+- source: apiv1router
+  target: skillexecutionsrouter
+  description: 依赖
+- source: apiv1router
+  target: skillsrouter
+  description: 依赖
+- source: apiv1router
+  target: stagesrouter
+  description: 依赖
+- source: apiv1router
+  target: templatesrouter
+  description: 依赖
+- source: apiv1router
+  target: userstoriesrouter
+  description: 依赖
+- source: apiv1router
+  target: validationrouter
+  description: 依赖
+- source: apiv1router
+  target: wireframerouter
+  description: 依赖
+- source: schedulerrouter
+  target: kimicliadapter
+  description: 调用
+- source: schedulerrouter
+  target: pocketflowengine
+  description: 调用
+- source: schedulerrouter
+  target: executionplanrepository
+  description: 依赖
+- source: schedulerrouter
+  target: gaterepository
+  description: 依赖
+- source: schedulerrouter
+  target: dagscheduler
+  description: 依赖
+- source: schedulerrouter
+  target: gatecontroller
+  description: 依赖
+- source: schedulerrouter
+  target: statemachinemanager
+  description: 调用
+- source: schedulerrouter
+  target: bypassservice
+  description: 调用
+- source: sketchrouter
+  target: sketchpageservice
+  description: 调用
+- source: sketchrouter
+  target: sketchservice
+  description: 调用
+- source: skillsrouter
+  target: dageditorservice
+  description: 调用
+- source: skillsrouter
+  target: skillimportservice
+  description: 调用
+- source: skillsrouter
+  target: skillparser
+  description: 依赖
+- source: skillsrouter
+  target: skillregistryservice
+  description: 调用
+- source: skillexecutionsrouter
+  target: executionlogrepository
+  description: 依赖
+- source: skillexecutionsrouter
+  target: skillexecutionrepository
+  description: 依赖
+- source: skillexecutionsrouter
+  target: logcollectorservice
+  description: 调用
+- source: skillexecutionsrouter
+  target: retrymanager
+  description: 调用
+- source: skillexecutionsrouter
+  target: statusaggregator
+  description: 依赖
+- source: skillexecutionsrouter
+  target: triggervalidator
+  description: 依赖
+- source: stagesrouter
+  target: executionlogrepository
+  description: 依赖
+- source: stagesrouter
+  target: skillexecutionrepository
+  description: 依赖
+- source: stagesrouter
+  target: annotationservice
+  description: 调用
+- source: stagesrouter
+  target: artifact-service
+  description: 调用
+- source: stagesrouter
+  target: stagedetailservice
+  description: 调用
+- source: templatesrouter
+  target: impactscopecalculator
+  description: 依赖
+- source: templatesrouter
+  target: stageconfigservice
+  description: 调用
+- source: userstoriesrouter
+  target: requirementimportservice
+  description: 调用
+- source: userstoriesrouter
+  target: userstoryservice
+  description: 调用
+- source: validationrouter
+  target: c4baselinestore
+  description: 调用
+- source: validationrouter
+  target: crosslayervalidator
+  description: 依赖
+- source: wireframerouter
+  target: wireframenavlinkservice
+  description: 调用
+- source: wireframerouter
+  target: wireframepageservice
+  description: 调用
+- source: wireframerouter
+  target: wireframeservice
+  description: 调用
+- source: crosslayervalidator
+  target: c4baselinestore
+  description: 依赖
+- source: c4dslmanager
+  target: c4baselinestore
+  description: 调用
+- source: wireframeengine
+  target: c4baselinestore
+  description: 依赖
+- source: artifactstore
+  target: artifactversionmanager
+  description: 依赖
+- source: artifactstore
+  target: gitadapter
+  description: 依赖
+- source: dagscheduler
+  target: cli-adapter
+  description: 依赖
+- source: dagscheduler
+  target: kimicliadapter
+  description: 依赖
+- source: dagscheduler
+  target: httpadapter
+  description: 依赖
+- source: dagscheduler
+  target: pocketflowengine
+  description: 依赖
+- source: dagscheduler
+  target: gatecontroller
+  description: 依赖
+- source: dagscheduler
+  target: statemachinemanager
+  description: 依赖
+- source: gatecontroller
+  target: gaterepository
+  description: 依赖
+- source: gatecontroller
+  target: statemachinemanager
+  description: 依赖
+- source: applicationservice
+  target: applicationrepository
+  description: 持久化/查询
+- source: archvalidationservice
+  target: c4baselinestore
+  description: 调用
+- source: archvalidationservice
+  target: c4dslmanager
+  description: 调用
+- source: artifact-service
+  target: artifactrepository
+  description: 持久化/查询
+- source: artifact-service
+  target: artifactversionrepository
+  description: 持久化/查询
+- source: bypassapprovalservice
+  target: bypassrecordrepository
+  description: 持久化/查询
+- source: executionplangenerator
+  target: executionplanrepository
+  description: 依赖
+- source: executionplangenerator
+  target: parallelgrouprepository
+  description: 依赖
+- source: executionplangenerator
+  target: plannoderepository
+  description: 依赖
+- source: logcollectorservice
+  target: executionlogrepository
+  description: 持久化/查询
+- source: openuiservice
+  target: c4baselinestore
+  description: 调用
+- source: openuiservice
+  target: c4dslmanager
+  description: 调用
+- source: openuiservice
+  target: fallbackmanager
+  description: 调用
+- source: openuiservice
+  target: openuipageservice
+  description: 调用
+- source: project-service
+  target: projectrepository
+  description: 持久化/查询
+- source: requirementimportservice
+  target: userstoryservice
+  description: 调用
+- source: retrymanager
+  target: skillexecutionrepository
+  description: 调用
+- source: sketchservice
+  target: sketchpageservice
+  description: 调用
+- source: sketchservice
+  target: storypathvalidator
+  description: 依赖
+- source: skillimportservice
+  target: skillparser
+  description: 依赖
+- source: stageconfigservice
+  target: templateengine
+  description: 调用
+- source: stageconfigservice
+  target: templaterepository
+  description: 持久化/查询
+- source: stageorchestrator
+  target: parallelgrouprepository
+  description: 依赖
+- source: stageorchestrator
+  target: plannoderepository
+  description: 依赖
+- source: statusaggregator
+  target: skillexecutionrepository
+  description: 依赖
+- source: triggervalidator
+  target: skillexecutionrepository
+  description: 依赖
+- source: wireframeservice
+  target: c4baselinestore
+  description: 调用
+- source: wireframeservice
+  target: c4dslmanager
+  description: 调用
+- source: wireframeservice
+  target: wireframenavlinkservice
+  description: 调用
+- source: wireframeservice
+  target: wireframepageservice
+  description: 调用
+- source: pocketflowengine
+  target: lockmanager
+  description: 依赖
+- source: pocketflowengine
+  target: logcollector
+  description: 依赖
+- source: annotationapi
+  target: apiapi
+  description: 调用
+- source: archvalidationapi
+  target: apiapi
+  description: 调用
+- source: bindingapi
+  target: apiapi
+  description: 调用
+- source: bypassapi
+  target: apiapi
+  description: 调用
+- source: c4-api
+  target: apiapi
+  description: 调用
+- source: canvas-api
+  target: apiapi
+  description: 调用
+- source: complexityapi
+  target: apiapi
+  description: 调用
+- source: executionplanapi
+  target: apiapi
+  description: 调用
+- source: gate-api
+  target: apiapi
+  description: 调用
+- source: healthapi
+  target: apiapi
+  description: 调用
+- source: historyapi
+  target: apiapi
+  description: 调用
+- source: monitoringapi
+  target: apiapi
+  description: 调用
+- source: openuiapi
+  target: apiapi
+  description: 调用
+- source: project-api
+  target: apiapi
+  description: 调用
+- source: selfcheckapi
+  target: apiapi
+  description: 调用
+- source: sketchapi
+  target: apiapi
+  description: 调用
+- source: sketchpageapi
+  target: apiapi
+  description: 调用
+- source: templateapi
+  target: apiapi
+  description: 调用
+- source: userstoryapi
+  target: apiapi
+  description: 调用
+- source: wireframeapi
+  target: apiapi
+  description: 调用
+- source: useappdashboardstore
+  target: apiapi
+  description: 调用
+- source: useartifactviewerstore
+  target: apiapi
+  description: 调用
+- source: usec4navigatorstore
+  target: c4-api
+  description: 调用
+- source: usec4navigatorstore
+  target: project-api
+  description: 调用
+- source: usecanvasstore
+  target: canvas-api
+  description: 调用
+- source: usecomplexitystore
+  target: complexityapi
+  description: 调用
+- source: useexecutionmonitorstore
+  target: apiapi
+  description: 调用
+- source: useexecutionplanstore
+  target: apiapi
+  description: 调用
+- source: usegatecenterstore
+  target: gate-api
+  description: 调用
+- source: usegatecenterstore
+  target: bypassapi
+  description: 调用
+- source: usegatecenterstore
+  target: annotationapi
+  description: 调用
+- source: usegatecenterstore
+  target: selfcheckapi
+  description: 调用
+- source: useprojectdashboardstore
+  target: project-api
+  description: 调用
+- source: useskillregistrystore
+  target: apiapi
+  description: 调用
+- source: usetemplatestore
+  target: templateapi
+  description: 调用
+- source: sidebar
+  target: globaltoast
+  description: 包含/渲染
+- source: sidebar
+  target: projectselector
+  description: 包含/渲染
+- source: sidebar
+  target: appdashboard
+  description: 包含/渲染
+- source: sidebar
+  target: skillregistry
+  description: 包含/渲染
+- source: sidebar
+  target: projectcreate
+  description: 包含/渲染
+- source: sidebar
+  target: projectdashboard
+  description: 包含/渲染
+- source: sidebar
+  target: executionmonitor
+  description: 包含/渲染
+- source: sidebar
+  target: gatecenter
+  description: 包含/渲染
+- source: sidebar
+  target: gatedetailpage
+  description: 包含/渲染
+- source: sidebar
+  target: gatehistorypage
+  description: 包含/渲染
+- source: sidebar
+  target: artifactviewer
+  description: 包含/渲染
+- source: sidebar
+  target: c4navigator
+  description: 包含/渲染
+- source: sidebar
+  target: monitoringdashboard
+  description: 包含/渲染
+- source: sidebar
+  target: historyviewer
+  description: 包含/渲染
+- source: sidebar
+  target: archvalidation
+  description: 包含/渲染
+- source: sidebar
+  target: bypassmanager
+  description: 包含/渲染
+- source: sidebar
+  target: openuipreview
+  description: 包含/渲染
+- source: sidebar
+  target: wireframecanvas
+  description: 包含/渲染
+- source: sidebar
+  target: bindingpanel
+  description: 包含/渲染
+- source: sidebar
+  target: sketchgallery
+  description: 包含/渲染
+- source: sidebar
+  target: canvaspage
+  description: 包含/渲染
+- source: sidebar
+  target: templatestageconfig
+  description: 包含/渲染
+- source: sidebar
+  target: complexityrouter
+  description: 包含/渲染
+- source: sidebar
+  target: docforgeadmin
+  description: 包含/渲染
+- source: sidebar
+  target: archgovernancepage
+  description: 包含/渲染
+- source: topbar
+  target: globaltoast
+  description: 包含/渲染
+- source: topbar
+  target: projectselector
+  description: 包含/渲染
+- source: topbar
+  target: appdashboard
+  description: 包含/渲染
+- source: topbar
+  target: skillregistry
+  description: 包含/渲染
+- source: topbar
+  target: projectcreate
+  description: 包含/渲染
+- source: topbar
+  target: projectdashboard
+  description: 包含/渲染
+- source: topbar
+  target: executionmonitor
+  description: 包含/渲染
+- source: topbar
+  target: gatecenter
+  description: 包含/渲染
+- source: topbar
+  target: gatedetailpage
+  description: 包含/渲染
+- source: topbar
+  target: gatehistorypage
+  description: 包含/渲染
+- source: topbar
+  target: artifactviewer
+  description: 包含/渲染
+- source: topbar
+  target: c4navigator
+  description: 包含/渲染
+- source: topbar
+  target: monitoringdashboard
+  description: 包含/渲染
+- source: topbar
+  target: historyviewer
+  description: 包含/渲染
+- source: topbar
+  target: archvalidation
+  description: 包含/渲染
+- source: topbar
+  target: bypassmanager
+  description: 包含/渲染
+- source: topbar
+  target: openuipreview
+  description: 包含/渲染
+- source: topbar
+  target: wireframecanvas
+  description: 包含/渲染
+- source: topbar
+  target: bindingpanel
+  description: 包含/渲染
+- source: topbar
+  target: sketchgallery
+  description: 包含/渲染
+- source: topbar
+  target: canvaspage
+  description: 包含/渲染
+- source: topbar
+  target: templatestageconfig
+  description: 包含/渲染
+- source: topbar
+  target: complexityrouter
+  description: 包含/渲染
+- source: topbar
+  target: docforgeadmin
+  description: 包含/渲染
+- source: topbar
+  target: archgovernancepage
+  description: 包含/渲染
+- source: applayout
+  target: globaltoast
+  description: 包含/渲染
+- source: applayout
+  target: projectselector
+  description: 包含/渲染
+- source: applayout
+  target: appdashboard
+  description: 包含/渲染
+- source: applayout
+  target: skillregistry
+  description: 包含/渲染
+- source: applayout
+  target: projectcreate
+  description: 包含/渲染
+- source: applayout
+  target: projectdashboard
+  description: 包含/渲染
+- source: applayout
+  target: executionmonitor
+  description: 包含/渲染
+- source: applayout
+  target: gatecenter
+  description: 包含/渲染
+- source: applayout
+  target: gatedetailpage
+  description: 包含/渲染
+- source: applayout
+  target: gatehistorypage
+  description: 包含/渲染
+- source: applayout
+  target: artifactviewer
+  description: 包含/渲染
+- source: applayout
+  target: c4navigator
+  description: 包含/渲染
+- source: applayout
+  target: monitoringdashboard
+  description: 包含/渲染
+- source: applayout
+  target: historyviewer
+  description: 包含/渲染
+- source: applayout
+  target: archvalidation
+  description: 包含/渲染
+- source: applayout
+  target: bypassmanager
+  description: 包含/渲染
+- source: applayout
+  target: openuipreview
+  description: 包含/渲染
+- source: applayout
+  target: wireframecanvas
+  description: 包含/渲染
+- source: applayout
+  target: bindingpanel
+  description: 包含/渲染
+- source: applayout
+  target: sketchgallery
+  description: 包含/渲染
+- source: applayout
+  target: canvaspage
+  description: 包含/渲染
+- source: applayout
+  target: templatestageconfig
+  description: 包含/渲染
+- source: applayout
+  target: complexityrouter
+  description: 包含/渲染
+- source: applayout
+  target: docforgeadmin
+  description: 包含/渲染
+- source: applayout
+  target: archgovernancepage
+  description: 包含/渲染
+- source: app
+  target: globaltoast
+  description: 包含/渲染
+- source: app
+  target: projectselector
+  description: 包含/渲染
+- source: app
+  target: appdashboard
+  description: 包含/渲染
+- source: app
+  target: skillregistry
+  description: 包含/渲染
+- source: app
+  target: projectcreate
+  description: 包含/渲染
+- source: app
+  target: projectdashboard
+  description: 包含/渲染
+- source: app
+  target: executionmonitor
+  description: 包含/渲染
+- source: app
+  target: gatecenter
+  description: 包含/渲染
+- source: app
+  target: gatedetailpage
+  description: 包含/渲染
+- source: app
+  target: gatehistorypage
+  description: 包含/渲染
+- source: app
+  target: artifactviewer
+  description: 包含/渲染
+- source: app
+  target: c4navigator
+  description: 包含/渲染
+- source: app
+  target: monitoringdashboard
+  description: 包含/渲染
+- source: app
+  target: historyviewer
+  description: 包含/渲染
+- source: app
+  target: archvalidation
+  description: 包含/渲染
+- source: app
+  target: bypassmanager
+  description: 包含/渲染
+- source: app
+  target: openuipreview
+  description: 包含/渲染
+- source: app
+  target: wireframecanvas
+  description: 包含/渲染
+- source: app
+  target: bindingpanel
+  description: 包含/渲染
+- source: app
+  target: sketchgallery
+  description: 包含/渲染
+- source: app
+  target: canvaspage
+  description: 包含/渲染
+- source: app
+  target: templatestageconfig
+  description: 包含/渲染
+- source: app
+  target: complexityrouter
+  description: 包含/渲染
+- source: app
+  target: docforgeadmin
+  description: 包含/渲染
+- source: app
+  target: archgovernancepage
+  description: 包含/渲染
+- source: globaltoast
+  target: useappstore
+  description: 状态订阅
+- source: projectselector
+  target: project-api
+  description: 调用
+- source: templatedeviationmodal
+  target: usetemplatestore
+  description: 状态订阅
+- source: modaloverlay
+  target: usetemplatestore
+  description: 状态订阅
+- source: impactcard
+  target: usetemplatestore
+  description: 状态订阅
+- source: sdlccanvas
+  target: usecanvasstore
+  description: 状态订阅
+- source: sdlccanvas
+  target: stagenode
+  description: 包含/渲染
+- source: sdlccanvas
+  target: gatenode
+  description: 包含/渲染
+- source: sdlccanvas
+  target: skillnode
+  description: 包含/渲染
+- source: sdlccanvas
+  target: zoomcontrols
+  description: 包含/渲染
+- source: tabs
+  target: usestagedetailstore
+  description: 状态订阅
+- source: tabs
+  target: resizehandle
+  description: 包含/渲染
+- source: tabs
+  target: skillsnapshottab
+  description: 包含/渲染
+- source: tabs
+  target: pocketflowstatustab
+  description: 包含/渲染
+- source: tabs
+  target: artifactcardstab
+  description: 包含/渲染
+- source: tabs
+  target: executionlogstab
+  description: 包含/渲染
+- source: tabs
+  target: annotationtab
+  description: 包含/渲染
+- source: tabs
+  target: gatelinktab
+  description: 包含/渲染
+- source: tabs
+  target: badgemanager
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: usestagedetailstore
+  description: 状态订阅
+- source: stagedetailpanel
+  target: resizehandle
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: skillsnapshottab
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: pocketflowstatustab
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: artifactcardstab
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: executionlogstab
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: annotationtab
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: gatelinktab
+  description: 包含/渲染
+- source: stagedetailpanel
+  target: badgemanager
+  description: 包含/渲染
+- source: annotationtab
+  target: usestagedetailstore
+  description: 状态订阅
+- source: annotationtab
+  target: apiapi
+  description: 调用
+- source: artifactcardstab
+  target: usestagedetailstore
+  description: 状态订阅
+- source: artifactcardstab
+  target: apiapi
+  description: 调用
+- source: executionlogstab
+  target: usestagedetailstore
+  description: 状态订阅
+- source: executionlogstab
+  target: apiapi
+  description: 调用
+- source: gatelinktab
+  target: usestagedetailstore
+  description: 状态订阅
+- source: gatelinktab
+  target: apiapi
+  description: 调用
+- source: pocketflowstatustab
+  target: usestagedetailstore
+  description: 状态订阅
+- source: pocketflowstatustab
+  target: apiapi
+  description: 调用
+- source: resizehandle
+  target: usestagedetailstore
+  description: 状态订阅
+- source: skillsnapshottab
+  target: usestagedetailstore
+  description: 状态订阅
+- source: skillsnapshottab
+  target: apiapi
+  description: 调用
+- source: appdashboard
+  target: useappdashboardstore
+  description: 状态订阅
+- source: appdashboard
+  target: appcard
+  description: 包含/渲染
+- source: appdashboard
+  target: appcreatemodal
+  description: 包含/渲染
+- source: appdashboard
+  target: appdeleteconfirm
+  description: 包含/渲染
+- source: appcreatemodal
+  target: useappdashboardstore
+  description: 状态订阅
+- source: appdeleteconfirm
+  target: useappdashboardstore
+  description: 状态订阅
+- source: emptystate
+  target: archvalidationapi
+  description: 调用
+- source: diffpanel
+  target: archvalidationapi
+  description: 调用
+- source: archvalidation
+  target: archvalidationapi
+  description: 调用
+- source: artifactviewer
+  target: useartifactviewerstore
+  description: 状态订阅
+- source: artifactviewer
+  target: artifacttree
+  description: 包含/渲染
+- source: artifactviewer
+  target: artifactpreview
+  description: 包含/渲染
+- source: artifactviewer
+  target: versionhistorydrawer
+  description: 包含/渲染
+- source: artifactpreview
+  target: artifactrenderer
+  description: 包含/渲染
+- source: artifactpreview
+  target: artifacteditor
+  description: 包含/渲染
+- source: artifactpreview
+  target: conflictconfirmdialog
+  description: 包含/渲染
+- source: versionhistorydrawer
+  target: diffviewermodal
+  description: 包含/渲染
+- source: versionhistorydrawer
+  target: rollbackconfirmdialog
+  description: 包含/渲染
+- source: bindingpanel
+  target: projectselector
+  description: 包含/渲染
+- source: bindingpanel
+  target: bindingapi
+  description: 调用
+- source: statcard
+  target: projectselector
+  description: 包含/渲染
+- source: statcard
+  target: bindingapi
+  description: 调用
+- source: bypassmanager
+  target: bypassapi
+  description: 调用
+- source: bypassmanager
+  target: projectselector
+  description: 包含/渲染
+- source: applybypassmodal
+  target: bypassapi
+  description: 调用
+- source: applybypassmodal
+  target: projectselector
+  description: 包含/渲染
+- source: levels
+  target: usec4navigatorstore
+  description: 状态订阅
+- source: levels
+  target: c4editor
+  description: 包含/渲染
+- source: levels
+  target: c4renderer
+  description: 包含/渲染
+- source: levels
+  target: nodedetailpanel
+  description: 包含/渲染
+- source: levels
+  target: exportpanel
+  description: 包含/渲染
+- source: levels
+  target: breadcrumb
+  description: 包含/渲染
+- source: c4navigator
+  target: usec4navigatorstore
+  description: 状态订阅
+- source: c4navigator
+  target: c4editor
+  description: 包含/渲染
+- source: c4navigator
+  target: c4renderer
+  description: 包含/渲染
+- source: c4navigator
+  target: nodedetailpanel
+  description: 包含/渲染
+- source: c4navigator
+  target: exportpanel
+  description: 包含/渲染
+- source: c4navigator
+  target: breadcrumb
+  description: 包含/渲染
+- source: canvaspage
+  target: sdlccanvas
+  description: 包含/渲染
+- source: canvaspage
+  target: stagedetailpanel
+  description: 包含/渲染
+- source: canvaspage
+  target: flowcanvas
+  description: 包含/渲染
+- source: canvaspage
+  target: useexecutionplanstore
+  description: 状态订阅
+- source: canvaspage
+  target: usestagedetailstore
+  description: 状态订阅
+- source: canvaspage
+  target: apiapi
+  description: 调用
+- source: canvaspage
+  target: canvas-api
+  description: 调用
+- source: canvaspage
+  target: filterpanel
+  description: 包含/渲染
+- source: canvaspage
+  target: canvasswimlane
+  description: 包含/渲染
+- source: canvaspage
+  target: canvaslist
+  description: 包含/渲染
+- source: canvaspage
+  target: nodecontextmenu
+  description: 包含/渲染
+- source: canvaspage
+  target: stagemergemodal
+  description: 包含/渲染
+- source: canvaspage
+  target: batchexecutionpanel
+  description: 包含/渲染
+- source: canvaspage
+  target: releaseconfirmmodal
+  description: 包含/渲染
+- source: canvasswimlane
+  target: stagenode
+  description: 包含/渲染
+- source: canvasswimlane
+  target: gatenode
+  description: 包含/渲染
+- source: canvasswimlane
+  target: skillnode
+  description: 包含/渲染
+- source: canvasswimlane
+  target: zoomcontrols
+  description: 包含/渲染
+- source: complexityrouter
+  target: scoreradarchart
+  description: 包含/渲染
+- source: complexityrouter
+  target: complexityapi
+  description: 调用
+- source: complexityrouter
+  target: templateapi
+  description: 调用
+- source: complexityrouter
+  target: downgrademodal
+  description: 包含/渲染
+- source: complexityrouter
+  target: decisionpanel
+  description: 包含/渲染
+- source: docforgeadmin
+  target: apiapi
+  description: 调用
+- source: executionmonitor
+  target: useexecutionmonitorstore
+  description: 状态订阅
+- source: executionmonitor
+  target: apiapi
+  description: 调用
+- source: executionmonitor
+  target: executionlogstream
+  description: 包含/渲染
+- source: executionmonitor
+  target: retrybutton
+  description: 包含/渲染
+- source: executionmonitor
+  target: stopbutton
+  description: 包含/渲染
+- source: executionlogstream
+  target: apiapi
+  description: 调用
+- source: gatecenter
+  target: usegatecenterstore
+  description: 状态订阅
+- source: gatecenter
+  target: statcards
+  description: 包含/渲染
+- source: gatecenter
+  target: gatecardlist
+  description: 包含/渲染
+- source: gatecenter
+  target: bypasstrigger
+  description: 包含/渲染
+- source: bypasstrigger
+  target: usegatecenterstore
+  description: 状态订阅
+- source: bypasstrigger
+  target: bypassmodal
+  description: 包含/渲染
+- source: bypasscountdowndisplay
+  target: usegatecenterstore
+  description: 状态订阅
+- source: bypasscountdowndisplay
+  target: selfcheckpanel
+  description: 包含/渲染
+- source: bypasscountdowndisplay
+  target: decisionpanel
+  description: 包含/渲染
+- source: bypasscountdowndisplay
+  target: bypasstrigger
+  description: 包含/渲染
+- source: gatedetailpage
+  target: usegatecenterstore
+  description: 状态订阅
+- source: gatedetailpage
+  target: selfcheckpanel
+  description: 包含/渲染
+- source: gatedetailpage
+  target: decisionpanel
+  description: 包含/渲染
+- source: gatedetailpage
+  target: bypasstrigger
+  description: 包含/渲染
+- source: gatehistorypage
+  target: usegatecenterstore
+  description: 状态订阅
+- source: gatehistorypage
+  target: historytable
+  description: 包含/渲染
+- source: historyviewer
+  target: historyapi
+  description: 调用
+- source: monitoringdashboard
+  target: monitoringapi
+  description: 调用
+- source: statcard
+  target: monitoringapi
+  description: 调用
+- source: openuipreview
+  target: projectselector
+  description: 包含/渲染
+- source: openuipreview
+  target: openuiapi
+  description: 调用
+- source: openuipreview
+  target: servicesetupguide
+  description: 包含/渲染
+- source: projectcreate
+  target: usetemplatestore
+  description: 状态订阅
+- source: projectcreate
+  target: project-api
+  description: 调用
+- source: projectcreate
+  target: templateselector
+  description: 包含/渲染
+- source: projectcreate
+  target: stagetimeline
+  description: 包含/渲染
+- source: projectcreate
+  target: templatedeviationmodal
+  description: 包含/渲染
+- source: projectcreate
+  target: templatepreviewmodal
+  description: 包含/渲染
+- source: projectcreate
+  target: apiapi
+  description: 调用
+- source: complexityform
+  target: usecomplexitystore
+  description: 状态订阅
+- source: complexityform
+  target: scoreradarchart
+  description: 包含/渲染
+- source: templatepreviewmodal
+  target: templateapi
+  description: 调用
+- source: templateselector
+  target: usetemplatestore
+  description: 状态订阅
+- source: projectdashboard
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: projectdashboard
+  target: project-api
+  description: 调用
+- source: projectdashboard
+  target: projectcard
+  description: 包含/渲染
+- source: projectdashboard
+  target: projectlistview
+  description: 包含/渲染
+- source: projectdashboard
+  target: riskalertpanel
+  description: 包含/渲染
+- source: projectdashboard
+  target: projectdetaildrawer
+  description: 包含/渲染
+- source: projectdashboard
+  target: deleteconfirmdialog
+  description: 包含/渲染
+- source: projectdashboard
+  target: sizeestimatewizard
+  description: 包含/渲染
+- source: projectdashboard
+  target: scalemismatchbanner
+  description: 包含/渲染
+- source: projectcreatemodal
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: projectcreatemodal
+  target: templateselector
+  description: 包含/渲染
+- source: projectcreatemodal
+  target: stagetimeline
+  description: 包含/渲染
+- source: projectcreatemodal
+  target: usetemplatestore
+  description: 状态订阅
+- source: projectdetaildrawer
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: overviewtab
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: inforow
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: scorecard
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: stagestab
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: artifactstab
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: logstab
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: riskalertpanel
+  target: useprojectdashboardstore
+  description: 状态订阅
+- source: sizeestimatewizard
+  target: project-api
+  description: 调用
+- source: scoreblock
+  target: project-api
+  description: 调用
+- source: sketchgallery
+  target: projectselector
+  description: 包含/渲染
+- source: sketchgallery
+  target: userstoryapi
+  description: 调用
+- source: sketchgallery
+  target: sketchapi
+  description: 调用
+- source: sketchgallery
+  target: sketchpageapi
+  description: 调用
+- source: sketchgallery
+  target: sketchviewer
+  description: 包含/渲染
+- source: sketchgallery
+  target: sketchreviewpanel
+  description: 包含/渲染
+- source: editstoryform
+  target: projectselector
+  description: 包含/渲染
+- source: editstoryform
+  target: userstoryapi
+  description: 调用
+- source: editstoryform
+  target: sketchapi
+  description: 调用
+- source: editstoryform
+  target: sketchpageapi
+  description: 调用
+- source: editstoryform
+  target: sketchviewer
+  description: 包含/渲染
+- source: editstoryform
+  target: sketchreviewpanel
+  description: 包含/渲染
+- source: skillregistry
+  target: useskillregistrystore
+  description: 状态订阅
+- source: skillregistry
+  target: skillimportmodal
+  description: 包含/渲染
+- source: skillregistry
+  target: skilldagcanvas
+  description: 包含/渲染
+- source: skillregistry
+  target: skilldetaildrawer
+  description: 包含/渲染
+- source: changelogbar
+  target: useskillregistrystore
+  description: 状态订阅
+- source: dagcontextmenu
+  target: useskillregistrystore
+  description: 状态订阅
+- source: white
+  target: useskillregistrystore
+  description: 状态订阅
+- source: white
+  target: dagcontextmenu
+  description: 包含/渲染
+- source: white
+  target: skillnodelibrarypanel
+  description: 包含/渲染
+- source: white
+  target: changelogbar
+  description: 包含/渲染
+- source: skilldagcanvas
+  target: useskillregistrystore
+  description: 状态订阅
+- source: skilldagcanvas
+  target: dagcontextmenu
+  description: 包含/渲染
+- source: skilldagcanvas
+  target: skillnodelibrarypanel
+  description: 包含/渲染
+- source: skilldagcanvas
+  target: changelogbar
+  description: 包含/渲染
+- source: copyablepath
+  target: useskillregistrystore
+  description: 状态订阅
+- source: skilldetaildrawer
+  target: useskillregistrystore
+  description: 状态订阅
+- source: skillimportmodal
+  target: useskillregistrystore
+  description: 状态订阅
+- source: skillimportmodal
+  target: conflictresolvemodal
+  description: 包含/渲染
+- source: skillnodelibrarypanel
+  target: useskillregistrystore
+  description: 状态订阅
+- source: templatestageconfig
+  target: templateapi
+  description: 调用
+- source: templatestageconfig
+  target: apiapi
+  description: 调用
+- source: templatestageconfig
+  target: deviationconfirmmodal
+  description: 包含/渲染
+- source: templatestageconfig
+  target: stagedefinitionpanel
+  description: 包含/渲染
+- source: templatestageconfig
+  target: deviationlogdrawer
+  description: 包含/渲染
+- source: templatestageconfig
+  target: scalemismatchbanner
+  description: 包含/渲染
+- source: deviationconfirmmodal
+  target: templateapi
+  description: 调用
+- source: deviationlogdrawer
+  target: templateapi
+  description: 调用
+- source: stagedefinitionpanel
+  target: templateapi
+  description: 调用
+- source: wireframecanvas
+  target: projectselector
+  description: 包含/渲染
+- source: wireframecanvas
+  target: wireframeapi
+  description: 调用
+- source: wireframecanvas
+  target: wireframeviewer
+  description: 包含/渲染
+- source: wireframecanvas
+  target: navrelationgraph
+  description: 包含/渲染
+- source: skill-service
+  target: skillrepository
+  description: 持久化/查询
+- source: gate-service
+  target: gaterepository
+  description: 持久化/查询
+- source: timeboxservice
+  target: projecttimeboxrepository
+  description: 持久化/查询
+- source: skillimportservice
+  target: skillrepository
+  description: 持久化/查询
+- source: templateservice
+  target: templaterepository
+  description: 持久化/查询
+- source: templateservice
+  target: templatedeviationrepository
+  description: 持久化/查询
+- source: templateservice
+  target: templatestagerepository
+  description: 持久化/查询
+- source: deviationservice
+  target: templatedeviationrepository
+  description: 持久化/查询
+- source: moduleservice
+  target: modulerepository
+  description: 持久化/查询
+- source: coststatsservice
+  target: coststatsrepository
+  description: 持久化/查询
+- source: execservice
+  target: executionplanrepository
+  description: 持久化/查询
+- source: execservice
+  target: skillexecutionrepository
+  description: 持久化/查询
+- source: execservice
+  target: executionlogrepository
+  description: 持久化/查询
+- source: execservice
+  target: pocketflowexecutionrepository
+  description: 持久化/查询
+- source: bypassservice
+  target: bypassrecordrepository
+  description: 持久化/查询
+- source: skillregistryservice
+  target: skillrepository
+  description: 持久化/查询
+- source: backend-api
+  target: complexityrouter
+  description: 由...实现
+- source: backend-api
+  target: advancedrouter
+  description: 由...实现
+- source: canvas-api
+  target: annotationsrouter
+  description: 由...实现
+- source: project-api
+  target: applicationsrouter
+  description: 由...实现
+- source: backend-api
+  target: archvalidationrouter
+  description: 由...实现
+- source: artifact-api
+  target: artifactsrouter
+  description: 由...实现
+- source: canvas-api
+  target: bindingrouter
+  description: 由...实现
+- source: gate-api
+  target: bypassrouter
+  description: 由...实现
+- source: c4-api
+  target: c4router
+  description: 由...实现
+- source: canvas-api
+  target: canvasstaterouter
+  description: 由...实现
+- source: backend-api
+  target: contractsrouter
+  description: 由...实现
+- source: backend-api
+  target: docforgeadminrouter
+  description: 由...实现
+- source: skill-orchestrator
+  target: enginerouter
+  description: 由...实现
+- source: backend-api
+  target: governancerouter
+  description: 由...实现
+- source: backend-api
+  target: locatorrouter
+  description: 由...实现
+- source: backend-api
+  target: monitoringrouter
+  description: 由...实现
+- source: prototype-api
+  target: openuirouter
+  description: 由...实现
+- source: project-api
+  target: projectsrouter
+  description: 由...实现
+- source: skill-orchestrator
+  target: schedulerrouter
+  description: 由...实现
+- source: prototype-api
+  target: sketchrouter
+  description: 由...实现
+- source: skill-api
+  target: skillsrouter
+  description: 由...实现
+- source: skill-api
+  target: skillexecutionsrouter
+  description: 由...实现
+- source: canvas-api
+  target: stagesrouter
+  description: 由...实现
+- source: canvas-api
+  target: templatesrouter
+  description: 由...实现
+- source: project-api
+  target: userstoriesrouter
+  description: 由...实现
+- source: backend-api
+  target: validationrouter
+  description: 由...实现
+- source: prototype-api
+  target: wireframerouter
+  description: 由...实现

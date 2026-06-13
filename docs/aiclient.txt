@@ -1,0 +1,817 @@
+AI CLI 架构治理模块 — 详细设计方案
+版本：v1.0
+架构：混合架构（Web 前端 + 本地 Agent）
+核心链路：架构问题扫描 → 修复确认对话框 → Prompt 组装 → Kimi CLI 执行 → 终端流式回显
+一、总体架构
+1.1 混合架构拓扑
+plain
+┌─────────────────────────────────────────────────────────────────────┐
+│                         用户浏览器                                   │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                    Web 前端 (React/Vue)                      │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │   │
+│  │  │ 架构治理面板  │  │ 修复确认对话框 │  │  CLI 终端面板   │   │   │
+│  │  │ (问题列表)   │  │ (Prompt组装)  │  │ (xterm.js)      │   │   │
+│  │  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘   │   │
+│  │         └─────────────────┴─────────────────────┘             │   │
+│  │                        ↓ WebSocket                           │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    本地代理 (DocForge Agent)                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │  WS Server  │  │  Prompt     │  │     执行引擎               │  │
+│  │  (端口9618) │  │  Assembler  │  │  ┌─────────────────────┐  │  │
+│  └──────┬──────┘  └──────┬──────┘  │  │  Kimi CLI 进程      │  │  │
+│         │                │         │  │  ├─ stdin: 写Prompt  │  │  │
+│         └────────────────┘         │  │  ├─ stdout: 读输出   │  │  │
+│                                    │  │  └─ stderr: 读错误   │  │  │
+│  ┌─────────────┐  ┌─────────────┐  │  └─────────────────────┘  │  │
+│  │ 项目扫描器   │  │  Git 操作器  │  │                         │  │
+│  │ (AST/规则)  │  │ (分支/提交)  │  └─────────────────────────┘  │
+│  └─────────────┘  └─────────────┘                                   │
+└─────────────────────────────────────────────────────────────────────┘
+1.2 核心设计原则
+表格
+原则	说明
+本地执行	Kimi CLI 和代码库都在本地，修复直接作用于本地文件
+流式回显	CLI 的 Thinking 过程实时显示在终端，用户可感知进度
+Prompt 可干预	用户在确认对话框可追加提示词，影响修复策略
+一键确认	复杂 Prompt 由系统自动组装，用户只需确认或微调
+跨平台	Agent 用 Node.js 编写，Windows/macOS/Linux 通用
+二、前端详细设计
+2.1 页面布局
+plain
+┌────────────────────────────────────────────────────────────┐
+│  [项目名] 架构治理                    [连接状态: 🟢Agent在线] │
+├──────────────────────┬─────────────────────────────────────┤
+│                      │                                     │
+│  架构问题列表         │         CLI 终端面板               │
+│  ┌────────────────┐ │  ┌─────────────────────────────┐  │
+│  │ 🔍 扫描规则      │ │  │  $ docforge arch --scan     │  │
+│  │ • 循环依赖       │ │  │  [系统] 扫描完成，发现 3 个问题 │  │
+│  │ • 超大函数       │ │  │                             │  │
+│  │ • 废弃接口       │ │  │  [AI] 正在分析循环依赖...     │  │
+│  │                  │ │  │  [AI] 根因: utils → helper    │  │
+│  │ [开始扫描]       │ │  │       → utils 相互引用        │  │
+│  │                  │ │  │  [AI] 修复方案: 提取公共逻辑  │  │
+│  │ ──────────────── │ │  │       到 common/utils         │  │
+│  │ 问题 1 (高危)     │ │  │                             │  │
+│  │ 循环依赖           │ │  │  [Diff] src/utils/helper.ts   │  │
+│  │ utils ↔ helper    │ │  │  - import { a } from './utils'│  │
+│  │ [查看详情] [修复]  │ │  │  + import { a } from '../common│  │
+│  │                  │ │  │                             │  │
+│  │ 问题 2 (警告)     │ │  │  $ _                        │  │
+│  │ 超大函数           │ │  └─────────────────────────────┘  │
+│  │ processOrder 320行│ │                                     │
+│  │ [查看详情] [修复]  │ │                                     │
+│  │                  │ │                                     │
+│  │ 问题 3 (信息)     │ │                                     │
+│  │ 废弃接口 /old-auth │ │                                     │
+│  │ [查看详情] [忽略]  │ │                                     │
+│  └────────────────┘ │                                     │
+│                      │                                     │
+└──────────────────────┴─────────────────────────────────────┘
+2.2 架构治理面板（左侧）
+2.2.1 组件结构
+TypeScript
+interface ArchGovernancePanelProps {
+  projectId: string;
+  agentStatus: 'online' | 'offline' | 'connecting';
+  onScan: () => void;
+  onFix: (issue: ArchIssue) => void;
+  onIgnore: (issueId: string) => void;
+}
+
+// 状态管理
+interface ArchPanelState {
+  scanStatus: 'idle' | 'scanning' | 'done';
+  issues: ArchIssue[];
+  selectedIssueId: string | null;
+  fixDialogOpen: boolean;
+  currentFixIssue: ArchIssue | null;
+}
+2.2.2 问题卡片组件
+TypeScript
+interface ArchIssue {
+  id: string;
+  severity: 'critical' | 'warning' | 'info';
+  type: 'circular_dependency' | 'god_function' | 'deprecated_api' | 'code_smell';
+  title: string;
+  description: string;
+  location: string;           // 文件路径
+  lineNumbers: number[];
+  affectedFiles: string[];
+  ruleId: string;
+  detectedAt: string;
+  
+  // 修复相关（扫描后由 AI 预生成或用户触发后生成）
+  fixProposal?: FixProposal;
+}
+
+interface FixProposal {
+  rootCause: string;          // 根因分析
+  strategy: string;           // 修复策略
+  estimatedRisk: 'low' | 'medium' | 'high';
+  affectedScope: string[];    // 影响文件列表
+  diffPreview?: string;       // 预览 Diff
+}
+UI 渲染：
+tsx
+<<ArchIssueCard 
+  severity="critical" 
+  badgeColor="#EF5350"
+  title="循环依赖"
+  description="utils ↔ helper 相互引用"
+  location="src/utils/helper.ts:12"
+  actions={[
+    { label: '查看详情', onClick: showDetail },
+    { label: '修复', type: 'primary', onClick: openFixDialog }
+  ]}
+/>
+2.3 修复确认对话框（核心交互）
+2.3.1 对话框布局
+plain
+┌─────────────────────────────────────────────┐
+│  🔧 修复确认                    [X]         │
+├─────────────────────────────────────────────┤
+│                                             │
+│  【问题信息】                                │
+│  ┌─────────────────────────────────────┐   │
+│  │ 类型: 循环依赖                         │   │
+│  │ 等级: 高危                            │   │
+│  │ 位置: src/utils/helper.ts:12          │   │
+│  │ 描述: helper.ts 引用了 utils/index，    │   │
+│  │       而 utils/index 又反向引用了 helper │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  【AI 修复策略】                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ 根因: 职责边界不清，工具函数被分散      │   │
+│  │ 方案: 提取公共逻辑到 src/common/utils   │   │
+│  │ 风险: 中（需验证引用点）                 │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  【你的补充提示词】（可选）                   │
+│  ┌─────────────────────────────────────┐   │
+│  │ 请确保不破坏现有单测，优先使用            │   │
+│  │ TypeScript 类型别名而非接口重构...      │   │
+│  │                                     │   │
+│  └─────────────────────────────────────┘   │
+│  💡 提示：追加提示词可影响 AI 的修复风格     │
+│                                             │
+│  【Prompt 预览】（可折叠）                   │
+│  ┌─────────────────────────────────────┐   │
+│  │ [系统角色] 你是一位资深架构师...        │   │
+│  │ [问题上下文] 循环依赖: helper ↔ utils    │   │
+│  │ [代码上下文] import { format } from...  │   │
+│  │ [用户补充] 请确保不破坏现有单测...       │   │
+│  │ [执行指令] 请生成修复后的完整代码...      │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│         [取消]        [确定执行修复]         │
+└─────────────────────────────────────────────┘
+2.3.2 组件实现
+TypeScript
+interface FixConfirmDialogProps {
+  open: boolean;
+  issue: ArchIssue;
+  projectContext: ProjectContext;  // 技术栈、目录结构等
+  onCancel: () => void;
+  onConfirm: (assembledPrompt: string, userHint: string) => void;
+}
+
+interface FixConfirmDialogState {
+  userHint: string;              // 用户输入的补充提示词
+  showPreview: boolean;          // 是否展开 Prompt 预览
+  assembledPrompt: string;       // 组装后的完整 Prompt（实时计算）
+}
+
+// 实时组装 Prompt（用于预览）
+const assemblePrompt = (
+  issue: ArchIssue, 
+  projectContext: ProjectContext,
+  userHint: string
+): string => {
+  return buildArchFixPrompt(issue, projectContext, userHint);
+};
+2.4 CLI 终端面板（右侧）
+2.4.1 终端状态机
+TypeScript
+type TerminalState = 
+  | 'idle'           // 等待输入
+  | 'scanning'       // 正在扫描
+  | 'analyzing'      // AI 分析问题
+  | 'fixing'         // AI 生成修复
+  | 'applying'       // 正在应用代码变更
+  | 'verifying'      // 验证构建/测试
+  | 'done'           // 完成
+  | 'error';         // 出错
+
+interface TerminalMessage {
+  id: string;
+  type: 'user' | 'system' | 'ai' | 'thinking' | 'diff' | 'error' | 'success';
+  content: string;
+  timestamp: number;
+  metadata?: {
+    filePath?: string;
+    diffLines?: { added: number; removed: number };
+    executionTime?: number;
+  };
+}
+2.4.2 消息渲染规则
+表格
+类型	前缀	样式	说明
+user	$	白色	用户输入的命令
+system	[系统]	灰色 #9E9E9E	扫描进度、文件操作
+ai	[AI]	蓝色 #4FC3F7	AI 分析结论
+thinking	[思考]	紫色 #AB47BC	AI 的推理过程（流式）
+diff	[Diff]	黄色/绿色	代码变更展示
+error	[错误]	红色 #EF5350	异常信息
+success	[成功]	绿色 #66BB6A	修复完成、验证通过
+三、本地代理（DocForge Agent）设计
+3.1 Agent 架构
+plain
+┌─────────────────────────────────────────┐
+│           DocForge Agent (Node.js)       │
+│  ┌─────────────┐  ┌───────────────────┐ │
+│  │  WS Server  │  │   Command Router    │ │
+│  │  (port 9618)│  │                   │ │
+│  └──────┬──────┘  └─────────┬─────────┘ │
+│         │                   │           │
+│  ┌──────▼──────┐  ┌────────▼────────┐ │
+│  │  Session    │  │  Arch Fix Engine  │ │
+│  │  Manager    │  │  ├─ Prompt Asm    │ │
+│  └─────────────┘  │  ├─ Kimi Runner   │ │
+│                   │  ├─ Diff Applier   │ │
+│  ┌─────────────┐  │  └─ Git Commit    │ │
+│  │  Scanner    │  └───────────────────┘ │
+│  │  (独立进程)  │                          │
+│  └─────────────┘                          │
+└─────────────────────────────────────────┘
+3.2 扫描器模块
+TypeScript
+// 扫描器通过调用本地代码分析工具或 AST 解析
+interface ScanResult {
+  issues: ArchIssue[];
+  summary: {
+    critical: number;
+    warning: number;
+    info: number;
+  };
+}
+
+// 扫描规则配置
+const RULES = [
+  {
+    id: 'circular-dep',
+    name: '循环依赖检测',
+    severity: 'critical',
+    checker: async (projectPath: string) => {
+      // 使用 madge 或自定义 AST 分析
+      const cycles = await detectCircularDeps(projectPath);
+      return cycles.map(c => ({
+        type: 'circular_dependency',
+        title: `循环依赖: ${c.from} ↔ ${c.to}`,
+        location: c.from,
+        affectedFiles: [c.from, c.to]
+      }));
+    }
+  },
+  {
+    id: 'god-function',
+    name: '超大函数检测',
+    severity: 'warning',
+    checker: async (projectPath: string) => {
+      // 使用 jscodeshift / tree-sitter 分析
+      return detectLargeFunctions(projectPath, threshold: 100);
+    }
+  }
+];
+3.3 Prompt 组装器（核心）
+TypeScript
+class PromptAssembler {
+  assembleArchFixPrompt(
+    issue: ArchIssue,
+    projectContext: ProjectContext,
+    userHint: string
+  ): string {
+    const sections = [
+      this.buildSystemRole(),
+      this.buildProjectContext(projectContext),
+      this.buildIssueContext(issue),
+      this.buildCodeContext(issue),      // 读取相关文件内容
+      this.buildUserHint(userHint),
+      this.buildExecutionInstruction(issue)
+    ];
+    
+    return sections.filter(Boolean).join('\n\n');
+  }
+  
+  private buildSystemRole(): string {
+    return `你是一位资深软件架构师，正在通过终端协助开发者进行架构治理。
+你的任务是根据检测到的问题，生成精确的代码修复方案。
+修复原则：
+1. 保持最小改动原则，只修复问题本身，不重构无关代码
+2. 保持接口兼容性，不破坏现有调用方
+3. 优先使用项目已有的技术栈和编码风格
+4. 生成完整的文件内容，而非片段，以便直接写入`;
+  }
+  
+  private buildProjectContext(ctx: ProjectContext): string {
+    return `【项目上下文】
+- 项目名称: ${ctx.name}
+- 技术栈: ${ctx.techStack.join(', ')}
+- 语言: ${ctx.language}
+- 框架: ${ctx.framework}
+- 目录结构:
+${ctx.directoryTree}`;
+  }
+  
+  private buildIssueContext(issue: ArchIssue): string {
+    return `【检测到的架构问题】
+- 问题ID: ${issue.id}
+- 类型: ${issue.type}
+- 严重程度: ${issue.severity}
+- 位置: ${issue.location}
+- 描述: ${issue.description}
+- 影响文件: ${issue.affectedFiles.join(', ')}`;
+  }
+  
+  private buildCodeContext(issue: ArchIssue): string {
+    // 读取相关文件内容，截断到 Token 限制内
+    const files = issue.affectedFiles.map(path => {
+      const content = readFileSync(path, 'utf-8');
+      return `--- ${path} ---\n${content}`;
+    }).join('\n\n');
+    
+    return `【当前代码】\n${files}`;
+  }
+  
+  private buildUserHint(hint: string): string | null {
+    if (!hint || !hint.trim()) return null;
+    return `【用户补充要求】\n${hint}`;
+  }
+  
+  private buildExecutionInstruction(issue: ArchIssue): string {
+    return `【执行指令】
+请针对上述"${issue.title}"问题，生成修复后的完整代码文件。
+输出格式要求：
+1. 先给出 根因分析（1-2句话）
+2. 给出 修复策略说明
+3. 对每个修改的文件，使用如下格式输出：
+   === FILE: {文件路径} ===
+   ```{语言}
+   {完整文件内容}
+最后给出 验证建议（如何确认修复成功）
+注意：只输出需要修改的文件，未修改的文件不要输出。`;
+}
+}
+plain
+
+### 3.4 Kimi CLI 执行器
+
+```typescript
+class KimiRunner {
+  private process: ChildProcess | null = null;
+  
+  async execute(
+    prompt: string,
+    onData: (chunk: string) => void,
+    onError: (err: string) => void,
+    onClose: (code: number) => void
+  ): Promise<void> {
+    // 启动 Kimi CLI 的 chat 模式
+    // 假设 kimi 支持非交互式执行：kimi chat --no-interactive
+    this.process = spawn('kimi', ['chat', '--stream'], {
+      cwd: process.cwd(),
+      shell: true,
+      env: {
+        ...process.env,
+        KIMI_API_KEY: process.env.KIMI_API_KEY
+      }
+    });
+    
+    // 流式回传 stdout
+    this.process.stdout.on('data', (chunk) => {
+      onData(chunk.toString());
+    });
+    
+    this.process.stderr.on('data', (chunk) => {
+      onError(chunk.toString());
+    });
+    
+    this.process.on('close', (code) => {
+      onClose(code || 0);
+    });
+    
+    // 通过 stdin 写入 Prompt
+    // 使用特殊分隔符标记输入结束
+    this.process.stdin.write(prompt);
+    this.process.stdin.end();  // 结束输入，触发 AI 处理
+  }
+  
+  kill(): void {
+    if (this.process) {
+      this.process.kill('SIGTERM');
+    }
+  }
+}
+3.5 代码变更应用器
+AI 输出格式约定为 === FILE: path === 包裹的代码块，Agent 解析后自动写入文件：
+TypeScript
+class DiffApplier {
+  async applyFromAiOutput(output: string): Promise<<AppliedChange[]> {
+    const changes: AppliedChange[] = [];
+    
+    // 正则匹配文件块
+    const fileRegex = /===\s*FILE:\s*(.+?)\s*===\s*```[\w]*\n([\s\S]*?)```/g;
+    let match;
+    
+    while ((match = fileRegex.exec(output)) !== null) {
+      const filePath = match[1].trim();
+      const newContent = match[2];
+      
+      // 备份原文件
+      await this.backup(filePath);
+      
+      // 写入新内容
+      await writeFile(filePath, newContent, 'utf-8');
+      
+      changes.push({
+        filePath,
+        type: 'modified',
+        originalContent: this.backups[filePath],
+        newContent
+      });
+    }
+    
+    return changes;
+  }
+}
+四、WebSocket 通信协议
+4.1 消息类型定义
+TypeScript
+// ===== 客户端 → Agent =====
+
+type ClientMessage = 
+  | ScanRequest
+  | FixRequest
+  | AbortRequest
+  | Heartbeat;
+
+interface ScanRequest {
+  type: 'scan';
+  payload: {
+    projectPath: string;
+    rules: string[];        // 指定扫描规则ID，空则全部
+  };
+}
+
+interface FixRequest {
+  type: 'fix';
+  payload: {
+    issueId: string;
+    issue: ArchIssue;       // 完整问题信息
+    userHint: string;       // 用户补充提示词
+    projectPath: string;
+    autoApply: boolean;     // 是否自动应用变更（高危需确认）
+  };
+}
+
+interface AbortRequest {
+  type: 'abort';
+  payload: {
+    taskId: string;
+  };
+}
+
+interface Heartbeat {
+  type: 'ping';
+}
+
+// ===== Agent → 客户端 =====
+
+type AgentMessage = 
+  | ScanProgress
+  | ScanResult
+  | FixThinking
+  | FixOutput
+  | FixDiff
+  | FixApplied
+  | FixVerified
+  | SystemError;
+
+interface ScanProgress {
+  type: 'scan.progress';
+  payload: {
+    current: number;
+    total: number;
+    ruleName: string;
+    fileBeingScanned: string;
+  };
+}
+
+interface ScanResult {
+  type: 'scan.result';
+  payload: {
+    issues: ArchIssue[];
+    summary: { critical: number; warning: number; info: number };
+  };
+}
+
+interface FixThinking {
+  type: 'fix.thinking';
+  payload: {
+    taskId: string;
+    content: string;        // AI 的推理过程（流式）
+  };
+}
+
+interface FixOutput {
+  type: 'fix.output';
+  payload: {
+    taskId: string;
+    content: string;         // AI 的完整输出片段
+  };
+}
+
+interface FixDiff {
+  type: 'fix.diff';
+  payload: {
+    taskId: string;
+    changes: Array<<{
+      filePath: string;
+      added: number;
+      removed: number;
+      diffText: string;
+    }>;
+  };
+}
+
+interface FixApplied {
+  type: 'fix.applied';
+  payload: {
+    taskId: string;
+    changes: AppliedChange[];
+    gitBranch?: string;
+  };
+}
+
+interface FixVerified {
+  type: 'fix.verified';
+  payload: {
+    taskId: string;
+    buildResult: 'success' | 'failed';
+    testResult?: 'success' | 'failed' | 'skipped';
+    logs: string;
+  };
+}
+
+interface SystemError {
+  type: 'error';
+  payload: {
+    code: string;
+    message: string;
+    details?: string;
+  };
+}
+4.2 完整交互时序
+Mermaid
+代码
+预览
+sequenceDiagram
+    participant U as 用户
+    participant F as 前端页面
+    participant D as 修复对话框
+    participant A as Agent
+    participant K as Kimi CLI
+    participant G as Git/文件系统
+
+    U->>F: 点击"扫描架构"
+    F->>A: WS: {type:'scan', payload:{projectPath}}
+    
+    loop 扫描过程
+        A->>F: WS: {type:'scan.progress', ...}
+        F->>F: 更新进度条
+    end
+    
+    A->>F: WS: {type:'scan.result', issues:[...]}
+    F->>F: 渲染问题列表
+    
+    U->>F: 点击问题1 [修复]
+    F->>D: 打开修复确认对话框
+    D->>D: 显示问题详情 + AI预分析
+    U->>D: 输入补充提示词："不要改动接口签名"
+    U->>D: 点击 [确定执行修复]
+    D->>F: 关闭对话框，传递 userHint
+    F->>F: 终端显示：$ kimi arch-fix --issue=xxx
+    
+    F->>A: WS: {type:'fix', payload:{issue, userHint, ...}}
+    A->>A: PromptAssembler 组装完整 Prompt
+    A->>K: spawn('kimi chat --stream')
+    A->>K: stdin.write(prompt)
+    
+    loop Kimi 流式输出
+        K->>A: stdout chunk (思考过程)
+        A->>F: WS: {type:'fix.thinking', content: chunk}
+        F->>F: 终端渲染紫色 [思考] 消息
+    end
+    
+    K->>A: stdout 完整修复方案
+    A->>A: 解析 === FILE: xxx === 代码块
+    A->>F: WS: {type:'fix.diff', changes: [...]}
+    F->>F: 终端渲染 Diff 卡片（绿色+/红色-）
+    
+    A->>G: 备份并写入文件
+    A->>G: git checkout -b fix/arch-xxx
+    A->>G: git commit -m "fix: 治理循环依赖"
+    
+    A->>F: WS: {type:'fix.applied', changes: [...]}
+    F->>F: 终端显示 [成功] 已应用变更
+    
+    A->>A: 执行 npm run build / test
+    A->>F: WS: {type:'fix.verified', buildResult:'success'}
+    F->>F: 终端显示 [成功] 构建验证通过
+五、Prompt 工程（组装逻辑详解）
+5.1 组装流程图
+plain
+用户点击修复
+    │
+    ▼
+┌─────────────────┐
+│ 1. 系统角色注入  │  "你是一位资深架构师..."
+└────────┬────────┘
+         │
+    ┌────▼────┐
+    │ 2. 项目上下文 │  技术栈、目录结构、编码规范
+    └────┬────┘
+         │
+    ┌────▼────┐
+    │ 3. 问题上下文 │  问题类型、位置、描述、影响面
+    └────┬────┘
+         │
+    ┌────▼────┐
+    │ 4. 代码上下文 │  读取相关文件完整内容（截断）
+    └────┬────┘
+         │
+    ┌────▼────┐
+    │ 5. 用户补充   │  对话框输入的提示词（可选）
+    └────┬────┘
+         │
+    ┌────▼────┐
+    │ 6. 执行指令   │  输出格式、约束、验证要求
+    └────┬────┘
+         │
+         ▼
+    完整 Prompt → Kimi CLI stdin
+5.2 实际 Prompt 示例
+输入信息：
+问题：循环依赖 utils ↔ helper
+位置：src/utils/helper.ts, src/utils/index.ts
+用户补充：不要改动接口签名，优先使用类型别名
+组装后的 Prompt：
+Markdown
+复制
+代码
+预览
+你是一位资深软件架构师，正在通过终端协助开发者进行架构治理。
+你的任务是根据检测到的问题，生成精确的代码修复方案。
+修复原则：
+1. 保持最小改动原则，只修复问题本身，不重构无关代码
+2. 保持接口兼容性，不破坏现有调用方
+3. 优先使用项目已有的技术栈和编码风格
+4. 生成完整的文件内容，而非片段，以便直接写入
+
+【项目上下文】
+- 项目名称: reelforge-web
+- 技术栈: TypeScript, Vue3, Vite, Pinia
+- 语言: TypeScript
+- 框架: Vue3
+- 目录结构:
+src/
+  utils/
+    helper.ts
+    index.ts
+    format.ts
+  components/
+  stores/
+
+【检测到的架构问题】
+- 问题ID: ARCH-20240613-001
+- 类型: circular_dependency
+- 严重程度: critical
+- 位置: src/utils/helper.ts:12
+- 描述: helper.ts 引用了 utils/index，而 utils/index 又反向引用了 helper.ts
+- 影响文件: src/utils/helper.ts, src/utils/index.ts
+
+【当前代码】
+--- src/utils/helper.ts ---
+import { formatDate } from './index';
+export function helperA() { ... }
+
+--- src/utils/index.ts ---
+import { helperA } from './helper';
+export { formatDate, helperA };
+
+【用户补充要求】
+不要改动接口签名，优先使用类型别名
+
+【执行指令】
+请针对上述"循环依赖"问题，生成修复后的完整代码文件。
+输出格式要求：
+1. 先给出 根因分析（1-2句话）
+2. 给出 修复策略说明
+3. 对每个修改的文件，使用如下格式输出：
+   === FILE: {文件路径} ===
+   ```typescript
+   {完整文件内容}
+最后给出 验证建议（如何确认修复成功）
+注意：只输出需要修改的文件，未修改的文件不要输出。
+plain
+
+---
+
+## 六、数据模型
+
+### 6.1 架构问题记录
+
+```sql
+CREATE TABLE arch_issues (
+    id VARCHAR(32) PRIMARY KEY,            -- ARCH-{YYYYMMDD}-{SEQ}
+    project_id UUID NOT NULL,
+    
+    -- 检测信息
+    issue_type VARCHAR(50) NOT NULL,       -- circular_dependency/god_function/deprecated_api
+    severity VARCHAR(10) NOT NULL,         -- critical/warning/info
+    rule_id VARCHAR(100),                  -- 触发规则
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    location VARCHAR(500),                 -- 文件路径:行号
+    affected_files TEXT[],                 -- 影响文件列表
+    
+    -- AI 修复信息
+    root_cause TEXT,                       -- 根因分析
+    fix_strategy TEXT,                     -- 修复策略
+    fix_diff TEXT,                         -- 最终应用的 Diff
+    user_hint TEXT,                        -- 用户补充提示词
+    
+    -- 执行状态
+    status VARCHAR(20) DEFAULT 'detected', -- detected/analyzing/fixed/verified/failed/ignored
+    executed_at TIMESTAMPTZ,
+    executed_by VARCHAR(20),             -- ai/manual
+    
+    -- Git 信息
+    git_branch VARCHAR(100),
+    git_commit VARCHAR(40),
+    
+    -- 验证结果
+    build_status VARCHAR(10),            -- success/failed
+    test_status VARCHAR(10),             -- success/failed/skipped
+    
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+6.2 CLI 会话记录
+sql
+CREATE TABLE cli_sessions (
+    id VARCHAR(64) PRIMARY KEY,
+    project_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    mode VARCHAR(20) NOT NULL,           -- arch/bug/chat
+    agent_version VARCHAR(20),           -- 本地Agent版本
+    
+    created_at TIMESTAMPTZ DEFAULT now(),
+    closed_at TIMESTAMPTZ
+);
+
+CREATE TABLE cli_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id VARCHAR(64) REFERENCES cli_sessions(id),
+    
+    message_type VARCHAR(20) NOT NULL,   -- user/system/ai/thinking/diff/error/success
+    content TEXT NOT NULL,
+    metadata JSONB,                    -- taskId, issueId, filePath 等
+    
+    timestamp TIMESTAMPTZ DEFAULT now()
+);
+七、异常处理与边界情况
+表格
+场景	处理策略
+Agent 未启动	前端检测 ws://localhost:9618 连通性，未连接时显示"请启动本地代理"引导页，提供下载链接
+Kimi CLI 未安装	Agent 启动时自检，发现 kimi 命令不存在时，通过 WS 推送 error 消息，前端提示安装
+Prompt 过长	Agent 截断代码上下文（保留问题相关文件，其他文件只保留接口定义），超过 8K Token 时告警
+AI 输出格式错误	解析 === FILE: 失败时，降级为"手动修复模式"：将 AI 输出完整展示在终端，由用户手动复制粘贴
+修复后构建失败	自动回滚到 Git 分支修复前状态，终端显示 [错误] 修复导致构建失败，已自动回滚
+用户中途取消	Agent 监听 abort 消息，终止 Kimi CLI 进程（SIGTERM），清理临时文件
+多文件并发修复	同一问题涉及多文件时，Agent 串行写入，每写一个文件推送一次 fix.diff 消息
+八、实现优先级（Phase 拆分）
+表格
+Phase	目标	核心交付
+Phase 1	基础连通	Agent 启动、WS 连接、终端显示、简单命令回显
+Phase 2	扫描能力	集成扫描器、问题列表渲染、详情查看
+Phase 3	修复闭环	确认对话框、Prompt 组装、Kimi CLI 调用、流式回显
+Phase 4	自动应用	Diff 解析、文件写入、Git 分支、自动验证、回滚机制
+Phase 5	智能化	历史修复推荐、批量修复、架构健康度评分

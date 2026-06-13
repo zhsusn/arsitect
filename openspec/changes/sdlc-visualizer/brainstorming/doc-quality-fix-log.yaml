@@ -1,0 +1,134 @@
+doc_quality_gate:
+  version: "1.0.0"
+  run_id: "sdlc-visualizer-20260531-1454"
+  timestamp: "2026-05-31T14:54:00+08:00"
+  documents_checked:
+    - path: "openspec/changes/sdlc-visualizer/brainstorming/ai-architecture-decision.md"
+      status: "auto_fixed"
+      issues_found: 3
+    - path: "openspec/changes/sdlc-visualizer/brainstorming/brainstorming-log.md"
+      status: "auto_fixed"
+      issues_found: 2
+    - path: "openspec/changes/sdlc-visualizer/brainstorming/requirement-draft.md"
+      status: "auto_fixed"
+      issues_found: 2
+    - path: "openspec/changes/sdlc-visualizer/brainstorming/research-report.md"
+      status: "auto_fixed"
+      issues_found: 1
+    - path: "openspec/changes/sdlc-visualizer/brainstorming/review-prep.md"
+      status: "passed"
+      issues_found: 0
+
+  auto_fixes:
+    - id: "FIX-001"
+      doc: "ai-architecture-decision.md"
+      layer: "C2-数据完整性"
+      severity: "blocking"
+      type: "calculation_correction"
+      location: "模块级原语映射表格 > Skill 执行调度"
+      description: "加权总分计算错误：2.45 -> 2.40"
+      before: "2.45"
+      after: "2.40"
+      formula_verified: "3*0.25 + 2*0.20 + 2*0.15 + 3*0.15 + 2*0.10 + 2*0.10 + 2*0.05 = 2.40"
+      impact_on_decision: "none"
+
+    - id: "FIX-002"
+      doc: "ai-architecture-decision.md"
+      layer: "C2-数据完整性"
+      severity: "blocking"
+      type: "calculation_correction"
+      location: "模块级原语映射表格 > 失败模式自动分类"
+      description: "加权总分计算错误：2.85 -> 2.75"
+      before: "2.85"
+      after: "2.75"
+      formula_verified: "3*0.25 + 3*0.20 + 3*0.15 + 2*0.15 + 2*0.10 + 3*0.10 + 3*0.05 = 2.75"
+      impact_on_decision: "none"
+
+    - id: "FIX-003"
+      doc: "ai-architecture-decision.md"
+      layer: "P4-版本一致性"
+      severity: "tip"
+      type: "timestamp_correction"
+      location: "文档头 > 生成时间"
+      description: "时间戳为未来时间，已修正为当前时间"
+      before: "2026-05-31 15:15"
+      after: "2026-05-31 14:54"
+
+    - id: "FIX-004"
+      doc: "brainstorming-log.md"
+      layer: "P4-版本一致性"
+      severity: "tip"
+      type: "timestamp_correction"
+      location: "文档头 > 结束时间"
+      description: "时间戳为未来时间，已修正为当前时间"
+      before: "2026-05-31 15:10"
+      after: "2026-05-31 14:54"
+
+    - id: "FIX-005"
+      doc: "brainstorming-log.md"
+      layer: "C3-引用完整性"
+      severity: "warning"
+      type: "content_reorganization"
+      location: "Round 2 > 用户回答 / Skill 分析"
+      description: "将混入用户回答栏的 Skill 分析注释移至独立补充说明栏"
+      before: "用户回答栏包含分析性回溯注释"
+      after: "用户回答栏仅保留原话；注释移至 Skill 补充说明栏"
+
+    - id: "FIX-006"
+      doc: "requirement-draft.md"
+      layer: "P4-版本一致性"
+      severity: "tip"
+      type: "timestamp_correction"
+      location: "文档头 > 生成时间"
+      description: "时间戳为未来时间，已修正为当前时间"
+      before: "2026-05-31 15:10"
+      after: "2026-05-31 14:54"
+
+    - id: "FIX-007"
+      doc: "requirement-draft.md"
+      layer: "I1-数值一致性"
+      severity: "warning"
+      type: "terminology_alignment"
+      location: "技术线索 > 性能预期"
+      description: "将固定数量示例替换为动态描述，消除与数据口径声明的隐性冲突"
+      before: "25 个节点拓扑图交互帧率 >= 60fps"
+      after: "典型节点数拓扑图交互帧率 >= 60fps"
+
+    - id: "FIX-008"
+      doc: "research-report.md"
+      layer: "P4-版本一致性"
+      severity: "tip"
+      type: "timestamp_correction"
+      location: "文档头 > 生成时间"
+      description: "时间戳为未来时间，已修正为当前时间"
+      before: "2026-05-31 15:10"
+      after: "2026-05-31 14:54"
+
+  manual_fixes_required:
+    - id: "MAN-001"
+      doc: "requirement-draft.md / brainstorming-log.md / research-report.md"
+      layer: "I2-术语一致性"
+      severity: "warning"
+      type: "terminology_clarification"
+      location: "跨文档"
+      description: '"skill-arsenal" 与 "Arsitect" 名称混用，需确认是否为同一实体并在 glossary 中统一说明'
+      suggested_action: "在 requirement-draft.md 关键决策表或术语表中增加注释行，明确两者对应关系"
+      assignee: "PM"
+
+  pending_items:
+    - id: "PEN-001"
+      description: "人工抽查 brainstorming-log.md Round 2 内容重组后的准确性"
+      blocker: false
+      due_phase: "prd-generation"
+
+    - id: "PEN-002"
+      description: "人工复核 ai-architecture-decision.md 另外两行评分（Gate 自检摘要 2.25、产物质量预检 2.00）的计算公式"
+      blocker: false
+      due_phase: "prd-generation"
+
+  summary:
+    blocking_cleared: true
+    total_issues: 9
+    auto_fixed: 8
+    manual_required: 1
+    recommendation: "阻断级问题已清零，可正常进入 prd-generation。建议在 PRD 术语表章节处理 MAN-001。"

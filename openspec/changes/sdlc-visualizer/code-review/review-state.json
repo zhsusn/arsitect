@@ -1,0 +1,25 @@
+{
+  "task_id": "task-integration-test-suite",
+  "status": "DONE",
+  "current_phase": null,
+  "timestamp": "2026-06-04T09:15:00+08:00",
+  "completed_phases": ["SIZING", "REQUESTING", "REVIEWING_P1", "REVIEWING_P2", "REVIEWING_P3", "SUMMARY", "RECEIVING", "FIXING", "VERIFYING"],
+  "sizing": {
+    "total_lines": 747,
+    "assessment": "Acceptable",
+    "modules": 5
+  },
+  "issues": {
+    "blocking": 0,
+    "important": 4,
+    "nit": 3,
+    "suggestion": 2,
+    "praise": 4
+  },
+  "fix_summary": {
+    "fixed": ["I1", "I2", "I3", "I4", "N2"],
+    "deferred": ["N1", "N3", "S1", "S2"],
+    "verification_result": "PASSED",
+    "tests_after_fix": "22 passed, 2 skipped"
+  }
+}

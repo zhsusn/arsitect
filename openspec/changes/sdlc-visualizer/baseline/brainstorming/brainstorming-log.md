@@ -1,0 +1,360 @@
+---
+doc_type: CHANGELOG
+fragment_id: changelog-sdlc-visualizer-293
+title: Brainstorming Log - sdlc-visualizer
+version: '1.0'
+version_type: BASELINE
+author: agent-migration
+tags:
+- sdlc-visualizer
+status: DRAFT
+iteration: sdlc-visualizer
+dependencies:
+- fragment_id: arch-sdlc-visualizer-001
+  version: '1.0'
+- fragment_id: prd-sdlc-visualizer-000
+  version: 2.0-patch2
+---
+
+# Brainstorming Log - sdlc-visualizer
+
+---
+
+## 第一轮：架构方向与边界范围（6 个问题） {#sec-u7b2cyiu8f6ejiagouu65b9xiangyuu8}
+### Q1: GTPlanner V2 升级内容是否纳入本次范围？ {#sec-q1-gtplanner-v2-shengjiu5185rong}
+**背景**：历史 PRD v1.4 引入了 GTPlanner V2（含 C4 InterFlow CLI、OpenHands Docker、复杂度路由面板、架构漂移检测），但当前 Arsitect 仓库 AGENTS.md 中并未提及这些组件。
+
+**选项**：
+- A) 以当前 Arsitect 41 个 Skill 规范为唯一基准，本次先不做 GTPlanner V2 相关模块
+- B) 仍按历史文档 v1.4 的完整蓝图推进，将 GTPlanner V2 作为核心架构底座
+- C) 其他
+
+**用户回答**：B
+
+**Skill 分析**：用户明确选择沿用 v1.4 蓝图，这意味着 C4 架构穿透、复杂度路由、架构漂移检测必须纳入核心架构。但需注意：历史文档中 GTPlanner V2 原本依赖外部 Docker，而当前 Arsitect 仓库无此组件，后续需澄清内置还是外接。
+
+---
+
+### Q2: Skill 节点数量与动态导入策略 {#sec-q2-skill-u8282u70b9shuliangyudon}
+**背景**：历史文档存在口径冲突——UI 规格书预设 25 个节点，AGENTS.md 实际 41 个，历史需求草案决定"以用户导入为准"。
+
+**选项**：
+- A) 画布默认展示 41 个全量 Skill 的完整拓扑
+- B) 仅展示 SDLC 核心链路（约 25 个），其余作为扩展插件
+- C) 完全动态化，零预置节点，由用户导入的 SKILL.md 决定画布内容
+- D) 其他
+
+**用户回答**：C
+
+**Skill 分析**：用户选择完全动态化，这是一个强约束。意味着平台不能有任何写死的节点，所有画布内容必须基于 SKILL.md Frontmatter 实时渲染。这与 UI 规格书 V2.0 的"25 个预设节点"直接冲突，需要以最新逻辑覆盖历史文档。
+
+---
+
+### Q3: MVP 平台适配与部署形态 {#sec-q3-mvp-pingu53f0shipeiyubushuu5f}
+**背景**：历史需求草案锁定本地单机 + Kimi CLI 唯一平台 + SQLite。
+
+**选项**：
+- A) 维持原锁定值，MVP 只支持 Kimi CLI
+- B) 设计层预留多平台 Adapter 接口，但 MVP 仅实现 Kimi CLI
+- C) 其他
+
+**用户回答**：B
+
+**Skill 分析**：用户希望在 MVP 中预留扩展性。Adapter 接口抽象需要在概要设计阶段完成，但不会增加太多初期工作量（仅一个 Interface + 一个实现类）。
+
+---
+
+### Q4: 与 Arsitect 仓库的单向只读还是双向同步？ {#sec-q4-yu-arsitect-u4ed3kudedanxiang}
+**背景**：历史文档中这是一个"待确认项"。
+
+**选项**：
+- A) 平台只读 Arsitect 仓库
+- B) 平台支持双向同步（平台编辑产物后写回 openspec/ 目录）
+- C) 其他
+
+**用户回答**：B
+
+**Skill 分析**：双向同步是一个关键架构决策，需要在数据层设计冲突解决策略（乐观锁/时间戳/合并）。
+
+---
+
+### Q5: Gate 审批模式 {#sec-q5-gate-shenpimou5f0f}
+**背景**：历史需求草案将 Gate 定义为"超级个体自检确认"。
+
+**选项**：
+- A) 维持单人快速确认模式，UI 上取消会签概念
+- B) 设计层为多人协作预留审批流扩展，MVP 仅实现单人版
+- C) 其他
+
+**用户回答**：A
+
+**Skill 分析**：用户明确维持极简单人模式，不需要为 MVP 引入多人协作复杂度。UI 设计应强调"总结+确认"而非"审批流"。
+
+---
+
+### Q6: 产物文件存储策略 {#sec-q6-chanu7269wenjiancunu50a8ceu75}
+**背景**：历史文档中该问题状态为"待定"，倾向方案是元数据存 SQLite、产物文件存本地文件系统。
+
+**选项**：
+- A) 按此倾向方案锁定
+- B) 产物全部存入 SQLite（BLOB）
+- C) 其他
+
+**用户回答**：A
+
+**Skill 分析**：数据层决策锁定，符合本地单机、零运维的定位。产物存文件系统也便于与现有 Arsitect 生态兼容。
+
+---
+
+## 第二轮：集成形态与 DAG 来源（3 个问题） {#sec-u7b2ceru8f6ejiu6210u5f62taiyu-da}
+### Q7: GTPlanner V2 的集成形态 {#sec-q7-gtplanner-v2-dejiu6210u5f62ta}
+**背景**：基于 Q1 选择 B（GTPlanner V2 纳入），需明确是外接已有系统还是内置实现。
+
+**选项**：
+- A) 外部已有系统接入（要求用户本地预装 Docker）
+- B) 平台内置重新实现（不依赖外部 Docker）
+- C) 混合模式
+- D) 其他
+
+**用户回答**：B
+
+**Skill 分析**：重大架构转向。历史 PRD v1.4 假设 Docker 作为外部依赖（ASM-002/ASM-004），用户明确改为内置实现。这意味着 C4 DSL 解析、复杂度路由、漂移检测都需在平台内部重写。风险：工作量可能超预期，需在风险点中重点标注并准备降级方案。
+
+---
+
+### Q8: Skill DAG 依赖关系的来源 {#sec-q8-skill-dag-yiu8d56guanxidelaiu}
+**背景**：41 个 Skill 之间的执行先后顺序如何获取。
+
+**选项**：
+- A) 内置标准模板（基于 AGENTS.md 12 阶段链路预定义 DAG）
+- B) 自动解析 SKILL.md Frontmatter/正文提取上下游引用
+- C) 用户手动连线
+- D) skill-flow.yaml 显式定义
+
+**用户回答**：B（手动可调整）
+
+**Skill 分析**：用户选择自动解析为主、手动调整为辅的混合模式。这要求 SKILL.md 中的上下游引用具有可解析的文本模式（如"下游衔接：prd-generation"）。需评估解析准确率，并在假设登记册中登记 A-007（解析准确率 >= 80%）。
+
+---
+
+### Q9: 双向同步的冲突解决策略 {#sec-q9-u53ccxiangtongbudeu51b2u7a81j}
+**背景**：基于 Q4 选择 B（双向同步），需明确冲突解决策略。
+
+**选项**：
+- A) 文件系统优先（外部修改覆盖平台未保存内容）
+- B) 平台优先
+- C) 自动合并
+- D) 乐观锁
+
+**用户回答**：A
+
+**Skill 分析**：用户选择符合开发者习惯（VS Code 优先）。平台需实现文件系统事件监听（watchdog）和哈希校验，外部变更时弹窗提示刷新。风险：用户可能在平台内编辑时丢失内容，需准备 Plan B（乐观锁）。
+
+---
+
+## 第三轮：架构耦合点确认（1 个问题） {#sec-u7b2csanu8f6ejiagouu8026u5408u70}
+### Q10: 复杂度路由与动态 Skill 集的协同机制 {#sec-q10-fuu6742duluyouyudongtai-skil}
+**背景**：Q1 选择 GTPlanner V2 内置，Q2 选择完全动态化（零预置节点）。两者存在张力：复杂度路由需要知道"哪些 Skill 属于哪个阶段"，但画布节点完全由用户导入决定。
+
+**选项**：
+- A) 内置阶段映射表 + 动态条件
+- B) 仅视觉建议，不修改 DAG
+- C) 编排层运行时动态裁剪
+- D) 其他
+
+**用户回答**：D —— 管理员可预制不同规模模板，按模板类型匹配最新模板即可。模板中定义每个阶段绑定的 Skill 等信息。
+
+**Skill 分析**：用户提出了自定义方案，巧妙解决了动态导入与标准化路由之间的张力。模板成为"期望 Skill 清单"，与实际导入的 Skill 做交集匹配。这意味着平台需要：
+1. 内置 Simple/Standard/Complex 三套模板（管理员预制）
+2. 模板定义阶段与 Skill 的绑定关系
+3. 用户选择模板后，平台按模板推荐 Skill，但画布仍只渲染用户实际导入的 Skill
+4. 用户可随时切换模板或自定义模板
+
+此方案既保留了完全动态化的灵活性，又提供了标准化的起点。需要在模块初分中新增"模板引擎"和"模板中心"模块。
+
+---
+
+## 意图漂移检测 {#sec-yituu6f02yijiance}
+| 轮次 | 检测内容 | 结果 |
+|------|----------|------|
+| 第一轮 | 原始变更描述方向（SDLC 可视化驾驶舱）vs 用户回答 | 一致 |
+| 第二轮 | Q7 选择 B（内置实现）是否偏离原始方向 | 一致，属于架构深化而非方向偏离 |
+| 第三轮 | Q10 自定义方案是否偏离"完全动态化" | 无偏离，模板是推荐层而非强制层，动态导入仍是基础 |
+
+**结论**：三轮回答间无逻辑冲突，意图未漂移。
+
+---
+
+## 回答间矛盾识别 {#sec-huiu7b54jianu77dbu76feshiu522b}
+| 潜在矛盾点 | 分析 | 结论 |
+|------------|------|------|
+| Q2（完全动态化）vs Q10（模板预制绑定） | 动态化要求零预置，模板要求预置阶段-Skill 绑定 | 已消解：模板是"推荐映射"，画布节点仍由实际导入决定；模板不强制用户导入特定 Skill |
+| Q7（GTPlanner 内置）vs 历史文档假设 ASM-002/ASM-004 | 历史文档假设 Docker 外部依赖；用户改为内置 | 已消解：用户在 Q7 明确推翻历史假设，已在数据口径声明中标注"历史假设被覆盖" |
+| Q9（文件系统优先）vs 双向同步 | 双向同步意味着平台可写回，文件系统优先意味着外部覆盖平台 | 已消解：两种策略适用于不同场景——日常编辑以文件系统为准，平台保存前检测外部变更并提示 |
+
+---
+
+## 澄清度演进 {#sec-u6f84u6e05duu6f14jin}
+| 轮次 | 澄清度评分 | 依据 |
+|------|------------|------|
+| 第一轮后 | 0.72 | 架构方向、Skill 数量、平台适配、同步策略、Gate 模式、存储策略已明确；但 GTPlanner 实现方式、DAG 来源、冲突策略未明确 |
+| 第二轮后 | 0.85 | GTPlanner 内置、DAG 自动解析+手动调整、文件系统优先已明确；但复杂度路由与动态 Skill 的耦合未明确 |
+| 第三轮后 | 0.92 | 模板驱动方案解决了核心耦合点；所有关键决策已锁定；待确认项已识别并分配责任人建议 |
+
+**最终判定**：澄清度 >= 0.8，满足 HARD-GATE 条件，可衔接 prd-generation。
+
+---
+
+## 附录：历史补充内容（来自 docs/ 目录） {#sec-u9644luu5386u53f2u8865u5145u5185}
+## 资料收集记录 {#sec-u8d44u6599shoujijilu}
+### 本地文档 {#sec-bendiwendang}
+- `AI_Code_v3.2.md`(@docs/AI_Code_v3.2.md)
+  摘要：AI Code 研发平台产品需求与架构设计文档 v3.3，定义了 Draft/Active 双态模型、HITL 设计、六层概念模型（Workspace/Application/Project/Module/Phase/Skill）、微服务部署架构、状态机与执行模型、RBAC 权限、RACI 矩阵、演进路线（MVP 4周/P1 2周/P2 4周/P3 4周）。技术栈：React 19 + Vite 6 + FastAPI + PostgreSQL（MVP SQLite）。
+
+- `skill-studio-ui-spec.md`(@docs/skill-studio-ui-spec.md)
+  摘要：SDLC 全过程可视化平台 UI 规格书 V2.0，定义了项目工作台、SDLC 流程画布（拓扑图/泳道/列表）、阶段详情面板、产物浏览器、审批中心（Gate Center）、历史回溯对比等核心页面的原型与交互。技术栈：React 19 + TypeScript + Zustand + Ant Design 5.x + React-Flow + Apache ECharts + FastAPI + Socket.io。
+
+- `skill-flow-yaml-schema.md`(@docs/skill-flow-yaml-schema.md)
+  摘要：Skill Flow YAML Schema V1.0，定义了声明式工作流规格（apiVersion/kind/metadata/spec）、Stage 定义（Skill 调用/Gate/并行/条件/错误处理）、DAG 构建与调度、数据流 Artifacts、Gate 审批行为、条件表达式、状态机、运行时架构（Scheduler/Executor/State Manager）、Skill Adapter 抽象（Kimi/Claude/MCP）、CLI 与 REST API、持久化 Schema。
+
+### 交叉验证 {#sec-jiaou53c9yanu8bc1}
+- [一致] 三份文档均支持 Draft/Active 双态、四道 Gate 审批、HITL Waiting 状态，与用户确认的需求范围一致。
+- [一致] 技术栈均指向 React 19 + FastAPI，与用户选型的技术约束一致。
+- [冲突] UI 规格书提到以 `skills/sdlc` 下 25 个 Skill 为节点，但 AGENTS.md 记录全仓库共 41 个 Skill。用户澄清：SDLC 覆盖应用开发全过程，与具体 Skill 数量无关，以用户实际导入的 Skill 为准。
+- [冲突] UI 规格书建议产物存储在 Git 仓库并通过 Git API 读取；用户选择：自己维护独立数据库并与 Kimi CLI 实时联动。处理状态：已确认，以用户决策为准。
+
+## 问答记录 {#sec-wenu7b54jilu}
+### Round 1 - 多维度综合 {#sec-round-1-u591aweiduu7efcu5408}
+**提问**：从用户价值、边界范围、平台定位、技术栈、数据源、AI 执行适配、演进节奏 7 个维度各提出 1 个核心问题。
+
+**用户回答**：
+1. 作为独立产品对外发布，核心用户为项目经理/Tech Lead/开发者，当前针对超级个体。
+2. MVP 范围在实现时确定，SDLC 覆盖应用开发全过程，与 Skill 数量无关；范围包含 Draft/Active 双态、四道 Gate 审批、HITL Waiting 状态。
+3. 需要内置 Skill Flow 编排引擎。
+4. 采用 React 19 + FastAPI + SQLite，先考虑本地单机，不考虑多租户。
+5. 自己维护独立数据库并与 Kimi CLI 实时联动。
+6. 先从 Kimi CLI 单一平台切入，Skill 的实际执行是调用本地 CLI。
+7. 先出可点击高保真原型验证交互，再逐步接入真实执行数据。
+
+**Skill 分析**：
+- 澄清点：产品定位（独立产品/超级个体）、技术栈锁定、执行策略（本地 CLI 调用）、部署模式（本地单机）。
+- 新发现：用户不关心固定 Skill 数量，平台需支持动态导入；Gate 审批面向单人使用场景。
+- 风险标记：超级个体的 Gate 审批体验需简化；原型阶段与真实执行的数据差异需在 P1 处理。
+
+**澄清度**：0.75
+
+### Round 2 - 细节补充 {#sec-round-2-u7ec6u8282u8865u5145}
+**提问**：
+Q8：超级个体的 Gate 审批是自己审批自己，还是支持邀请外部协作者？
+Q9：原型交付形式是前端代码原型还是设计稿原型？
+Q10：Skill 发现机制是自动扫描还是手动注册/导入？
+
+**用户回答**：
+8. 超级个体是自己审批自己，因此需要给出简短的总结，提醒用户风险点和需要补充内容，以便能快速审批。
+9. B
+10. 用户在平台内手动注册/导入 Skill 路径。
+
+**Skill 补充说明**：
+用户最初已明确"先出可点击高保真原型验证交互"，第 9 点选 B 结合上下文理解为"可运行在浏览器中的前端代码原型+Mock API"。
+
+**Skill 分析**：
+- 澄清点：Gate 审批 UX 需设计为"自检确认模式"（非传统多人审批流）；Skill 为手动导入，平台需提供注册/扫描向导；原型可交互。
+- 新发现：审批流程的核心价值从"多人会签"转变为"AI 辅助自检+用户快速确认"。
+- 风险标记：手动导入 Skill 的路径校验、Frontmatter 解析、版本兼容性需在技术设计阶段重点考虑。
+
+**澄清度**：0.88
+
+## 摘要 {#sec-zhaiyao}
+- 已澄清：产品定位（独立产品/超级个体）、核心功能边界（SDLC 全流程可视化+编排引擎）、技术栈（React 19 + FastAPI + SQLite）、部署模式（本地单机）、AI 执行方式（Kimi CLI 本地调用）、Skill 发现机制（手动导入）、Gate 审批模式（自检确认）、演进策略（原型先行）。
+- 未澄清/风险：
+  1. 产物文件（Markdown/YAML/代码）的存储策略：数据库 BLOB 还是文件系统？路径如何与 openspec 规范对齐？
+  2. 与 Kimi CLI "实时联动"的具体协议：是轮询产物目录、WebSocket 推送，还是 CLI 退出码+日志解析？
+  3. 超级个体未来扩展到小团队时的权限模型预留：当前虽不考虑多租户，但数据结构是否预留协作字段？
+- 建议：进入 prd-generation，在 05-non-functional.md 中补充 AI 架构需求（Kimi CLI 调用延迟、本地资源占用）；在 03-functional-structure.md 中预留"协作模式"扩展点。
+
+---
+
+## 附录：adaptive-architecture-engine 补充内容 {#sec-u9644luadaptivearchitectureengin}
+# Brainstorming Log - adaptive-architecture-engine
+
+## 变更描述 {#sec-biangengu63cfu8ff0}
+将 arsitect 的整体架构从「线性流水线」升级为「自适应复杂度 + 架构即代码 + 双向闭环」的立体架构，融入 C4 InterFlow、Coco Workflow、OpenHands 等开源方案的能力。
+
+## Round 1 - 首轮提问：价值与边界 {#sec-round-1-shouu8f6etiwenu4ef7u503c}
+**Q1 (用户价值)**：这次架构升级解决谁的什么问题？如果不做，代价是什么？
+
+**A1**：
+- 解决 arsitect 平台在处理不同复杂度需求时"一刀切"的问题。当前固定五阶段流水线对单字段修改和新微服务走同样流程，效率低下。
+- 解决架构设计与代码实现"两张皮"的问题。当前架构文档是静态的，无法检测代码实现是否偏离设计。
+- 不做的代价：平台扩展性差，复杂需求交付周期长，简单需求流程冗余，架构漂移无法感知，最终被更灵活的竞争方案取代。
+
+**Q2 (边界范围)**：哪些明确不在本次范围？
+
+**A2**：
+- 不在范围：替换现有 41 个 Skill 的定义内容，Skill 本身的行为规范保持不变。
+- 不在范围：重写 arsitect 的 Markdown 核心载体格式。
+- 不在范围：直接修改外部 AI 平台（Kimi/Claude/Cursor）的接口。
+- 在范围：新增编排内核、架构引擎层、执行分发层、验证层的元能力与基础设施。
+
+## Round 2 - 补充提问：竞品差异与集成依赖 {#sec-round-2-u8865u5145tiwenu7adeu54c}
+**Q3 (竞品差异)**：与调研的六个开源项目相比，arsitect 的差异化点是什么？
+
+**A3**：
+- C4 InterFlow 只做架构即代码和渲染，不做 AI 驱动的 SDLC 编排。arsitect 将 AaC 嵌入完整交付链路。
+- Coco Workflow 是 Claude Code 插件，不具备平台中立性。arsitect 提取其复杂度路由思想，自研实现。
+- OpenHands 是通用代码代理，不理解软件架构语义。arsitect 为其注入 C4 架构约束和 Context Package 语义。
+- GTPlanner 是通用规划引擎。arsitect 将其节点生命周期适配为软件架构专属语义（DomainParser、C4ModelManager）。
+- 差异化核心：唯一一个将「架构即代码 + 复杂度自适应路由 + 多执行器沙箱 + 架构漂移检测」整合为 AI 驱动 SDLC 闭环的平台。
+
+**Q4 (集成依赖)**：这些外部工具（C4 InterFlow CLI、OpenHands Docker、OpenUI Docker）的引入是否会增加部署复杂度？
+
+**A4**：
+- 采用进程隔离/服务化调用策略，避免源码级耦合。C4 InterFlow 通过 CLI/Docker 调用，OpenHands/OpenUI 通过 HTTP API 调用。
+- 部署包不膨胀，arsitect 核心保持轻量。外部服务通过 docker-compose 可选启动。
+- 降级策略：外部服务不可用时，回退到现有模式（PlantUML 在线渲染、Claude Code 本地执行、手动原型验证）。
+
+## Round 3 - 深入提问：业务规则与技术假设 {#sec-round-3-u6df1rutiwenyewuguizeyuu}
+**Q5 (业务规则)**：复杂度路由的决策是否可以人工覆盖？Gate 门控如何与自适应路由协同？
+
+**A5**：
+- 可以人工覆盖。ComplexityRouter 的推荐路径作为默认建议，PM/Tech Lead 可在路由面板手动切换。
+- 门控与路由协同：复杂度路由决定"走哪条路"，StageGateController 决定"当前阶段能否通过"。Gate 1/2.5/2/3 仍然强制人工签字，不因自适应路由而跳过。
+- Trivial 路径（单文件修改）可跳过 DomainParser 和 C4 建模，但仍需 Self-Check 和代码审查。
+
+**Q6 (数据假设)**：反向工程（从代码生成架构）的准确率预期是多少？误报如何处理？
+
+**A6**：
+- C4 InterFlow 的反向扫描基于静态代码分析，对 Java/Go/C# 准确率较高（预期 >85%），对动态语言（Python/JS）可能因反射/动态导入产生遗漏。
+- 误报处理：架构漂移报告标记为"建议 review"而非"阻断"。由 Tech Lead 在 Gate 2 评审时确认是否接受偏差。
+- MVP 阶段先支持 Java/Spring Boot 反向扫描，其他语言后续扩展。
+
+## Round 4 - 风险与对抗性提问 {#sec-round-4-fengxianyuduikangxingtiw}
+**Q7 (对抗性视角)**：这个方案最大的三个弱点是什么？
+
+**A7**：
+1. **外部依赖脆弱性**：C4 InterFlow 是 .NET CLI 工具，社区活跃度有限。若项目停滞，arsitect 的 AaC 底座失去维护。
+2. **多执行器状态一致性**：Claude Code（本地）、Aider（本地 Git）、OpenHands（沙箱）三者操作不同文件系统，Context Package 的同步和冲突合并复杂。
+3. **复杂度信号准确性**：自动判断需求复杂度需要精准的需求解析能力，早期可能频繁误判，导致简单需求走重流程或复杂需求被轻率处理。
+
+**缓解措施**：
+- 弱点1：DSL 格式采用标准 YAML，即使 C4 InterFlow 停滞，仍可被其他工具解析。同时维护 arsitect 扩展字段的独立文档。
+- 弱点2：统一以 Git 仓库为唯一状态源。Claude Code/Aider 直接操作本地仓库，OpenHands 沙箱结果通过 PR 方式合并，强制走代码审查。
+- 弱点3：路由决策阈值在首期保守设置，优先将模糊需求判定为 Standard（完整流程），积累数据后逐步放开自动路由。
+
+## 澄清度评估 {#sec-u6f84u6e05dupinggu}
+| 维度 | 覆盖情况 | 评分 |
+|------|---------|------|
+| 用户价值 | 明确（效率+质量） | 0.95 |
+| 边界范围 | 明确（6项调整+不在范围） | 0.90 |
+| 业务规则 | 路由与门控协同已澄清 | 0.85 |
+| 数据假设 | 反向工程准确率与误报处理已澄清 | 0.80 |
+| 竞品差异 | 6个项目差异化已明确 | 0.95 |
+| 集成依赖 | 部署策略与降级方案已明确 | 0.85 |
+| 数据口径验证 | 复杂度阈值、准确率指标已记录 | 0.80 |
+
+**综合澄清度：0.87**（>= 0.8，满足 HARD-GATE 条件）
+
+## 决策摘要 {#sec-juecezhaiyao}
+- **采纳方向**：全面融合六项目能力，自研编排内核与适配层，外部工具进程级隔离调用。
+- **关键创新点**：复杂度自适应路由 + C4 InterFlow AaC 底座 + 架构漂移检测闭环。
+- **实施策略**：6周渐进交付，先底座后路由再验证。

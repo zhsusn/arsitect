@@ -1,0 +1,2217 @@
+{
+  "healthCheck": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for healthCheck not found"
+    }
+  },
+  "globalSearch": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for globalSearch not found"
+    }
+  },
+  "uploadFile": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listProjects": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listProjects not found"
+    }
+  },
+  "createProject": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getProject": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getProject not found"
+    }
+  },
+  "updateProject": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "archiveProject": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "activateProject": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "cancelProject": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listAppRiskAlerts": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listAppRiskAlerts not found"
+    }
+  },
+  "listProjectRiskAlerts": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listProjectRiskAlerts not found"
+    }
+  },
+  "getTimebox": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getTimebox not found"
+    }
+  },
+  "updateTimebox": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "getStageDetail": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getStageDetail not found"
+    }
+  },
+  "listAnnotations": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listAnnotations not found"
+    }
+  },
+  "createAnnotation": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "updateAnnotation": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "deleteAnnotation": {
+    "204": null,
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404
+    }
+  },
+  "submitReview": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "triggerRegenerate": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listStageVersions": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listStageVersions not found"
+    }
+  },
+  "rollbackStageVersion": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "diffStageVersions": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for diffStageVersions not found"
+    }
+  },
+  "listGates": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listGates not found"
+    }
+  },
+  "getGate": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getGate not found"
+    }
+  },
+  "approveGate": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "rejectGate": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "retryGate": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listGateHistory": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listGateHistory not found"
+    }
+  },
+  "exportGateHistory": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for exportGateHistory not found"
+    }
+  },
+  "getArtifactTree": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArtifactTree not found"
+    }
+  },
+  "getArtifactContent": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArtifactContent not found"
+    }
+  },
+  "saveArtifactContent": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "listArtifactVersions": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listArtifactVersions not found"
+    }
+  },
+  "diffArtifactVersions": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for diffArtifactVersions not found"
+    }
+  },
+  "rollbackArtifactVersion": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getArtifactExternalStatus": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArtifactExternalStatus not found"
+    }
+  },
+  "scanSkills": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "confirmSkillImport": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listSkills": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listSkills not found"
+    }
+  },
+  "getSkill": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getSkill not found"
+    }
+  },
+  "deleteSkill": {
+    "204": null,
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404
+    }
+  },
+  "getDAG": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getDAG not found"
+    }
+  },
+  "addDAGNode": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "deleteDAGNode": {
+    "204": null,
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404
+    }
+  },
+  "addDAGEdge": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "deleteDAGEdge": {
+    "204": null,
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404
+    }
+  },
+  "saveDAG": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "undoDAG": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "redoDAG": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listDAGChangelog": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listDAGChangelog not found"
+    }
+  },
+  "createExecutionPlan": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getExecutionPlan": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getExecutionPlan not found"
+    }
+  },
+  "validateExecutionPlan": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "freezeExecutionPlan": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "executePlan": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getExecutionStatus": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getExecutionStatus not found"
+    }
+  },
+  "bypassExecution": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getBypassStatus": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getBypassStatus not found"
+    }
+  },
+  "triggerExecution": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getExecutionLogs": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getExecutionLogs not found"
+    }
+  },
+  "retryExecution": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "confirmRelease": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "subscribeExecutionSSE": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for subscribeExecutionSSE not found"
+    }
+  },
+  "listTemplates": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listTemplates not found"
+    }
+  },
+  "getTemplate": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getTemplate not found"
+    }
+  },
+  "getTemplateRecommendation": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getTemplateRecommendation not found"
+    }
+  },
+  "previewTemplateDeviation": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "confirmTemplateDeviation": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getTemplateDeviation": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getTemplateDeviation not found"
+    }
+  },
+  "toggleStageSkip": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "mergeStages": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getStageSequence": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getStageSequence not found"
+    }
+  },
+  "triageComplexity": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "calculateComplexity": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listComplexityPaths": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listComplexityPaths not found"
+    }
+  },
+  "selectComplexityPath": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listPathDecisions": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listPathDecisions not found"
+    }
+  },
+  "generateC4DSL": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getC4DSL": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getC4DSL not found"
+    }
+  },
+  "saveC4DSL": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "exportC4": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "setC4NodeFileMapping": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "triggerArchDetection": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getArchDetectionStatus": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArchDetectionStatus not found"
+    }
+  },
+  "listArchDiffs": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listArchDiffs not found"
+    }
+  },
+  "getArchDiff": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArchDiff not found"
+    }
+  },
+  "listArchScans": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listArchScans not found"
+    }
+  },
+  "exportArchReport": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getArchScanConfig": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArchScanConfig not found"
+    }
+  },
+  "updateArchScanConfig": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "getArchBaseline": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getArchBaseline not found"
+    }
+  },
+  "getHistorySummary": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getHistorySummary not found"
+    }
+  },
+  "getHistoryTimeline": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getHistoryTimeline not found"
+    }
+  },
+  "getHistoryComparison": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getHistoryComparison not found"
+    }
+  },
+  "getHistoryHeatmap": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getHistoryHeatmap not found"
+    }
+  },
+  "getProjectHistoryDetail": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getProjectHistoryDetail not found"
+    }
+  },
+  "exportHistory": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getMonitoringOverview": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getMonitoringOverview not found"
+    }
+  },
+  "getStageStats": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getStageStats not found"
+    }
+  },
+  "getTokenStats": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getTokenStats not found"
+    }
+  },
+  "listBottlenecks": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listBottlenecks not found"
+    }
+  },
+  "listProjectMembers": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listProjectMembers not found"
+    }
+  },
+  "addProjectMember": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "updateMemberRole": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "listOperationLogs": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listOperationLogs not found"
+    }
+  },
+  "exportDashboard": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "createApplication": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listApplications": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listApplications not found"
+    }
+  },
+  "getApplication": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getApplication not found"
+    }
+  },
+  "updateApplication": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "deleteApplication": {
+    "204": null,
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404
+    }
+  },
+  "checkAppPath": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for checkAppPath not found"
+    }
+  },
+  "getAppStats": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getAppStats not found"
+    }
+  },
+  "reportAppStats": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "createModule": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listModules": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listModules not found"
+    }
+  },
+  "updateModule": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "deleteModule": {
+    "204": null,
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404
+    }
+  },
+  "anchorModules": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listModuleDependencies": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listModuleDependencies not found"
+    }
+  },
+  "createModuleDependency": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "executePocketFlow": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "interruptPocketFlow": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getPocketFlowStatus": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getPocketFlowStatus not found"
+    }
+  },
+  "getPocketFlowLogs": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getPocketFlowLogs not found"
+    }
+  },
+  "createBypassApplication": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getBypassApplication": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getBypassApplication not found"
+    }
+  },
+  "authorizeBypass": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "rejectBypass": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "startBypassExecution": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "completeBypassExecution": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "reviewBypass": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getBypassCountdown": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getBypassCountdown not found"
+    }
+  },
+  "listBypassRecords": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listBypassRecords not found"
+    }
+  },
+  "getOpenUIStatus": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getOpenUIStatus not found"
+    }
+  },
+  "generatePrototype": {
+    "200": {
+      "generation_id": "gen-001",
+      "status": "success",
+      "pages": [
+        {
+          "page_index": 1,
+          "page_title": "Dashboard",
+          "html_content": "<html>...</html>",
+          "container_id": "c1"
+        }
+      ],
+      "total_pages": 1,
+      "generation_duration_ms": 15000,
+      "content_hash": "abc123"
+    },
+    "422": {
+      "type": "https://api.arsitect.local/errors/422",
+      "title": "前置条件缺失",
+      "status": 422,
+      "detail": "C4 DSL 尚未生成"
+    },
+    "503": {
+      "type": "https://api.arsitect.local/errors/503",
+      "title": "服务暂时不可用",
+      "status": 503,
+      "detail": "OpenUI Docker 服务未启动"
+    }
+  },
+  "launchOpenUIService": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listOpenUIHistory": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listOpenUIHistory not found"
+    }
+  },
+  "generateWireframe": {
+    "200": {
+      "generation_id": "wf-001",
+      "pipeline_status": "completed",
+      "pages": [
+        {
+          "page_id": "p1",
+          "entity_id": "e1",
+          "entity_name": "UserList",
+          "page_type": "list",
+          "confidence": 0.92,
+          "status": "auto"
+        }
+      ],
+      "navigation_graph": {
+        "nodes": [],
+        "edges": []
+      },
+      "statistics": {
+        "total_pages": 5,
+        "auto_mapped": 4,
+        "low_confidence": 1,
+        "uncertain": 0,
+        "average_confidence": 0.88
+      }
+    },
+    "422": {
+      "type": "https://api.arsitect.local/errors/422",
+      "title": "业务逻辑错误",
+      "status": 422,
+      "detail": "C4 DSL 结构解析失败"
+    }
+  },
+  "updateWireframeMapping": {
+    "200": {
+      "status": "updated"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "markMissingInterfaces": {
+    "200": {
+      "mark_id": "m1",
+      "forwarded_to_dr020": true
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400
+    }
+  },
+  "getWireframePage": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getWireframePage not found"
+    }
+  },
+  "scanBinding": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "getBindingReport": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for getBindingReport not found"
+    }
+  },
+  "writebackBinding": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "reviewBinding": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "generateSketch": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "reviewSketch": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "approveSketch": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "rejectSketch": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "regenerateSketch": {
+    "200": {
+      "status": "created",
+      "id": "mock-id-123"
+    },
+    "400": {
+      "type": "https://api.arsitect.local/errors/400",
+      "title": "请求参数校验失败",
+      "status": 400,
+      "detail": "Invalid request body"
+    },
+    "409": {
+      "type": "https://api.arsitect.local/errors/409",
+      "title": "资源冲突",
+      "status": 409,
+      "detail": "Conflict detected"
+    }
+  },
+  "listSketches": {
+    "200": {
+      "status": "success",
+      "data": "TODO: replace with real business value"
+    },
+    "404": {
+      "type": "https://api.arsitect.local/errors/404",
+      "title": "资源不存在",
+      "status": 404,
+      "detail": "Resource for listSketches not found"
+    }
+  }
+}

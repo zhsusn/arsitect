@@ -1,0 +1,26 @@
+{
+  "next_test_id": 1536,
+  "tests": {
+    "TEST-1501": "test_sync4_binding.py::TestSync4Binding::test_binding_full_crud_flow",
+    "TEST-1502": "test_sync4_binding.py::TestSync4Binding::test_binding_create_invalid_transform_type",
+    "TEST-1503": "test_sync4_binding.py::TestSync4Binding::test_binding_list_empty_project",
+    "TEST-1504": "test_sync5_bypass.py::TestSync5Bypass::test_bypass_full_flow",
+    "TEST-1505": "test_sync5_bypass.py::TestSync5Bypass::test_bypass_apply_short_reason",
+    "TEST-1506": "test_sync5_bypass.py::TestSync5Bypass::test_bypass_approve_not_found",
+    "TEST-1507": "test_sync5_bypass.py::TestSync5Bypass::test_bypass_list_empty",
+    "TEST-1508": "test_sync6_openui.py::TestSync6OpenUI::test_openui_full_crud_flow",
+    "TEST-1509": "test_sync6_openui.py::TestSync6OpenUI::test_openui_create_invalid_status",
+    "TEST-1510": "test_sync6_openui.py::TestSync6OpenUI::test_openui_list_empty",
+    "TEST-1511": "test_sync7_sketch.py::TestSync7Sketch::test_sketch_full_crud_flow",
+    "TEST-1512": "test_sync7_sketch.py::TestSync7Sketch::test_sketch_create_invalid_status",
+    "TEST-1513": "test_sync7_sketch.py::TestSync7Sketch::test_sketch_list_empty",
+    "TEST-1514": "test_sync8_wireframe.py::TestSync8Wireframe::test_wireframe_full_crud_flow",
+    "TEST-1515": "test_sync8_wireframe.py::TestSync8Wireframe::test_wireframe_create_invalid_status",
+    "TEST-1516": "test_sync8_wireframe.py::TestSync8Wireframe::test_wireframe_list_empty",
+    "TEST-1531": "test_cli.py::TestCliIntegration::test_create_session",
+    "TEST-1532": "test_cli.py::TestCliIntegration::test_get_session_history",
+    "TEST-1533": "test_cli.py::TestCliIntegration::test_close_session",
+    "TEST-1534": "test_cli.py::TestCliIntegration::test_switch_session_mode",
+    "TEST-1535": "test_cli.py::TestCliIntegration::test_websocket_command_exchange"
+  }
+}

@@ -1,0 +1,343 @@
+schema: arsitect-sdd
+version: "2.1"
+context: |
+  项目：Arsitect（AI Code 研发平台）
+  技术栈：React 19 + Vite 6 + React Flow 12 + Zustand 5（前端） / FastAPI 0.115 + SQLAlchemy 2.0 + Pydantic 2（后端） / PostgreSQL 15+（数据库） / python-socketio 5（WS） / OpenTelemetry + Jaeger（可观测性）
+  演进：MVP 前后端双态（SQLite）→ P1 单体服务（PostgreSQL）→ P2 微服务拆分 → P3 容器化（K8s）
+  规范：所有变更必须通过概要评审和详细评审，严格执行 12 阶段 SDLC 与 4 道人工闸门
+
+phases:
+  high-level-requirements:
+    id: 1
+    weight: 8%
+    granularity: coarse
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files
+          path: openspec/changes/{change}/high-level-requirements/
+          files:
+            - 00-requirements-overview.md
+            - 01-requirements-list.md
+            - 02-functional-requirements.md
+        action: confirm_integrity
+      human:
+        check:
+          action: sign_off
+          gate: Gate 1
+          record_in: openspec/changes/{change}/human-decisions.md
+        action: block_until_passed
+    downstream:
+      - detailed-requirements
+      - high-level-design
+
+  detailed-requirements:
+    id: 2.5
+    weight: 12%
+    granularity: coarse
+    depends_on:
+      - high-level-requirements
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files_per_module
+          path: openspec/changes/{change}/detailed-requirements/
+          pattern: "feature-XX-{module}/"
+          files:
+            - module-requirements.md
+            - spec.md
+            - prototype.md
+            - io-table.md
+            - logic.md
+            - interaction-spec.md
+        action: confirm_integrity
+      human:
+        check:
+          action: sign_off
+          gate: Gate 2.5
+          record_in: openspec/changes/{change}/human-decisions.md
+        action: block_until_passed
+    downstream:
+      - detailed-design
+
+  high-level-design:
+    id: 3
+    weight: 12%
+    granularity: coarse
+    depends_on:
+      - high-level-requirements
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files
+          path: openspec/changes/{change}/high-level-design/
+          files:
+            - 00-design-overview.md
+            - 01-architecture-core.md
+            - 02-data-flow.md
+            - 03-runtime-behavior.md
+            - 04-quality-attributes.md
+            - 05-ops-governance.md
+            - self-check-report.md
+        action: confirm_integrity
+      human:
+        check:
+          action: sign_off
+          gate: Gate 2
+          record_in: openspec/changes/{change}/human-decisions.md
+        action: block_until_passed
+    downstream:
+      - detailed-design
+      - interface-first-dev
+
+  detailed-design:
+    id: 4
+    weight: 12%
+    granularity: coarse
+    depends_on:
+      - high-level-design
+      - detailed-requirements
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files_per_module
+          path: openspec/changes/{change}/detailed-design/
+          pattern: "feature-XX-{module}/"
+          files:
+            - design.md
+            - api-spec.md
+        action: confirm_integrity
+    downstream:
+      - interface-first-dev
+
+  interface-first-dev:
+    id: 5
+    weight: 8%
+    granularity: coarse
+    depends_on:
+      - high-level-design
+      - detailed-design
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files
+          path: openspec/changes/{change}/interface-contracts/
+          files:
+            - openapi.yaml
+        action: confirm_integrity
+    downstream:
+      - task-breakdown
+
+  task-breakdown:
+    id: 6
+    weight: 4%
+    granularity: coarse
+    depends_on:
+      - interface-first-dev
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files
+          path: openspec/changes/{change}/
+          files:
+            - tasks.md
+        action: confirm_integrity
+    downstream:
+      - implementation
+
+  implementation:
+    id: 7
+    weight: 12%
+    granularity: task
+    depends_on:
+      - interface-first-dev
+      - task-breakdown
+    gate_to_next:
+      artifact:
+        check:
+          action: tasks_verified
+          path: openspec/changes/{change}/tasks.md
+          verified_by:
+            - self-check-passed
+            - user-confirmed
+            - auto-passed
+        action: confirm_integrity
+    downstream:
+      - unit-test
+
+  unit-test:
+    id: 8
+    weight: 8%
+    granularity: task
+    depends_on:
+      - implementation
+    gate_to_next:
+      artifact:
+        check:
+          action: coverage_threshold
+          threshold: ">=70%"
+          path: tests/unit/
+        action: confirm_integrity
+    downstream:
+      - integration-test
+
+  integration-test:
+    id: 9
+    weight: 4%
+    granularity: task
+    depends_on:
+      - unit-test
+    gate_to_next:
+      artifact:
+        check:
+          action: p0_cases_passed
+          path: tests/integration/
+        action: confirm_integrity
+    downstream:
+      - code-review
+
+  code-review:
+    id: 9.25
+    weight: 0%
+    granularity: coarse
+    depends_on:
+      - integration-test
+    gate_to_next:
+      artifact:
+        check:
+          action: review_cleared
+          path: openspec/changes/{change}/code-review/
+          blocking_issues: 0
+        action: confirm_integrity
+    downstream:
+      - uat-verification
+      - release-management
+
+  uat-verification:
+    id: 9.5
+    weight: 4%
+    granularity: coarse
+    depends_on:
+      - code-review
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files
+          path: openspec/changes/{change}/uat/
+          files:
+            - uat-report.md
+        action: confirm_integrity
+      human:
+        check:
+          action: sign_off
+          gate: Gate 3
+          record_in: openspec/changes/{change}/human-decisions.md
+        action: block_until_passed
+    downstream:
+      - release-management
+
+  release-management:
+    id: 10
+    weight: 4%
+    granularity: coarse
+    depends_on:
+      - uat-verification
+      - code-review
+    gate_to_next:
+      artifact:
+        check:
+          action: required_files
+          path: openspec/changes/{change}/
+          files:
+            - release-notes.md
+        action: confirm_integrity
+      human:
+        check:
+          action: final_approval
+          record_in: openspec/changes/{change}/human-decisions.md
+        action: block_until_passed
+    downstream:
+      - finish
+
+  finish:
+    id: 11
+    weight: 0%
+    granularity: coarse
+    depends_on:
+      - release-management
+    gate_to_next:
+      artifact:
+        check:
+          action: archive_completed
+          path: openspec/archive/{change}/
+        action: confirm_integrity
+    downstream:
+      - monitoring-analysis
+
+  monitoring-analysis:
+    id: 12
+    weight: 0%
+    granularity: coarse
+    depends_on:
+      - finish
+    gate_to_next:
+      artifact:
+        check:
+          action: periodic_health_report
+          path: ops/monitoring-reports/
+        action: confirm_integrity
+
+red_flags:
+  - id: RF-01
+    name: 禁止跳过前置依赖阶段
+    rule: |
+      某阶段的前置依赖阶段未标记"已完成"时，不允许该阶段进入"进行中"。
+    severity: blocker
+  - id: RF-02
+    name: 禁止无规格编码
+    rule: |
+      若 high-level-requirements/ 和 high-level-design/ 目录为空，
+      或 interface-first-dev / task-breakdown 未完成，
+      则 implementation 阶段进度强制为 0%。
+    severity: blocker
+  - id: RF-03
+    name: 禁止未自测算完成
+    rule: |
+      tasks.md 中勾选但未通过自测（verified_by 不为 self-check-passed / user-confirmed / auto-passed）的任务，
+      视为"进行中"，不计入 completed 统计。
+    severity: blocker
+  - id: RF-04
+    name: 禁止未经评审的需求变更
+    rule: |
+      概要需求变更若未走评审流程，进度回滚至 high-level-requirements 阶段。
+    severity: blocker
+  - id: RF-05
+    name: 禁止无测试宣告完成
+    rule: |
+      未通过单元测试覆盖率门控（>=70%）不得进入 integration-test 阶段。
+    severity: blocker
+  - id: RF-06
+    name: 禁止跳过人工闸门
+    rule: |
+      Gate 1 未签字：禁止进入 detailed-requirements 阶段。
+      Gate 2.5 未签字：禁止进入 detailed-design 阶段。
+      Gate 2 未签字：禁止进入 detailed-design 阶段。
+      Gate 3 未签字：禁止进入 release-management 阶段。
+    severity: blocker
+  - id: RF-07
+    name: 禁止跳过代码审查
+    rule: |
+      code_review.status != passed 或存在未清零的 blocking 问题时，
+      禁止进入 uat-verification 和 release-management 阶段。
+    severity: blocker
+  - id: RF-08
+    name: 禁止 AI 自动发布
+    rule: |
+      release-management 阶段必须人工最终确认，AI 不得自动标记为"已完成"。
+    severity: blocker
+
+progress_caps:
+  gate1_not_passed: 8%
+  gate2_5_not_passed: 20%
+  gate2_not_passed: 32%
+  gate3_not_passed: 80%
