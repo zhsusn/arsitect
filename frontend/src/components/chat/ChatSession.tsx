@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import ChatComposer from './ChatComposer'
 import MessageList from './MessageList'
 import { useChatSession } from './useChatSession'
-import type { ChatCard, LLMProviderOption } from './types'
+import type { ChatCard, ChatMessage, LLMProviderOption } from './types'
 
 interface ChatSessionProps {
   projectId: string
@@ -12,6 +12,7 @@ interface ChatSessionProps {
   placeholder?: string
   autoSend?: { text: string; metadata?: Record<string, unknown> }
   onCardAction?: (command: string, card: ChatCard, metadata?: Record<string, unknown>) => void
+  onMessage?: (message: ChatMessage) => void
 }
 
 export default function ChatSession({
@@ -22,6 +23,7 @@ export default function ChatSession({
   placeholder,
   autoSend,
   onCardAction,
+  onMessage,
 }: ChatSessionProps) {
   const [provider, setProvider] = useState<LLMProviderOption>(initialProvider)
   const [agentMode, setAgentMode] = useState(false)
@@ -31,6 +33,7 @@ export default function ChatSession({
     sessionId,
     taskMode,
     llmProvider: provider,
+    onMessage,
   })
 
   const handleCardActionWrapper = useCallback(
@@ -57,7 +60,7 @@ export default function ChatSession({
     sendCommand(text, metadata)
   }
 
-  const isDisabled = status === 'connecting' || status === 'error'
+  const isDisabled = status === 'error' || status === 'closed'
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">

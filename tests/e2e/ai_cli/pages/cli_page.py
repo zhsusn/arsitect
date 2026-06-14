@@ -1,11 +1,11 @@
-"""Page Object Model for the AI CLI Terminal page."""
+"""Page Object Model for the AI CLI chat page."""
 from __future__ import annotations
 
 from playwright.sync_api import Page, expect
 
 
 class CliPage:
-    """Page object for /cli AI terminal interactions."""
+    """Page object for /cli AI chat interactions."""
 
     def __init__(self, page: Page, base_url: str) -> None:
         self.page = page
@@ -16,41 +16,37 @@ class CliPage:
     # Navigation & presence
     # ------------------------------------------------------------------
     def navigate_to(self) -> None:
-        """Open the AI CLI page and wait until the shell renders."""
+        """Open the AI CLI page and wait until the composer renders."""
         self.page.goto(f"{self.base_url}/cli")
-        self.wait_for_terminal()
+        self.wait_for_composer()
 
-    def wait_for_terminal(self) -> None:
-        """Wait for the xterm.js terminal to appear and the connection to open."""
-        # xterm.js renders rows and a hidden textarea for input.
-        expect(self.page.locator(".xterm-rows")).to_be_visible()
-        expect(self.page.locator(".xterm-helper-textarea")).to_be_visible()
-        # Wait for the WebSocket handshake to complete.
-        expect(self.page.get_by_text("状态:")).to_be_visible()
-        expect(
-            self.page.get_by_text("已连接", exact=True)
-        ).to_be_visible(timeout=10000)
+    def wait_for_composer(self) -> None:
+        """Wait for the chat textarea to appear and be editable."""
+        textarea = self.page.locator('textarea[placeholder*="/"]')
+        expect(textarea).to_be_visible()
+        expect(textarea).not_to_be_disabled()
 
     # ------------------------------------------------------------------
-    # Terminal input
+    # Chat input
     # ------------------------------------------------------------------
     def type_command(self, command: str) -> None:
-        """Focus the terminal and type a command followed by Enter."""
-        # xterm.js listens to keyboard events on the terminal element. Ensure the
-        # terminal canvas is focused, then type with a small delay to let xterm
-        # process each keystroke.
-        self.page.locator(".xterm").click()
-        self.page.wait_for_timeout(100)
-        self.page.keyboard.type(command, delay=20)
-        self.page.keyboard.press("Enter")
+        """Type a command into the chat textarea and submit it.
+
+        Escape is pressed first to dismiss any skill shortcut popup so that
+        Enter submits the command rather than inserting the skill.
+        """
+        textarea = self.page.locator('textarea[placeholder*="/"]')
+        textarea.fill(command)
+        # Dismiss skill popup if it opened.
+        self.page.keyboard.press("Escape")
+        textarea.press("Enter")
 
     # ------------------------------------------------------------------
     # Output assertions
     # ------------------------------------------------------------------
     def wait_for_message(self, text: str, timeout: float = 15000) -> None:
-        """Wait until the terminal contains the given text."""
-        rows = self.page.locator(".xterm-rows")
-        expect(rows).to_contain_text(text, timeout=timeout)
+        """Wait until the chat contains the given text."""
+        expect(self.page.locator("text=" + text).first).to_be_visible(timeout=timeout)
 
     # ------------------------------------------------------------------
     # Card actions
@@ -65,5 +61,5 @@ class CliPage:
     # Mode switch
     # ------------------------------------------------------------------
     def switch_mode(self, mode_label: str) -> None:
-        """Click a mode tab by visible label ('Bug' or '架构')."""
-        self.page.get_by_role("button", name=mode_label, exact=True).click()
+        """Click a mode tab by visible label ('Bug 修复' or '架构治理')."""
+        self.page.locator("button", has_text=mode_label).first.click()

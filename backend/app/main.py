@@ -1,6 +1,14 @@
 """SDLC Visualizer — FastAPI application entry point."""
 
 import asyncio
+import sys
+
+# ProactorEventLoop is required on Windows for asyncio subprocess support
+# (used by the Kimi CLI LLM gateway). Uvicorn's reload supervisor may
+# otherwise install a SelectorEventLoop which cannot create subprocess
+# transports.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager, suppress
 
@@ -19,6 +27,7 @@ from app.core.config import settings
 from app.core.exceptions import AppError, app_error_handler, generic_exception_handler
 from app.core.logging import setup_logging
 from app.infrastructure.database.session import AsyncSessionLocal, init_db
+from app.services.config_service import ConfigService
 
 
 async def _c4_sync_loop() -> None:
@@ -45,6 +54,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan events."""
     setup_logging()
     await init_db()
+    async with AsyncSessionLocal() as db:
+        await ConfigService(db).ensure_defaults()
     await get_event_bus().start()
 
     # Start dependency health monitoring

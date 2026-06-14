@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -10,10 +11,8 @@ from pathlib import Path
 import httpx
 import websockets
 
-try:
+with contextlib.suppress(Exception):
     sys.stdout.reconfigure(encoding="utf-8")
-except Exception:
-    pass
 
 
 def _safe_print(text: str) -> None:
@@ -101,7 +100,7 @@ async def main() -> None:
         while asyncio.get_event_loop().time() < deadline:
             try:
                 raw = await asyncio.wait_for(ws.recv(), timeout=5)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
 
             msg = json.loads(raw)

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import os
+import subprocess
 
 from app.core.config import settings
 
 from .base import LLMProvider, OnChunk
+
+KIMI_CLI_TIMEOUT_SECONDS = 120
 
 
 class KimiCLIProvider(LLMProvider):
@@ -72,14 +75,25 @@ class KimiCLIProvider(LLMProvider):
         env.setdefault("PYTHONIOENCODING", "utf-8")
         env.setdefault("KIMI_CLI_NO_ANALYTICS", "1")
 
-        print(f"[KIMI CLI] spawning {' '.join(cmd[:4])} ...")
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=env,
-        )
+        print(f"[KIMI CLI] spawning {' '.join(cmd[:4])} ...", flush=True)
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
+            )
+        except NotImplementedError:
+            # Windows SelectorEventLoop (the default used by some Uvicorn
+            # configurations) cannot create asyncio subprocess transports.
+            # Fall back to a synchronous subprocess executed in a worker thread.
+            return await self._generate_stream_sync_threaded(cmd, env, on_chunk)
+        except FileNotFoundError as exc:
+            raise RuntimeError(
+                f"Kimi CLI executable not found: {self.cli_path}. "
+                "Please install Kimi CLI or set KIMI_CLI_PATH to the correct executable."
+            ) from exc
         # Close stdin immediately; we pass the prompt via -p.
         if proc.stdin is not None:
             proc.stdin.close()
@@ -107,14 +121,22 @@ class KimiCLIProvider(LLMProvider):
                     break
                 stderr_chunks.append(raw)
 
-        await asyncio.gather(_read_stdout(), _read_stderr())
-        await proc.wait()
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(_read_stdout(), _read_stderr(), proc.wait()),
+                timeout=KIMI_CLI_TIMEOUT_SECONDS,
+            )
+        except TimeoutError as exc:
+            proc.kill()
+            raise RuntimeError(
+                f"Kimi CLI did not respond within {KIMI_CLI_TIMEOUT_SECONDS}s"
+            ) from exc
 
         stderr = b"".join(stderr_chunks).decode("utf-8", errors="replace")
         stderr = _strip_surrogates(stderr)
-        print(f"[KIMI CLI] exit code {proc.returncode}")
+        print(f"[KIMI CLI] exit code {proc.returncode}", flush=True)
         if stderr:
-            print(f"[KIMI CLI] stderr: {stderr!r}")
+            print(f"[KIMI CLI] stderr: {stderr!r}", flush=True)
 
         result = "".join(chunks).strip()
 
@@ -124,6 +146,66 @@ class KimiCLIProvider(LLMProvider):
         if proc.returncode != 0 and not result:
             raise RuntimeError(
                 f"Kimi CLI failed (exit {proc.returncode}): {stderr or 'no output'}"
+            )
+        return result
+
+    async def _generate_stream_sync_threaded(
+        self,
+        cmd: list[str],
+        env: dict[str, str],
+        on_chunk: OnChunk | None,
+    ) -> str:
+        """Fallback: run Kimi CLI via synchronous subprocess in a worker thread.
+
+        This path is used on Windows when the active event loop does not support
+        ``asyncio.create_subprocess_exec`` (e.g. Uvicorn with a
+        ``SelectorEventLoop``). It preserves the streaming callback interface by
+        emitting the captured output in chunks.
+        """
+
+        def _run_sync() -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                cmd,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env,
+                timeout=KIMI_CLI_TIMEOUT_SECONDS,
+            )
+
+        try:
+            completed = await asyncio.to_thread(_run_sync)
+        except FileNotFoundError as exc:
+            raise RuntimeError(
+                f"Kimi CLI executable not found: {self.cli_path}. "
+                "Please install Kimi CLI or set KIMI_CLI_PATH to the correct executable."
+            ) from exc
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                f"Kimi CLI did not respond within {KIMI_CLI_TIMEOUT_SECONDS}s"
+            ) from exc
+
+        stderr = _strip_surrogates(completed.stderr)
+        print(f"[KIMI CLI] exit code {completed.returncode}", flush=True)
+        if stderr:
+            print(f"[KIMI CLI] stderr: {stderr!r}", flush=True)
+
+        result = _strip_surrogates(completed.stdout).strip()
+
+        # Preserve the streaming interface by emitting the captured response in
+        # small chunks. This keeps the UI responsive while avoiding the asyncio
+        # subprocess limitation.
+        if result:
+            chunk_size = 64
+            for i in range(0, len(result), chunk_size):
+                chunk = result[i : i + chunk_size]
+                print(f"[KIMI CLI] stdout chunk ({len(chunk)} chars)")
+                await self._emit_chunk(on_chunk, chunk)
+                await asyncio.sleep(0.01)
+
+        if completed.returncode != 0 and not result:
+            raise RuntimeError(
+                f"Kimi CLI failed (exit {completed.returncode}): {stderr or 'no output'}"
             )
         return result
 

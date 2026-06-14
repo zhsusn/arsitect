@@ -338,7 +338,7 @@ class ArchGovernanceService:
                         sender=sender,
                     )
                 else:
-                    card = self._build_decision_card(change)
+                    card = self._build_decision_card(change, strategy_prompt)
                     await sender(self._build_card(session_id, card).model_dump())
                     pending += 1
 
@@ -869,11 +869,15 @@ class ArchGovernanceService:
         return issue
 
     @staticmethod
-    def _build_decision_card(change: dict[str, Any]) -> dict[str, Any]:
+    def _build_decision_card(
+        change: dict[str, Any], strategy_prompt: str = ""
+    ) -> dict[str, Any]:
         """Build an arch-decision CLI card from a change dict."""
         return {
             "type": "arch-decision",
             "data": {
+                "change": change,
+                "strategy_prompt": strategy_prompt,
                 "action": change.get("action"),
                 "target_path": change.get("target_path"),
                 "before": change.get("before"),

@@ -13,11 +13,11 @@ import os
 import re
 import subprocess
 from abc import ABC, abstractmethod
-from pathlib import Path
 from collections.abc import Awaitable, Callable
 from typing import Any
 
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 
@@ -146,7 +146,7 @@ class KimiCLIGateway(LLMGateway):
         try:
             completed = await asyncio.to_thread(_run_sync)
         except subprocess.TimeoutExpired as exc:
-            raise RuntimeError(f"Kimi CLI timed out after 120s") from exc
+            raise RuntimeError("Kimi CLI timed out after 120s") from exc
 
         stderr = _strip_surrogates(completed.stderr)
         print(f"[KIMI CLI] exit code {completed.returncode}")
@@ -248,4 +248,22 @@ def get_llm_gateway() -> LLMGateway:
         return KimiCLIGateway()
     if provider == "openai":
         return OpenAILLMGateway()
+    return NoOpLLMGateway()
+
+
+async def get_llm_gateway_async(db: AsyncSession) -> LLMGateway:
+    """Return the configured LLM gateway resolved from ConfigNode dynamically."""
+    from app.services.config_service import ConfigService
+
+    svc = ConfigService(db)
+    config = await svc._get_default_llm_provider_full()
+    provider = str(config.get("provider", "kimi-cli")).lower()
+    if provider in {"kimi", "kimi-cli"}:
+        return KimiCLIGateway(cli_path=str(config.get("kimi_cli_path", "kimi")))
+    if provider in {"openai", "kimi-api"}:
+        return OpenAILLMGateway(
+            api_base=config.get("api_base") or None,
+            api_key=config.get("api_key") or None,
+            model=config.get("model") or None,
+        )
     return NoOpLLMGateway()

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Any
@@ -20,9 +21,15 @@ from app.schemas.cli import (
 from app.services.bug_fix_service import BugFixService
 from app.services.chat_service import ChatService
 from app.services.cli_service import CliService
-from app.services.llm import get_llm_provider
+from app.services.llm import get_llm_provider_async
+from app.services.llm_permission_service import (
+    LLMPermissionService,
+    PermissionCheckContext,
+)
 
 Sender = Callable[[dict[str, Any]], Awaitable[None]]
+
+logger = logging.getLogger(__name__)
 
 
 def _now_ms() -> int:
@@ -92,6 +99,7 @@ class AgentRouter:
         """
         await sender(_text_response(session.id, f"收到：{text}").model_dump())
         await self._cli_service.add_message(session.id, CliMessageType.USER, content=text)
+        await self._db.commit()
 
         metadata = (payload.get("metadata") if payload else None) or {}
 
@@ -106,6 +114,32 @@ class AgentRouter:
             await self._run_arch_fix_mode(session, text, metadata, sender)
         else:
             await self._run_free_chat(session, text, metadata, sender)
+
+    async def _check_permission(
+        self,
+        session: CliSession,
+        category: str,
+        path: str | None = None,
+    ) -> tuple[bool, str]:
+        """Check LLM permission for a tool action.
+
+        Returns:
+            (allowed, reason) tuple. ``allowed`` is True for allow/ask decisions.
+        """
+        from app.services.config_service import ConfigService
+
+        perm_svc = LLMPermissionService(ConfigService(self._db))
+        result = await perm_svc.check(
+            PermissionCheckContext(
+                category=category,
+                path=path,
+                project_id=session.project_id,
+                user_id=session.user_id,
+            )
+        )
+        if result["decision"] == "deny":
+            return False, f"权限策略拒绝：{category} {path or ''}"
+        return True, ""
 
     async def _handle_skill(
         self,
@@ -122,21 +156,33 @@ class AgentRouter:
             session.task_mode = ChatTaskMode.BUG.value
             self._db.add(session)
             await self._db.flush()
+            await self._db.commit()
             await sender(_text_response(session.id, "已切换至 Bug 修复模式。").model_dump())
         elif command in {"/arch", "/scan"}:
             session.task_mode = ChatTaskMode.ARCH_FIX.value
             self._db.add(session)
             await self._db.flush()
+            await self._db.commit()
             await sender(_text_response(session.id, "已切换至架构治理模式。").model_dump())
         elif command == "/fix":
             plan = metadata.get("plan")
             project_id = metadata.get("project_id") or session.project_id
             if plan:
+                allowed, reason = await self._check_permission(
+                    session, "file_write", "${PROJECT_ROOT}/**"
+                )
+                if not allowed:
+                    await sender(_error_response(session.id, "PERMISSION_DENIED", reason).model_dump())
+                    return
+                from app.c4.governance_fix.llm_gateway import get_llm_gateway_async
+
+                llm_gateway = await get_llm_gateway_async(self._db)
                 session.task_mode = ChatTaskMode.ARCH_FIX.value
                 session.context_json = {"plan": plan, "project_id": project_id}
                 self._db.add(session)
                 await self._db.flush()
-                arch_svc = ArchGovernanceService(self._db)
+                await self._db.commit()
+                arch_svc = ArchGovernanceService(self._db, llm_gateway=llm_gateway)
                 await arch_svc.apply_fix_plan(
                     session_id=session.id,
                     project_id=project_id,
@@ -163,8 +209,13 @@ class AgentRouter:
         sender: Sender,
     ) -> None:
         """Run a free-form chat response via the configured LLM provider."""
-        provider = metadata.get("provider") or session.llm_provider or "kimi-cli"
-        llm = get_llm_provider(provider)
+        provider_key = metadata.get("provider") or session.llm_provider or None
+        llm = await get_llm_provider_async(
+            self._db,
+            provider_key=provider_key,
+            project_id=session.project_id,
+            user_id=session.user_id,
+        )
 
         await sender(_thinking_response(session.id, "AI 正在思考...").model_dump())
 
@@ -187,8 +238,10 @@ class AgentRouter:
             response_text = await llm.chat_stream(messages, on_chunk=_on_chunk)
             await sender(_text_response(session.id, response_text).model_dump())
         except Exception as exc:  # noqa: BLE001
+            logger.exception("Free-chat LLM call failed: %s", exc)
+            error_detail = f"{type(exc).__name__}: {exc}" if str(exc) else f"{type(exc).__name__} (no message)"
             await sender(
-                _error_response(session.id, "LLM_ERROR", f"AI 调用失败：{exc}").model_dump()
+                _error_response(session.id, "LLM_ERROR", f"AI 调用失败：{error_detail}").model_dump()
             )
 
     async def _run_bug_mode(
@@ -244,6 +297,7 @@ class AgentRouter:
         sender: Sender,
     ) -> None:
         """Run architecture fix mode logic."""
+        from app.c4.governance_fix.llm_gateway import get_llm_gateway_async
         from app.services.arch_governance_service import ArchGovernanceService
 
         context = session.context_json or {}
@@ -251,7 +305,14 @@ class AgentRouter:
         project_id = metadata.get("project_id") or context.get("project_id") or session.project_id
 
         if plan:
-            arch_svc = ArchGovernanceService(self._db)
+            allowed, reason = await self._check_permission(
+                session, "file_write", "${PROJECT_ROOT}/**"
+            )
+            if not allowed:
+                await sender(_error_response(session.id, "PERMISSION_DENIED", reason).model_dump())
+                return
+            llm_gateway = await get_llm_gateway_async(self._db)
+            arch_svc = ArchGovernanceService(self._db, llm_gateway=llm_gateway)
             await arch_svc.apply_fix_plan(
                 session_id=session.id,
                 project_id=project_id,

@@ -14,8 +14,10 @@ from app.api.v1 import (
     bypass,
     c4,
     canvas_state,
+    chat,
     cli,
     complexity,
+    config_nodes,
     contracts,
     docforge_admin,
     engine,
@@ -64,9 +66,11 @@ api_router.include_router(projects.router)
 api_router.include_router(docforge_admin.router)
 api_router.include_router(annotations.router)
 api_router.include_router(validation.router)
+api_router.include_router(config_nodes.router)
 api_router.include_router(contracts.router)
 api_router.include_router(engine.router)
 api_router.include_router(locator.router)
+api_router.include_router(chat.router)
 api_router.include_router(cli.router)
 
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Cpu, Plus, Send } from 'lucide-react'
 import type { LLMProviderOption, SkillOption } from './types'
 
 const SKILLS: SkillOption[] = [
@@ -173,7 +174,6 @@ export default function ChatComposer({
         value={text}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        disabled={disabled}
         rows={1}
         className="w-full resize-none bg-transparent px-4 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none min-h-[56px] max-h-[200px]"
         placeholder={placeholder}
@@ -187,20 +187,19 @@ export default function ChatComposer({
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 disabled:opacity-50"
             title="添加附件（MVP 占位）"
           >
-            <span className="text-lg">+</span>
+            <Plus size={18} />
           </button>
 
           <button
             type="button"
             onClick={() => onAgentModeChange?.(!agentMode)}
-            disabled={disabled}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
               agentMode
                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
             } disabled:opacity-50`}
           >
-            <span>🤖</span>
+            <Cpu size={14} />
             <span>Agent</span>
           </button>
         </div>
@@ -223,22 +222,9 @@ export default function ChatComposer({
             type="button"
             onClick={handleSubmit}
             disabled={disabled || !text.trim()}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:bg-gray-300 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40 disabled:bg-gray-300 transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 19V5" />
-              <path d="M5 12l7-7 7 7" />
-            </svg>
+            <Send size={16} />
           </button>
         </div>
       </div>

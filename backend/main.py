@@ -27,6 +27,7 @@ from app.common.health_checker import (
 from app.core.config import settings
 from app.core.exceptions import AppError, app_error_handler, generic_exception_handler
 from app.core.logging import setup_logging
+from app.core.seed import seed_default_config_nodes
 from app.infrastructure.database.session import AsyncSessionLocal, init_db
 
 
@@ -54,6 +55,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan events."""
     setup_logging()
     await init_db()
+    async with AsyncSessionLocal() as db:
+        await seed_default_config_nodes(db)
+        await db.commit()
     await get_event_bus().start()
 
     # Start dependency health monitoring

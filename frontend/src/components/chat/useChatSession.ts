@@ -28,7 +28,7 @@ export interface UseChatSessionReturn {
   messages: ChatMessage[]
   sendCommand: (text: string, metadata?: Record<string, unknown>) => void
   sendAction: (command: string, metadata?: Record<string, unknown>) => void
-  clearSession: () => void
+  clearSession: (newTaskMode?: string, newLlmProvider?: string) => void
   reconnect: () => void
 }
 
@@ -121,7 +121,10 @@ export function useChatSession({
   const onCardRef = useRef(onCard)
   const currentSessionIdRef = useRef<string | undefined>(initialSessionId)
   const currentProjectIdRef = useRef(projectId)
+  const taskModeRef = useRef(taskMode)
+  const llmProviderRef = useRef(llmProvider)
   const initializedRef = useRef(false)
+  const createGenerationRef = useRef(0)
 
   useEffect(() => {
     sessionRef.current = session
@@ -131,6 +134,14 @@ export function useChatSession({
     onMessageRef.current = onMessage
     onCardRef.current = onCard
   })
+
+  useEffect(() => {
+    taskModeRef.current = taskMode
+  }, [taskMode])
+
+  useEffect(() => {
+    llmProviderRef.current = llmProvider
+  }, [llmProvider])
 
   const appendMessage = useCallback((msg: ChatMessage) => {
     setMessages((prev) => {
@@ -238,20 +249,26 @@ export function useChatSession({
   )
 
   const createSession = useCallback(async () => {
+    createGenerationRef.current += 1
+    const generation = createGenerationRef.current
     try {
       const res = await api.post<ChatSessionCreateResponse>('/v1/chat/sessions', {
         project_id: projectId,
-        task_mode: taskMode || 'free-chat',
-        llm_provider: llmProvider,
+        task_mode: taskModeRef.current || 'free-chat',
+        llm_provider: llmProviderRef.current,
       })
+      // Ignore stale responses if clearSession/reconnect started a newer creation.
+      if (generation !== createGenerationRef.current) return
       const newSession = res.data.session
       setSession(newSession)
       currentSessionIdRef.current = newSession.id
       connect(newSession.id)
     } catch {
-      setStatus('error')
+      if (generation === createGenerationRef.current) {
+        setStatus('error')
+      }
     }
-  }, [projectId, taskMode, llmProvider, connect])
+  }, [projectId, connect])
 
   useEffect(() => {
     currentProjectIdRef.current = projectId
@@ -321,16 +338,27 @@ export function useChatSession({
     [send],
   )
 
-  const clearSession = useCallback(() => {
-    closeSocket()
-    setSession(null)
-    setMessages([])
-    retryCountRef.current = 0
-    queueRef.current = []
-    currentSessionIdRef.current = undefined
-    setStatus('connecting')
-    void createSession()
-  }, [closeSocket, createSession])
+  const clearSession = useCallback(
+    (newTaskMode?: string, newLlmProvider?: string) => {
+      if (newTaskMode !== undefined) {
+        taskModeRef.current = newTaskMode
+      }
+      if (newLlmProvider !== undefined) {
+        llmProviderRef.current = newLlmProvider
+      }
+      // Bump generation so any in-flight createSession result is discarded.
+      createGenerationRef.current += 1
+      closeSocket()
+      setSession(null)
+      setMessages([])
+      retryCountRef.current = 0
+      queueRef.current = []
+      currentSessionIdRef.current = undefined
+      setStatus('connecting')
+      void createSession()
+    },
+    [closeSocket, createSession],
+  )
 
   const reconnect = useCallback(() => {
     retryCountRef.current = 0

@@ -11,6 +11,7 @@ from app.models.bypass_record import BypassRecord
 from app.models.c4_baseline import C4Baseline
 from app.models.canvas_state import CanvasState
 from app.models.cli_session import ArchIssue, BugRecord, CliMessage, CliSession
+from app.models.config_node import ConfigNode
 from app.models.execution_log import ExecutionLog
 from app.models.execution_plan import ExecutionPlan
 from app.models.fragment import Fragment
@@ -50,6 +51,7 @@ __all__ = [
     "CanvasState",
     "CliMessage",
     "CliSession",
+    "ConfigNode",
     "ArtifactFile",
     "ArtifactVersion",
     "BindingRecord",

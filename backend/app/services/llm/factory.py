@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 
 from .base import LLMProvider
@@ -29,3 +33,61 @@ def get_llm_provider(provider: str | None = None) -> LLMProvider:
     if resolved in {"openai", "kimi-api"}:
         return OpenAIProvider()
     return NoOpProvider()
+
+
+def get_llm_provider_from_config(config: dict[str, Any]) -> LLMProvider:
+    """Build an LLM provider from a config node payload.
+
+    Args:
+        config: Merged config_json + secret_json from a ConfigNode.
+
+    Returns:
+        An initialized LLM provider.
+    """
+    provider = str(config.get("provider", "kimi-cli")).lower()
+    if provider in {"kimi", "kimi-cli"}:
+        return KimiCLIProvider(cli_path=str(config.get("kimi_cli_path", "kimi")))
+    if provider in {"openai", "kimi-api"}:
+        return OpenAIProvider(
+            api_base=cast(str | None, config.get("api_base") or None),
+            api_key=cast(str | None, config.get("api_key") or None),
+            model=str(config.get("model", "gpt-4o-mini")),
+        )
+    return NoOpProvider()
+
+
+async def get_llm_provider_async(
+    db: AsyncSession,
+    *,
+    provider_key: str | None = None,
+    project_id: str | None = None,
+    user_id: str | None = None,
+) -> LLMProvider:
+    """Return an LLM provider resolved dynamically from ConfigNode.
+
+    Args:
+        db: AsyncSession.
+        provider_key: Optional specific provider node key to use.
+        project_id: Optional project scope for resolution.
+        user_id: Optional user scope for resolution.
+
+    Returns:
+        An initialized LLM provider.
+    """
+    from app.services.config_service import ConfigService
+
+    svc = ConfigService(db)
+    if provider_key:
+        node = await svc.get_node_by_key(
+            "llm_provider", "global", None, provider_key
+        ) or await svc.get_node_by_key(
+            "llm_provider", "project", project_id, provider_key
+        )
+        if node:
+            config = dict(node.config_json)
+            if node.secret_json:
+                config.update(node.secret_json)
+            return get_llm_provider_from_config(config)
+
+    config = await svc._get_default_llm_provider_full()
+    return get_llm_provider_from_config(config)

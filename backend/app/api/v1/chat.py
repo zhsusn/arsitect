@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Awaitable
 from contextlib import suppress
 from datetime import UTC, datetime
@@ -187,6 +188,95 @@ async def chat_websocket(
     ):
         return
 
+    async def _handle_request(request: CliRequest) -> None:
+        if request.type == "ping":
+            await _safe_send(
+                websocket,
+                CliResponse(
+                    type="pong",
+                    session_id=session_id,
+                    timestamp=_now_ms(),
+                    payload=CliResponsePayload.model_construct(),
+                ).model_dump(),
+            )
+            return
+
+        if request.type == "abort":
+            await _safe_send(
+                websocket,
+                _text_response(session_id, "已中止当前任务。").model_dump(),
+            )
+            return
+
+        if request.type == "action":
+            command = request.payload.command or ""
+            metadata = request.payload.metadata or {}
+            await chat_svc._cli_service.add_message(
+                session_id,
+                CliMessageType.USER,
+                content=f"[action] {command}",
+            )
+            if command in {"fix", "skip", "edit", "Y", "N"} and metadata.get("change"):
+                from app.services.arch_governance_service import ArchGovernanceService
+
+                arch_svc = ArchGovernanceService(db)
+                project_id = metadata.get("project_id") or session.project_id
+                await arch_svc.handle_change_action(
+                    session_id=session_id,
+                    project_id=project_id,
+                    command=command if command not in {"Y", "N"} else "fix" if command == "Y" else "skip",
+                    metadata=metadata,
+                    sender=sender,
+                )
+            elif command in {"Y", "N", "edit"} and metadata.get("bug_id"):
+                from app.services.bug_fix_service import BugFixService
+
+                bug_svc = BugFixService(db)
+                bug_id = str(metadata.get("bug_id"))
+                if command == "N":
+                    await bug_svc.ignore_fix(bug_id)
+                    await sender(_text_response(session_id, "已忽略该 Bug 修复建议。").model_dump())
+                elif command == "Y":
+                    result = await bug_svc.execute_fix(bug_id)
+                    await sender(
+                        _text_response(
+                            session_id,
+                            f"Bug 修复已执行：{result.success and '成功' or '失败'}",
+                        ).model_dump()
+                    )
+                else:
+                    edited_diff = metadata.get("edited_diff")
+                    result = await bug_svc.execute_fix(bug_id, edited_diff=edited_diff)
+                    await sender(
+                        _text_response(
+                            session_id,
+                            f"Bug 修复已执行：{result.success and '成功' or '失败'}",
+                        ).model_dump()
+                    )
+            else:
+                await _safe_send(
+                    websocket,
+                    _text_response(session_id, f"已执行操作：{command}").model_dump(),
+                )
+            return
+
+        if request.type in {"command", "input"}:
+            text = request.payload.text or request.payload.command or ""
+            payload = request.payload.model_dump() if request.payload else None
+            if not text:
+                await _safe_send(
+                    websocket,
+                    _error_response(session_id, "EMPTY_INPUT", "请输入内容").model_dump(),
+                )
+                return
+            await agent_router.handle_command(session, text, payload, sender)
+            return
+
+        await _safe_send(
+            websocket,
+            _error_response(session_id, "UNSUPPORTED_TYPE", f"Unsupported type: {request.type}").model_dump(),
+        )
+
     try:
         while True:
             raw = await websocket.receive_json()
@@ -199,93 +289,23 @@ async def chat_websocket(
                 )
                 continue
 
-            if request.type == "ping":
+            try:
+                await _handle_request(request)
+            except Exception as exc:
+                logger = logging.getLogger(__name__)
+                logger.exception("WebSocket request handling failed: %s", exc)
                 await _safe_send(
                     websocket,
-                    CliResponse(
-                        type="pong",
-                        session_id=session_id,
-                        timestamp=_now_ms(),
-                        payload=CliResponsePayload.model_construct(),
-                    ).model_dump(),
+                    _error_response(session_id, "INTERNAL_ERROR", f"处理失败：{exc}").model_dump(),
                 )
-                continue
-
-            if request.type == "abort":
-                await _safe_send(
-                    websocket,
-                    _text_response(session_id, "已中止当前任务。").model_dump(),
-                )
-                continue
-
-            if request.type == "action":
-                command = request.payload.command or ""
-                metadata = request.payload.metadata or {}
-                await chat_svc._cli_service.add_message(
-                    session_id,
-                    CliMessageType.USER,
-                    content=f"[action] {command}",
-                )
-                if command in {"fix", "skip", "edit", "Y", "N"} and metadata.get("change"):
-                    from app.services.arch_governance_service import ArchGovernanceService
-
-                    arch_svc = ArchGovernanceService(db)
-                    project_id = metadata.get("project_id") or session.project_id
-                    await arch_svc.handle_change_action(
-                        session_id=session_id,
-                        project_id=project_id,
-                        command=command if command not in {"Y", "N"} else "fix" if command == "Y" else "skip",
-                        metadata=metadata,
-                        sender=sender,
-                    )
-                elif command in {"Y", "N", "edit"} and metadata.get("bug_id"):
-                    from app.services.bug_fix_service import BugFixService
-
-                    bug_svc = BugFixService(db)
-                    bug_id = str(metadata.get("bug_id"))
-                    if command == "N":
-                        await bug_svc.ignore_fix(bug_id)
-                        await sender(_text_response(session_id, "已忽略该 Bug 修复建议。").model_dump())
-                    elif command == "Y":
-                        result = await bug_svc.execute_fix(bug_id)
-                        await sender(
-                            _text_response(
-                                session_id,
-                                f"Bug 修复已执行：{result.success and '成功' or '失败'}",
-                            ).model_dump()
-                        )
-                    else:
-                        edited_diff = metadata.get("edited_diff")
-                        result = await bug_svc.execute_fix(bug_id, edited_diff=edited_diff)
-                        await sender(
-                            _text_response(
-                                session_id,
-                                f"Bug 修复已执行：{result.success and '成功' or '失败'}",
-                            ).model_dump()
-                        )
-                else:
-                    await _safe_send(
-                        websocket,
-                        _text_response(session_id, f"已执行操作：{command}").model_dump(),
-                    )
-                continue
-
-            if request.type in {"command", "input"}:
-                text = request.payload.text or request.payload.command or ""
-                payload = request.payload.model_dump() if request.payload else None
-                if not text:
-                    await _safe_send(
-                        websocket,
-                        _error_response(session_id, "EMPTY_INPUT", "请输入内容").model_dump(),
-                    )
-                    continue
-                await agent_router.handle_command(session, text, payload, sender)
-                continue
-
-            await _safe_send(
-                websocket,
-                _error_response(session_id, "UNSUPPORTED_TYPE", f"Unsupported type: {request.type}").model_dump(),
-            )
+            finally:
+                # Commit after each message so the SQLite write lock is released
+                # promptly. This prevents long-lived WebSocket transactions from
+                # blocking other requests (e.g. creating new chat sessions).
+                try:
+                    await db.commit()
+                except Exception:
+                    await db.rollback()
     except WebSocketDisconnect:
         pass
     except Exception as exc:

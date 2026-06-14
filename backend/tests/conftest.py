@@ -21,6 +21,7 @@ from app.models.binding_rule import BindingRule  # noqa: F401
 from app.models.bypass_record import BypassRecord  # noqa: F401
 from app.models.canvas_state import CanvasState  # noqa: F401
 from app.models.cli_session import ArchIssue, BugRecord, CliMessage, CliSession  # noqa: F401
+from app.models.config_node import ConfigNode  # noqa: F401
 from app.models.execution_log import ExecutionLog  # noqa: F401
 from app.models.execution_plan import ExecutionPlan  # noqa: F401
 from app.models.gate_decision import GateDecision  # noqa: F401

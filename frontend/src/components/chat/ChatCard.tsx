@@ -8,11 +8,11 @@ interface ChatCardProps {
 function getActionClass(style?: string): string {
   switch (style) {
     case 'primary':
-      return 'bg-blue-600 text-white hover:bg-blue-700 border-transparent'
+      return 'bg-gray-900 text-white hover:bg-gray-800 border-transparent'
     case 'danger':
       return 'bg-red-600 text-white hover:bg-red-700 border-transparent'
     default:
-      return 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+      return 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'
   }
 }
 
@@ -22,15 +22,18 @@ export default function ChatCardComponent({ card, onAction }: ChatCardProps) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 max-w-md">
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 max-w-md">
       <div className="font-semibold text-sm text-gray-900 mb-2">{card.title}</div>
       {card.description && (
         <div className="text-sm text-gray-600 mb-3 leading-relaxed">{card.description}</div>
       )}
       {typeof card.data.diff === 'string' && (
-        <pre className="bg-gray-50 p-3 rounded-lg text-xs font-mono max-h-40 overflow-auto mb-3">
-          {card.data.diff}
+        <pre className="bg-gray-50 p-3 rounded-xl text-xs font-mono max-h-40 overflow-auto mb-3">
+          {card.data.diff as string}
         </pre>
+      )}
+      {typeof card.data.target_path === 'string' && card.data.target_path && (
+        <div className="text-xs text-gray-500 mb-3 font-mono">{card.data.target_path}</div>
       )}
       <div className="flex flex-wrap gap-2 justify-end">
         {card.actions.map((action) => (
@@ -38,7 +41,7 @@ export default function ChatCardComponent({ card, onAction }: ChatCardProps) {
             key={action.command}
             type="button"
             onClick={() => handleClick(action)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${getActionClass(
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${getActionClass(
               action.style,
             )}`}
           >

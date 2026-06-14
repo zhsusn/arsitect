@@ -6,7 +6,8 @@ export interface FrontendSpaProps {
 }
 
 /**
- * TODO: implement frontend-spa container
+ * Frontend SPA container entry.
+ * Aligns with C4 container `frontend-spa`.
  */
 export const FrontendSpa: React.FC<FrontendSpaProps> = () => {
   return <div>frontend-spa</div>

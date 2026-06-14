@@ -21,6 +21,14 @@ class CliMode(StrEnum):
     ARCH = "arch"
 
 
+class ChatTaskMode(StrEnum):
+    """AI CLI task modes for agent routing."""
+
+    FREE_CHAT = "free-chat"
+    BUG = "bug"
+    ARCH_FIX = "arch-fix"
+
+
 class CliSessionStatus(StrEnum):
     """CLI session lifecycle states."""
 
@@ -91,6 +99,11 @@ class CliSession(Base):
     mode: Mapped[str] = mapped_column(
         String(10), nullable=False, default=CliMode.BUG.value
     )
+    task_mode: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=ChatTaskMode.FREE_CHAT.value
+    )
+    llm_provider: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    context_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=CliSessionStatus.ACTIVE.value
     )
@@ -123,6 +136,10 @@ class CliSession(Base):
 
     __table_args__ = (
         CheckConstraint("mode IN ('bug', 'arch')", name="ck_cli_session_mode"),
+        CheckConstraint(
+            "task_mode IN ('free-chat', 'bug', 'arch-fix')",
+            name="ck_cli_session_task_mode",
+        ),
         CheckConstraint(
             "status IN ('active', 'paused', 'closed')",
             name="ck_cli_session_status",

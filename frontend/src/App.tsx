@@ -27,6 +27,7 @@ import TemplateStageConfig from './pages/TemplateStageConfig'
 import ComplexityRouter from './pages/ComplexityRouter'
 import DocForgeAdmin from './pages/DocForgeAdmin'
 import ArchGovernancePage from './pages/ArchGovernance'
+import LlmConfig from './pages/LlmConfig'
 
 interface NavItem {
   label: string
@@ -93,6 +94,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: 'Application', path: '/applications' },
       { label: 'Skill 治理', path: '/skills' },
+      { label: 'LLM 配置', path: '/settings/llm' },
       { label: '模板配置', path: '/template-config' },
       { label: '文档标准化', path: '/docforge' },
     ],
@@ -338,6 +340,7 @@ function AppLayout() {
             <Route path="/template-config" element={<TemplateStageConfig />} />
             <Route path="/complexity-router" element={<ComplexityRouter />} />
             <Route path="/docforge" element={<DocForgeAdmin />} />
+            <Route path="/settings/llm" element={<LlmConfig />} />
             <Route path="/arch-governance" element={<ArchGovernancePage />} />
             <Route path="/arch-governance/:projectId" element={<ArchGovernancePage />} />
             <Route path="/" element={<AppDashboard />} />

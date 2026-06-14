@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
+import { RefreshCw, Wrench } from 'lucide-react'
 import FixConfirmModal from './components/FixConfirmModal'
-import FixTerminalModal from './components/FixTerminalModal'
+import ChatSidePanel from './components/ChatSidePanel'
 import type { AnalyzeResponse, C4FixPlanResponse } from './types'
 
 const LEVEL_NAMES: Record<string, string> = {
@@ -245,15 +246,17 @@ export default function ArchGovernancePage() {
           <button
             onClick={fetchAnalysis}
             disabled={loading}
-            className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
-            {loading ? '分析中...' : '⟳ 重新分析'}
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            {loading ? '分析中...' : '重新分析'}
           </button>
           <button
             onClick={generateFixPlan}
             disabled={fixLoading || selectedIssues.length === 0}
-            className="px-3 py-1.5 text-sm rounded bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
           >
+            <Wrench size={14} />
             {fixLoading ? '生成中...' : `修复架构问题 (${selectedIssues.length})`}
           </button>
         </div>
@@ -446,9 +449,9 @@ export default function ArchGovernancePage() {
         />
       )}
 
-      {/* Fix terminal modal */}
+      {/* AI 修复侧边栏 */}
       {fixPlan && (
-        <FixTerminalModal
+        <ChatSidePanel
           projectId={projectId}
           plan={fixPlan}
           onClose={() => setFixPlan(null)}
