@@ -96,9 +96,7 @@ class CliSession(Base):
     )
     project_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    mode: Mapped[str] = mapped_column(
-        String(10), nullable=False, default=CliMode.BUG.value
-    )
+    mode: Mapped[str] = mapped_column(String(10), nullable=False, default=CliMode.BUG.value)
     task_mode: Mapped[str] = mapped_column(
         String(20), nullable=False, default=ChatTaskMode.FREE_CHAT.value
     )
@@ -107,9 +105,7 @@ class CliSession(Base):
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=CliSessionStatus.ACTIVE.value
     )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), nullable=False)
     closed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
@@ -152,9 +148,7 @@ class CliMessage(Base):
 
     __tablename__ = "cli_messages"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     session_id: Mapped[str] = mapped_column(
         ForeignKey("cli_sessions.id", ondelete="CASCADE"),
         nullable=False,
@@ -165,18 +159,13 @@ class CliMessage(Base):
     card_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     meta_data: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSON, nullable=True)
     sequence_no: Mapped[int] = mapped_column(nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), nullable=False)
 
-    session: Mapped[CliSession] = relationship(
-        "CliSession", back_populates="messages"
-    )
+    session: Mapped[CliSession] = relationship("CliSession", back_populates="messages")
 
     __table_args__ = (
         CheckConstraint(
-            "message_type IN ('user', 'ai', 'system', 'error', 'success', 'card',"
-            " 'progress')",
+            "message_type IN ('user', 'ai', 'system', 'error', 'success', 'card', 'progress')",
             name="ck_cli_message_type",
         ),
     )
@@ -187,9 +176,7 @@ class BugRecord(Base):
 
     __tablename__ = "bug_records"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("cli_sessions.id", ondelete="SET NULL"),
@@ -209,25 +196,17 @@ class BugRecord(Base):
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=BugRecordStatus.PENDING.value
     )
-    executed_by: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="ai"
-    )
+    executed_by: Mapped[str] = mapped_column(String(20), nullable=False, default="ai")
     verified_result: Mapped[str | None] = mapped_column(Text, nullable=True)
-    similar_bug_id: Mapped[str | None] = mapped_column(
-        ForeignKey("bug_records.id"), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), nullable=False
-    )
+    similar_bug_id: Mapped[str | None] = mapped_column(ForeignKey("bug_records.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
         nullable=False,
     )
 
-    session: Mapped[CliSession] = relationship(
-        "CliSession", back_populates="bug_records"
-    )
+    session: Mapped[CliSession] = relationship("CliSession", back_populates="bug_records")
 
     __table_args__ = (
         CheckConstraint(
@@ -246,9 +225,7 @@ class ArchIssue(Base):
 
     __tablename__ = "arch_issues"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("cli_sessions.id", ondelete="SET NULL"),
@@ -273,18 +250,14 @@ class ArchIssue(Base):
     change_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     exec_result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     adr_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
         nullable=False,
     )
 
-    session: Mapped[CliSession] = relationship(
-        "CliSession", back_populates="arch_issues"
-    )
+    session: Mapped[CliSession] = relationship("CliSession", back_populates="arch_issues")
 
     __table_args__ = (
         CheckConstraint(
@@ -292,8 +265,7 @@ class ArchIssue(Base):
             name="ck_arch_issues_severity",
         ),
         CheckConstraint(
-            "status IN ('detected', 'planned', 'executed', 'verified', 'closed',"
-            " 'skipped')",
+            "status IN ('detected', 'planned', 'executed', 'verified', 'closed', 'skipped')",
             name="ck_arch_issues_status",
         ),
     )

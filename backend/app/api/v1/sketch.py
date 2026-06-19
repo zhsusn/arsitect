@@ -28,6 +28,7 @@ router = APIRouter(tags=["sketches"])
 # Sketch session endpoints
 # ------------------------------------------------------------------
 
+
 @router.post(
     "/projects/{project_id}/sketches",
     response_model=SketchResponseDTO,
@@ -219,6 +220,7 @@ async def delete_sketch(
 # ------------------------------------------------------------------
 # Sketch page endpoints
 # ------------------------------------------------------------------
+
 
 @router.post(
     "/projects/{project_id}/sketch-pages",

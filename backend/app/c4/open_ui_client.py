@@ -100,11 +100,7 @@ class OpenUIClient:
         except yaml.YAMLError as exc:
             return self._error_result(f"Invalid C4 DSL YAML: {exc}")
 
-        containers = (
-            dsl_data.get("workspace", {})
-            .get("model", {})
-            .get("containers", [])
-        )
+        containers = dsl_data.get("workspace", {}).get("model", {}).get("containers", [])
         if not containers:
             return self._error_result("No containers found in C4 DSL")
 
@@ -122,9 +118,7 @@ class OpenUIClient:
                 html_result = await self._call_openui(prompt)
                 status = "GENERATED"
             except RuntimeError as exc:
-                html_result = self._build_fallback_wireframe(
-                    containers, all_contracts
-                )
+                html_result = self._build_fallback_wireframe(containers, all_contracts)
                 status = "FALLBACK"
                 return self._error_result(str(exc))
         else:
@@ -139,7 +133,7 @@ class OpenUIClient:
             status=status,
             html_content=html_result,
             page_count=len(pages),
-            page_titles=[p.get("title", f"Page {i+1}") for i, p in enumerate(pages)],
+            page_titles=[p.get("title", f"Page {i + 1}") for i, p in enumerate(pages)],
             prompt_text=prompt,
             duration_ms=duration,
         )
@@ -173,16 +167,18 @@ class OpenUIClient:
                 for c in container_contracts:
                     lines.append(f"  - {c.method} {c.endpoint_path}: {c.summary}")
 
-        lines.extend([
-            "",
-            "Requirements:",
-            "- Use semantic HTML5, embedded CSS, and vanilla JS.",
-            "- Include navigation, data tables or forms based on endpoints.",
-            "- Support responsive layout.",
-            "- Output a complete standalone HTML file.",
-            "- Use Chinese UI labels where appropriate.",
-            "- Split multiple pages with <!-- PAGE: PageName --> comments.",
-        ])
+        lines.extend(
+            [
+                "",
+                "Requirements:",
+                "- Use semantic HTML5, embedded CSS, and vanilla JS.",
+                "- Include navigation, data tables or forms based on endpoints.",
+                "- Support responsive layout.",
+                "- Output a complete standalone HTML file.",
+                "- Use Chinese UI labels where appropriate.",
+                "- Split multiple pages with <!-- PAGE: PageName --> comments.",
+            ]
+        )
 
         return "\n".join(lines)
 

@@ -10,7 +10,9 @@ from app.services.file_backup_service import FileBackupService
 class TestFileBackupService:
     """File backup, apply, verify and restore tests."""
 
-    async def test_resolve_target_relative_path(self, file_backup_service: FileBackupService) -> None:
+    async def test_resolve_target_relative_path(
+        self, file_backup_service: FileBackupService
+    ) -> None:
         """TEST-1601: Resolves a relative path inside the project root."""
         resolved = file_backup_service.resolve_target("backend/app/main.py", "proj-1")
         assert resolved == file_backup_service._project_root / "backend/app/main.py"
@@ -18,9 +20,14 @@ class TestFileBackupService:
     async def test_resolve_target_dsl_path(self, file_backup_service: FileBackupService) -> None:
         """TEST-1602: Resolves dsl://project_id to the DSL file."""
         resolved = file_backup_service.resolve_target("dsl://proj-1", "proj-1")
-        assert resolved == file_backup_service._project_root / "openspec/changes/proj-1/dsl/arsitect.aac.yml"
+        assert (
+            resolved
+            == file_backup_service._project_root / "openspec/changes/proj-1/dsl/arsitect.aac.yml"
+        )
 
-    async def test_resolve_target_traversal_blocked(self, file_backup_service: FileBackupService) -> None:
+    async def test_resolve_target_traversal_blocked(
+        self, file_backup_service: FileBackupService
+    ) -> None:
         """TEST-1603: Path traversal is rejected."""
         with pytest.raises(ValueError, match="Path traversal not allowed"):
             file_backup_service.resolve_target("../escape.txt", "proj-1")
@@ -36,13 +43,17 @@ class TestFileBackupService:
         assert backup.exists()
         assert backup.read_text(encoding="utf-8") == "original"
 
-    async def test_backup_creates_marker_for_new_file(self, file_backup_service: FileBackupService) -> None:
+    async def test_backup_creates_marker_for_new_file(
+        self, file_backup_service: FileBackupService
+    ) -> None:
         """TEST-1605: Backup for a non-existing file creates a create-marker."""
         target = file_backup_service._project_root / "src/new.py"
         backup = file_backup_service.backup(target, "session-1")
         assert backup.read_text(encoding="utf-8") == "__ARSITECT_BACKUP_MARKER_CREATED__"
 
-    async def test_apply_change_writes_content(self, file_backup_service: FileBackupService) -> None:
+    async def test_apply_change_writes_content(
+        self, file_backup_service: FileBackupService
+    ) -> None:
         """TEST-1606: apply_change writes the new file content."""
         target = file_backup_service._project_root / "src/foo.py"
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -100,7 +111,9 @@ class TestFileBackupService:
 
         assert target.read_text(encoding="utf-8") == "original"
 
-    async def test_restore_create_marker_removes_file(self, file_backup_service: FileBackupService) -> None:
+    async def test_restore_create_marker_removes_file(
+        self, file_backup_service: FileBackupService
+    ) -> None:
         """TEST-1611: restore from create-marker removes the created file."""
         target = file_backup_service._project_root / "src/new.py"
         target.parent.mkdir(parents=True, exist_ok=True)

@@ -7,6 +7,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
@@ -17,6 +18,8 @@ from app.infrastructure.database.repositories.template_repo import TemplateRepos
 from app.infrastructure.database.session import get_db
 from app.models.canvas_state import CanvasState
 from app.models.project import Project
+from app.models.project_path_config import ProjectPathConfig
+from app.models.project_stage import ProjectStage
 from app.schemas.canvas_state import (
     CanvasEdgeDTO,
     CanvasNodeDTO,
@@ -93,7 +96,64 @@ def _to_response_dto(canvas_state: CanvasState) -> CanvasStateResponseDTO:
     )
 
 
-def _build_default_canvas_state(project_id: str, stages: list[Any]) -> CanvasState:
+async def _enrich_nodes_with_runtime(
+    session: AsyncSession,
+    project_id: str,
+    nodes: list[CanvasNodeDTO],
+) -> list[CanvasNodeDTO]:
+    """Overlay runtime_status from project_stages onto stage nodes."""
+    stmt = (
+        select(ProjectStage)
+        .where(ProjectStage.project_id == project_id)
+        .order_by(ProjectStage.order_index.asc())
+    )
+    result = await session.execute(stmt)
+    stages = list(result.scalars().all())
+    if not stages:
+        return nodes
+
+    runtime_map: dict[str, str] = {}
+    business_key_map: dict[str, str] = {}
+    for s in stages:
+        runtime_map[str(s.order_index)] = s.runtime_status
+        business_key_map[str(s.order_index)] = ""
+
+    enriched: list[CanvasNodeDTO] = []
+    for node in nodes:
+        if node.type == "stage":
+            order_key = node.id.replace("stage-", "")
+            runtime_status = runtime_map.get(order_key)
+            if runtime_status is not None and node.data is not None:
+                node.data.status = runtime_status
+        enriched.append(node)
+    return enriched
+
+
+def _build_merge_group_map(
+    merge_policy: dict[str, Any] | None,
+) -> dict[str, dict[str, Any]]:
+    """Map each business stage key to its merge group metadata."""
+    if not merge_policy:
+        return {}
+    result: dict[str, dict[str, Any]] = {}
+    for group in merge_policy.get("groups", []):
+        keys = group.get("business_stage_keys", [])
+        label = group.get("label")
+        for key in keys:
+            result[key] = {"label": label, "keys": keys}
+    return result
+
+
+def _resolve_business_stage_key(stage: Any) -> str | None:
+    """Return the business stage key for a template or project stage."""
+    return getattr(stage, "business_stage_key", None) or getattr(stage, "stage_id", None)
+
+
+def _build_default_canvas_state(
+    project_id: str,
+    stages: list[Any],
+    merge_policy: dict[str, Any] | None = None,
+) -> CanvasState:
     """Generate a default canvas state from template stages with skills and gates."""
     nodes: list[CanvasNodeDTO] = []
     edges: list[CanvasEdgeDTO] = []
@@ -103,10 +163,15 @@ def _build_default_canvas_state(project_id: str, stages: list[Any]) -> CanvasSta
     node_gap = 60
     skill_y_offset = 180
     skill_gap_y = 90
+    group_map = _build_merge_group_map(merge_policy)
 
     for i, stage in enumerate(stages):
         node_id = f"stage-{stage.order_index}"
         stage_x = float(x_offset)
+        business_key = _resolve_business_stage_key(stage)
+        group = group_map.get(business_key) if business_key else None
+        merged_keys = group["keys"] if group else None
+        is_merged = bool(merged_keys and len(merged_keys) > 1)
         nodes.append(
             CanvasNodeDTO(
                 id=node_id,
@@ -116,6 +181,9 @@ def _build_default_canvas_state(project_id: str, stages: list[Any]) -> CanvasSta
                     label=stage.stage_name,
                     status="Pending",
                     progress=0.0,
+                    merge_group_label=group["label"] if group else None,
+                    merged_stage_keys=merged_keys,
+                    is_merged=is_merged,
                 ),
                 width=node_width,
                 height=60,
@@ -170,7 +238,9 @@ def _build_default_canvas_state(project_id: str, stages: list[Any]) -> CanvasSta
                 CanvasNodeDTO(
                     id=skill_id,
                     type="skill",
-                    position=PositionDTO(x=stage_x, y=float(skill_y_offset + skill_idx * skill_gap_y)),
+                    position=PositionDTO(
+                        x=stage_x, y=float(skill_y_offset + skill_idx * skill_gap_y)
+                    ),
                     data=NodeDataDTO(
                         label=stage.primary_skill_id[-8:],
                         status="Pending",
@@ -251,6 +321,33 @@ def _build_default_canvas_state(project_id: str, stages: list[Any]) -> CanvasSta
     )
 
 
+async def _get_merge_policy_for_project(
+    session: AsyncSession, project_id: str
+) -> dict[str, Any] | None:
+    """Load merge policy from ProjectPathConfig or fall back to Project."""
+    path_config_result = await session.execute(
+        select(ProjectPathConfig).where(ProjectPathConfig.project_id == project_id)
+    )
+    path_config = path_config_result.scalar_one_or_none()
+    raw_policy: str | None = None
+    if path_config is not None:
+        raw_policy = path_config.merge_policy_json
+    else:
+        proj = await session.get(Project, project_id)
+        if proj is not None:
+            raw_policy = proj.merge_policy_json
+
+    if not raw_policy:
+        return None
+    try:
+        policy = json.loads(raw_policy)
+    except Exception:
+        return None
+    if isinstance(policy, dict):
+        return policy
+    return None
+
+
 @router.get("/{project_id}/canvas/state", response_model=CanvasStateResponseDTO)
 async def get_canvas_state(
     project_id: str,
@@ -259,23 +356,24 @@ async def get_canvas_state(
     """Get canvas state for a project; auto-create from template if absent."""
     repo = CanvasStateRepository(db)
     state = await repo.get_by_project_id(project_id)
-    if state is not None:
-        return _to_response_dto(state)
+    if state is None:
+        # Auto-generate from project's template stages
+        proj = await db.get(Project, project_id)
+        if proj is None:
+            raise NotFoundError(detail=f"Project '{project_id}' not found")
 
-    # Auto-generate from project's template stages
-    proj = await db.get(Project, project_id)
-    if proj is None:
-        raise NotFoundError(detail=f"Project '{project_id}' not found")
+        tpl_repo = TemplateRepository(db)
+        stages = await tpl_repo.get_stages_for_template(proj.template_level)
+        if not stages:
+            raise NotFoundError(detail=f"No template stages found for template '{proj.template_level}'")
 
-    tpl_repo = TemplateRepository(db)
-    stages = await tpl_repo.get_stages_for_template(proj.template_level)
-    if not stages:
-        raise NotFoundError(
-            detail=f"No template stages found for template '{proj.template_level}'"
-        )
+        merge_policy = await _get_merge_policy_for_project(db, project_id)
+        state = _build_default_canvas_state(project_id, stages, merge_policy)
+        state = await repo.save(state)
 
-    state = _build_default_canvas_state(project_id, stages)
-    state = await repo.save(state)
+    nodes = _parse_nodes(state.nodes)
+    nodes = await _enrich_nodes_with_runtime(db, project_id, nodes)
+    state.nodes = _serialize_nodes(nodes)
     return _to_response_dto(state)
 
 

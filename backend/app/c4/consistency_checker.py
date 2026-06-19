@@ -143,7 +143,9 @@ class ConsistencyChecker:
                         message=f"容器 '{cname}' 在代码中未找到对应模块",
                         c4_node_id=cid,
                         fix_hint=f"在 backend/app/ 或 frontend/src/ 下创建 '{cid}' 目录；或在设计文档中修正容器定义",
-                        fix_action="UPDATE_DOC" if self._is_likely_doc_issue(cid, ws) else "UPDATE_CODE",
+                        fix_action="UPDATE_DOC"
+                        if self._is_likely_doc_issue(cid, ws)
+                        else "UPDATE_CODE",
                     )
                 )
         return issues
@@ -216,7 +218,9 @@ class ConsistencyChecker:
                         message=f"组件 '{comp_name}' 在代码中未找到对应类/函数",
                         c4_node_id=comp_id,
                         fix_hint=f"在代码中实现 '{comp_name}' 组件；或在设计文档中移除/修正此组件",
-                        fix_action="UPDATE_DOC" if self._is_likely_doc_issue(comp_id, ws) else "UPDATE_CODE",
+                        fix_action="UPDATE_DOC"
+                        if self._is_likely_doc_issue(comp_id, ws)
+                        else "UPDATE_CODE",
                     )
                 )
         return issues
@@ -229,8 +233,7 @@ class ConsistencyChecker:
         """Major code classes/functions should be defined as L3 components."""
         issues: list[ConsistencyIssue] = []
         comp_names = {
-            c.get("name", c.get("id", "")).lower().replace("-", "_")
-            for c in ws.components
+            c.get("name", c.get("id", "")).lower().replace("-", "_") for c in ws.components
         }
         comp_ids = {c.get("id", "").lower().replace("-", "_") for c in ws.components}
 
@@ -243,9 +246,7 @@ class ConsistencyChecker:
                 continue
             if name_lower not in comp_names and name_lower not in comp_ids:
                 # Allow partial match
-                found = any(
-                    name_lower in cn or cn in name_lower for cn in comp_names | comp_ids
-                )
+                found = any(name_lower in cn or cn in name_lower for cn in comp_names | comp_ids)
                 if not found:
                     issues.append(
                         ConsistencyIssue(

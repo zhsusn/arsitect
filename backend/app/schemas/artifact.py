@@ -17,6 +17,10 @@ class ArtifactTreeFileDTO(BaseModel):
     current_version: int = Field(description="当前版本号")
     external_status: str = Field(description="外部状态")
     stale_flag: bool = Field(description="过期标记")
+    stage_id: str | None = Field(default=None, description="所属阶段ID")
+    skill_id: str | None = Field(default=None, description="产生该产物的Skill ID")
+    execution_id: str | None = Field(default=None, description="关联的执行ID")
+    created_at: str | None = Field(default=None, description="创建时间")
     updated_at: str | None = Field(default=None, description="更新时间")
 
 
@@ -41,9 +45,7 @@ class SaveContentRequestDTO(BaseModel):
     """Request to save artifact content."""
 
     content: str = Field(description="文件内容")
-    expected_hash: str | None = Field(
-        default=None, description="预期的内容哈希，用于冲突检测"
-    )
+    expected_hash: str | None = Field(default=None, description="预期的内容哈希，用于冲突检测")
 
 
 class ArtifactVersionDTO(BaseModel):

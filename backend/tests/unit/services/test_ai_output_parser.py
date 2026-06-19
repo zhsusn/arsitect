@@ -50,9 +50,7 @@ export const B = 2;
 def test_parse_fallback_when_no_blocks() -> None:
     """TEST-1713: The whole output is used as the fallback target content."""
     output = "print('hello world')"
-    changes = AIOutputParser.parse_file_changes(
-        output, fallback_target="src/main.py"
-    )
+    changes = AIOutputParser.parse_file_changes(output, fallback_target="src/main.py")
 
     assert len(changes) == 1
     assert changes["src/main.py"] == "print('hello world')"

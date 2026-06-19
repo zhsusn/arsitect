@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -115,9 +115,7 @@ class C4Assembler:
             model["relationships"] = workspace.relationships
 
         data["workspace"]["views"] = self._generate_views(workspace)
-        return yaml.dump(
-            data, allow_unicode=True, sort_keys=False, default_flow_style=False
-        )
+        return cast(str, yaml.dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False))
 
     # ------------------------------------------------------------------
     # Internal
@@ -128,9 +126,7 @@ class C4Assembler:
             grouped[s.element_type].append(s)
         return dict(grouped)
 
-    def _deduplicate_merge(
-        self, snippets: list[C4Snippet]
-    ) -> list[dict[str, Any]]:
+    def _deduplicate_merge(self, snippets: list[C4Snippet]) -> list[dict[str, Any]]:
         merged: dict[str, dict[str, Any]] = {}
         for snippet in snippets:
             eid = snippet.element_id
@@ -165,9 +161,7 @@ class C4Assembler:
         for comp in workspace.components:
             cref = comp.get("properties", {}).get("container_id")
             if cref and cref not in container_ids:
-                comp["properties"]["_validation_error"] = (
-                    f"Container '{cref}' not found"
-                )
+                comp["properties"]["_validation_error"] = f"Container '{cref}' not found"
 
     def _generate_views(self, workspace: C4Workspace) -> dict[str, Any]:
         views: dict[str, Any] = {}

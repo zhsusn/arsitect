@@ -16,9 +16,7 @@ class BypassRecord(Base):
     __tablename__ = "bypass_records"
 
     record_id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    gate_decision_id: Mapped[str | None] = mapped_column(
-        String(64), nullable=True, index=True
-    )
+    gate_decision_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     plan_id: Mapped[str] = mapped_column(
         ForeignKey("execution_plans.plan_id", ondelete="CASCADE"),
         nullable=False,
@@ -28,9 +26,7 @@ class BypassRecord(Base):
     triggered_by: Mapped[str] = mapped_column(String(36), nullable=False)
     authorizer_token: Mapped[str] = mapped_column(String(128), nullable=False)
     reason: Mapped[str | None] = mapped_column(String(256), nullable=True, default="紧急执行")
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="PENDING_POST_APPROVAL"
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING_POST_APPROVAL")
     deadline_at: Mapped[datetime] = mapped_column(nullable=False)
     closed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)

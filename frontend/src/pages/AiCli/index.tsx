@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Bug, Cpu, MessageSquare, Plus, Send } from 'lucide-react'
+import { useProjectContext } from '../../App'
 import { useChatSession } from '@/components/chat/useChatSession'
 import type { ChatCard, ChatMessage, LLMProviderOption, TaskMode } from '@/components/chat/types'
 import MessageItem from '@/components/chat/MessageItem'
 import { configNodeApi, type ConfigNode } from '@/services/configNode'
-
-const LS_PROJECT_KEY = 'arsitect:lastProjectId'
 
 const MODES: { value: TaskMode; label: string; icon: React.ReactNode }[] = [
   { value: 'free-chat', label: '自由对话', icon: <MessageSquare size={14} /> },
@@ -93,13 +92,8 @@ function EmptyState({ mode }: { mode: TaskMode }) {
 }
 
 export default function AiCliPage() {
-  const [projectId] = useState(() => {
-    try {
-      return localStorage.getItem(LS_PROJECT_KEY) || 'default'
-    } catch {
-      return 'default'
-    }
-  })
+  const { currentProjectId } = useProjectContext()
+  const projectId = currentProjectId || 'default'
   const [mode, setMode] = useState<TaskMode>('free-chat')
   const [provider, setProvider] = useState<LLMProviderOption>('kimi-cli')
   const [providers, setProviders] = useState<ConfigNode[]>([])

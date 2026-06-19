@@ -134,8 +134,6 @@ class TestMonitoringService:
         assert total == 3
         assert len(logs) == 3
 
-        logs_create, total_create = await svc.list_operation_logs(
-            proj.project_id, action="CREATE"
-        )
+        logs_create, total_create = await svc.list_operation_logs(proj.project_id, action="CREATE")
         assert total_create == 2
         assert len(logs_create) == 2

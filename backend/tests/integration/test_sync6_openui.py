@@ -112,7 +112,9 @@ class TestSync6OpenUI:
         assert res.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_openui_create_invalid_status(self, seeded_project: Project, client: TestClient) -> None:
+    async def test_openui_create_invalid_status(
+        self, seeded_project: Project, client: TestClient
+    ) -> None:
         """TEST-1509: 非法 status 返回 400.
 
         Covers AC-3.1: 状态校验.

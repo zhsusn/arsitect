@@ -24,9 +24,7 @@ class ArchValidationService:
         """
         self._session = session
 
-    async def trigger_validation(
-        self, project_id: str, level: str
-    ) -> ArchValidationSession:
+    async def trigger_validation(self, project_id: str, level: str) -> ArchValidationSession:
         """Trigger a new validation session for a project/level.
 
         Args:

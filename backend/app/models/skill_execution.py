@@ -26,18 +26,10 @@ class SkillExecution(Base):
     trigger_action: Mapped[str] = mapped_column(
         String(16), nullable=False, default="SINGLE_EXECUTE"
     )
-    current_phase: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="NONE"
-    )
-    phase_status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="RUNNING"
-    )
-    overall_status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="NOT_STARTED"
-    )
-    retry_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
+    current_phase: Mapped[str] = mapped_column(String(16), nullable=False, default="NONE")
+    phase_status: Mapped[str] = mapped_column(String(16), nullable=False, default="RUNNING")
+    overall_status: Mapped[str] = mapped_column(String(16), nullable=False, default="NOT_STARTED")
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     previous_execution_id: Mapped[str | None] = mapped_column(
         ForeignKey("skill_executions.execution_id", ondelete="SET NULL"),
         nullable=True,
@@ -46,9 +38,7 @@ class SkillExecution(Base):
     release_confirmed: Mapped[bool] = mapped_column(nullable=False, default=False)
     started_at: Mapped[datetime | None] = mapped_column(nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        nullable=False, default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
 
     __table_args__ = (
         CheckConstraint(

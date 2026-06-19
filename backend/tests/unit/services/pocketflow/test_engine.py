@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.services.pocketflow.engine import PocketFlowEngine
-from app.services.pocketflow.exec_stage import ExecResult
+from app.services.pocketflow.exec_stage import ExecResult, ExecStage
 
 
 class TestPocketFlowEngine:
@@ -103,3 +103,48 @@ class TestPocketFlowEngine:
             assert result.final_status == "FAILED"
             assert result.phase_results["post"].status == "FAILED"
             assert len(result.missing_artifacts) == 1
+
+
+class TestPocketFlowEngineCLIAdapter:
+    """Tests that PocketFlowEngine delegates to a CLI adapter by default."""
+
+    @pytest.mark.asyncio
+    async def test_default_engine_uses_cli_adapter(self) -> None:
+        """Default engine uses a CLI adapter and passes the skill path to it."""
+        from app.services.pocketflow.cli_adapter import CLIExecutionResult, ExecutionStatus
+
+        adapter = AsyncMock()
+        adapter.execute = AsyncMock(
+            return_value=CLIExecutionResult(
+                skill_id="brainstorming",
+                status=ExecutionStatus.SUCCESS,
+                exit_code=0,
+                stdout="cli stdout",
+                stderr="",
+                duration_ms=50,
+            )
+        )
+
+        engine = PocketFlowEngine(exec_=ExecStage(cli_adapter=adapter))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            skill_path = Path(tmpdir) / "SKILL.md"
+            skill_path.write_text("# Test Skill")
+
+            result = await engine.execute(
+                skill_path=str(skill_path),
+                project_id="proj-1",
+                work_dir=tmpdir,
+                expected_artifacts=[],
+            )
+
+        assert result.final_status == "PASSED"
+        assert result.stdout == "cli stdout"
+        adapter.execute.assert_awaited_once()
+        call_args = adapter.execute.call_args
+        assert call_args.kwargs["skill_path"] == str(skill_path)
+
+    @pytest.mark.asyncio
+    async def test_default_engine_uses_kimi_adapter_when_no_adapter_injected(self) -> None:
+        """Engine created without arguments uses the real KimiCLIAdapter."""
+        engine = PocketFlowEngine()
+        assert engine._exec._cli_adapter is not None

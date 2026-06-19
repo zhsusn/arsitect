@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   fetchTemplates,
   fetchTemplateDetail,
+  updateTemplateExecutionStrategy,
   updateTemplateStage,
   type Template,
   type TemplateStage,
@@ -26,6 +27,17 @@ export default function TemplateStageConfig() {
   const [skills, setSkills] = useState<SkillOption[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const [savingStrategy, setSavingStrategy] = useState(false)
+  const [executionStrategy, setExecutionStrategy] = useState<string>('semi_auto')
+  const [mergeGroups, setMergeGroups] = useState<
+    Array<{
+      group_id: string
+      label: string
+      business_stage_keys: string[]
+      gate_at_end?: boolean
+      auto_advance?: boolean
+    }>
+  >([])
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
@@ -68,6 +80,8 @@ export default function TemplateStageConfig() {
           return true
         })
         setStages(unique)
+        setExecutionStrategy(detail.template.default_execution_strategy || 'semi_auto')
+        setMergeGroups(detail.template.merge_policy_json?.groups ?? [])
         setLoading(false)
       })
       .catch((err) => {
@@ -81,6 +95,35 @@ export default function TemplateStageConfig() {
     for (const s of skills) map[s.skill_id] = s.skill_name
     return map
   }, [skills])
+
+  const getMergeTag = useCallback(
+    (stage: TemplateStage): string | null => {
+      const key = stage.business_stage_key
+      if (!key) return null
+      const group = mergeGroups.find((g) => g.business_stage_keys.includes(key))
+      if (!group || group.business_stage_keys.length <= 1) return null
+      return `(合并: ${group.business_stage_keys.join('+')})`
+    },
+    [mergeGroups],
+  )
+
+  const handleStrategyChange = async (value: string) => {
+    setExecutionStrategy(value)
+    setSavingStrategy(true)
+    setSuccessMsg(null)
+    setError(null)
+    try {
+      await updateTemplateExecutionStrategy(selectedLevel, {
+        default_execution_strategy: value,
+      })
+      setSuccessMsg('执行策略已保存')
+      setTimeout(() => setSuccessMsg(null), 2000)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '保存执行策略失败')
+    } finally {
+      setSavingStrategy(false)
+    }
+  }
 
   const handlePrimarySkillChange = (stageId: string, value: string) => {
     setStages((prev) =>
@@ -221,8 +264,26 @@ export default function TemplateStageConfig() {
                   marginTop: 6,
                 }}
               >
-                {t ? `${t.stage_count} 个阶段 / ${t.estimated_skill_count} 个 Skill` : ''}
+                {t
+                  ? `${t.stage_count} 个阶段 / ${t.estimated_skill_count} 个 Skill`
+                  : ''}
               </div>
+              {t && (
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: '#3b82f6',
+                    marginTop: 4,
+                    fontWeight: 500,
+                  }}
+                >
+                  策略：{t.default_execution_strategy === 'full_auto'
+                    ? '全自动'
+                    : t.default_execution_strategy === 'full_manual'
+                      ? '全人工'
+                      : '半自动'}
+                </div>
+              )}
             </button>
           )
         })}
@@ -239,14 +300,36 @@ export default function TemplateStageConfig() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 12,
           }}
         >
           <span style={{ fontSize: 14, fontWeight: 500 }}>
             当前模板：{tpl.template_name}
           </span>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>
-            复杂度：{tpl.applicable_complexity} | 阶段数：{tpl.stage_count}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 }}>
+            <label style={{ color: '#374151', fontWeight: 500 }}>执行策略：</label>
+            <select
+              value={executionStrategy}
+              onChange={(e) => handleStrategyChange(e.target.value)}
+              disabled={savingStrategy || isFrozen}
+              style={{
+                padding: '6px 8px',
+                borderRadius: 4,
+                border: '1px solid #d1d5db',
+                fontSize: 13,
+                background: '#fff',
+                opacity: savingStrategy || isFrozen ? 0.6 : 1,
+              }}
+            >
+              <option value="full_auto">全自动 (full_auto)</option>
+              <option value="semi_auto">半自动 (semi_auto)</option>
+              <option value="full_manual">全人工 (full_manual)</option>
+            </select>
+            <span style={{ fontSize: 12, color: '#6b7280' }}>
+              复杂度：{tpl.applicable_complexity} | 阶段数：{tpl.stage_count}
+            </span>
+          </div>
         </div>
       )}
 
@@ -301,23 +384,40 @@ export default function TemplateStageConfig() {
           加载阶段列表...
         </div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left' }}>
-              <th style={{ padding: '12px 8px', width: 60 }}>序号</th>
-              <th style={{ padding: '12px 8px', width: 140 }}>阶段名称</th>
-              <th style={{ padding: '12px 8px' }}>主 Skill</th>
-              <th style={{ padding: '12px 8px', minWidth: 280 }}>辅助 Skills</th>
-              <th style={{ padding: '12px 8px', width: 80 }}>可跳过</th>
-              <th style={{ padding: '12px 8px', width: 90 }}>操作</th>
-            </tr>
-          </thead>
+        <>
+          <div className="text-xs text-amber-700 mb-2">
+            * 每个阶段必须绑定 1 个主 Skill，未绑定的阶段无法保存。
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left' }}>
+                <th style={{ padding: '12px 8px', width: 60 }}>序号</th>
+                <th style={{ padding: '12px 8px', width: 140 }}>阶段名称</th>
+                <th style={{ padding: '12px 8px' }}>主 Skill</th>
+                <th style={{ padding: '12px 8px', minWidth: 280 }}>辅助 Skills</th>
+                <th style={{ padding: '12px 8px', width: 80 }}>可跳过</th>
+                <th style={{ padding: '12px 8px', width: 90 }}>操作</th>
+              </tr>
+            </thead>
           <tbody>
             {stages.map((stage) => (
               <tr key={stage.stage_id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '10px 8px' }}>{stage.order_index}</td>
                 <td style={{ padding: '10px 8px', fontWeight: 500 }}>
-                  {stage.stage_name}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span>{stage.stage_name}</span>
+                    {(() => {
+                      const tag = getMergeTag(stage)
+                      return tag ? (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200"
+                          title={tag}
+                        >
+                          {tag}
+                        </span>
+                      ) : null
+                    })()}
+                  </div>
                 </td>
                 <td style={{ padding: '10px 8px' }}>
                   <select
@@ -325,13 +425,13 @@ export default function TemplateStageConfig() {
                     onChange={(e) =>
                       handlePrimarySkillChange(stage.stage_id, e.target.value)
                     }
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: 4,
-                      border: '1px solid #d1d5db',
-                      width: '100%',
-                      fontSize: 13,
-                    }}
+                    className={[
+                      'w-full text-sm rounded px-2 py-1.5 border',
+                      stage.primary_skill_id
+                        ? 'border-gray-300'
+                        : 'border-amber-400 bg-amber-50',
+                    ].join(' ')}
+                    style={{ fontSize: 13 }}
                   >
                     <option value="">-- 未选择 --</option>
                     {skills.map((sk) => (
@@ -340,6 +440,11 @@ export default function TemplateStageConfig() {
                       </option>
                     ))}
                   </select>
+                  {!stage.primary_skill_id && (
+                    <div className="text-xs text-amber-700 mt-1">
+                      每个阶段必须绑定 1 个主 Skill
+                    </div>
+                  )}
                 </td>
                 <td style={{ padding: '10px 8px' }}>
                   <div
@@ -402,16 +507,24 @@ export default function TemplateStageConfig() {
                 <td style={{ padding: '10px 8px' }}>
                   <button
                     onClick={() => saveStage(stage)}
-                    disabled={saving[stage.stage_id]}
+                    disabled={!stage.primary_skill_id || saving[stage.stage_id]}
+                    title={
+                      stage.primary_skill_id
+                        ? '保存当前阶段配置'
+                        : '每个阶段必须绑定 1 个主 Skill 后才能保存'
+                    }
                     style={{
                       padding: '4px 10px',
                       fontSize: 12,
                       borderRadius: 4,
                       border: '1px solid #3b82f6',
                       background: '#fff',
-                      color: '#3b82f6',
-                      cursor: saving[stage.stage_id] ? 'not-allowed' : 'pointer',
-                      opacity: saving[stage.stage_id] ? 0.6 : 1,
+                      color: stage.primary_skill_id ? '#3b82f6' : '#9ca3af',
+                      cursor:
+                        !stage.primary_skill_id || saving[stage.stage_id]
+                          ? 'not-allowed'
+                          : 'pointer',
+                      opacity: !stage.primary_skill_id || saving[stage.stage_id] ? 0.6 : 1,
                     }}
                   >
                     {saving[stage.stage_id] ? '保存中' : '保存'}
@@ -421,6 +534,7 @@ export default function TemplateStageConfig() {
             ))}
           </tbody>
         </table>
+        </>
       )}
 
       {/* Deviation confirm modal */}

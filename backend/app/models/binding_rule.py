@@ -22,16 +22,10 @@ class BindingRule(Base):
     )
     source_field: Mapped[str] = mapped_column(String(128), nullable=False)
     target_field: Mapped[str] = mapped_column(String(128), nullable=False)
-    transform_type: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DIRECT"
-    )
+    transform_type: Mapped[str] = mapped_column(String(16), nullable=False, default="DIRECT")
     transform_config: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="ACTIVE"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ACTIVE")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

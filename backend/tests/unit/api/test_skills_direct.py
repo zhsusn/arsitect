@@ -171,22 +171,16 @@ class TestSkillRouterDirect:
         e1 = f"e1-{uuid.uuid4().hex[:8]}"
 
         await add_dag_node(
-            AddDAGNodeRequestDTO(
-                node_id=n1, skill_id="skill-direct", position_x=0, position_y=0
-            ),
+            AddDAGNodeRequestDTO(node_id=n1, skill_id="skill-direct", position_x=0, position_y=0),
             db=clean_db,
         )
         await add_dag_node(
-            AddDAGNodeRequestDTO(
-                node_id=n2, skill_id="skill-direct", position_x=0, position_y=0
-            ),
+            AddDAGNodeRequestDTO(node_id=n2, skill_id="skill-direct", position_x=0, position_y=0),
             db=clean_db,
         )
 
         edge = await add_dag_edge(
-            AddDAGEdgeRequestDTO(
-                edge_id=e1, source_node_id=n1, target_node_id=n2
-            ),
+            AddDAGEdgeRequestDTO(edge_id=e1, source_node_id=n1, target_node_id=n2),
             db=clean_db,
         )
         assert edge.edge_id == e1

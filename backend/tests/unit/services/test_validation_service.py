@@ -15,7 +15,9 @@ def validation_service(tmp_path: Path) -> ValidationService:
     return ValidationService(project_root=tmp_path)
 
 
-async def test_validate_valid_python_file(validation_service: ValidationService, tmp_path: Path) -> None:
+async def test_validate_valid_python_file(
+    validation_service: ValidationService, tmp_path: Path
+) -> None:
     """TEST-1731: A valid Python file passes syntax validation."""
     target = tmp_path / "good.py"
     target.write_text("def main():\n    return 42\n", encoding="utf-8")
@@ -25,7 +27,9 @@ async def test_validate_valid_python_file(validation_service: ValidationService,
     assert result["ok"] is True
 
 
-async def test_validate_invalid_python_file(validation_service: ValidationService, tmp_path: Path) -> None:
+async def test_validate_invalid_python_file(
+    validation_service: ValidationService, tmp_path: Path
+) -> None:
     """TEST-1732: An invalid Python file fails syntax validation."""
     target = tmp_path / "bad.py"
     target.write_text("def main(\n", encoding="utf-8")

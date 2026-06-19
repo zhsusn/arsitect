@@ -1,33 +1,45 @@
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router'
+import { useState, createContext, useContext } from 'react'
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router'
 import { GlobalToast } from './components/GlobalToast'
 import ProjectSelector from './components/ProjectSelector'
+
+// Project Center
 import AppDashboard from './pages/AppDashboard'
-import SkillRegistry from './pages/SkillRegistry'
 import ProjectCreate from './pages/ProjectCreate'
 import ProjectDashboard from './pages/ProjectDashboard'
-
-import ExecutionMonitor from './pages/ExecutionMonitor'
+import ArtifactViewer from './pages/ArtifactViewer'
 import GateCenter from './pages/GateCenter'
 import GateDetailPage from './pages/GateCenter/components/GateDetailPage'
 import GateHistoryPage from './pages/GateCenter/components/GateHistoryPage'
-import ArtifactViewer from './pages/ArtifactViewer'
-import C4Navigator from './pages/C4Navigator'
-import MonitoringDashboard from './pages/MonitoringDashboard'
-import HistoryViewer from './pages/HistoryViewer'
-import ArchValidation from './pages/ArchValidation'
-import BypassManager from './pages/BypassManager'
-import OpenUIPreview from './pages/OpenUIPreview'
-import WireframeCanvas from './pages/WireframeCanvas'
-import BindingPanel from './pages/BindingPanel'
+
+// Requirement Studio
+import BrainstormPage from './pages/RequirementStudio/Brainstorm'
+import RequirementPlanPage from './pages/RequirementStudio/RequirementPlan'
+import RequirementGatePage from './pages/RequirementStudio/RequirementGate'
 import SketchGallery from './pages/SketchGallery'
-import CanvasPage from './pages/Canvas'
+
+// Solution Studio
+import DesignPlanPage from './pages/SolutionStudio/DesignPlan'
+import DesignFinalizationPage from './pages/SolutionStudio/DesignFinalization'
+import C4Navigator from './pages/C4Navigator'
+import WireframeCanvas from './pages/WireframeCanvas'
+import OpenUIPreview from './pages/OpenUIPreview'
+import BindingPanel from './pages/BindingPanel'
+
+// Execution Studio
+import TaskOrchestrationPage from './pages/ExecutionStudio/TaskOrchestration'
+import CodeDevPage from './pages/ExecutionStudio/CodeDev'
+import TestingPage from './pages/ExecutionStudio/Testing'
+import UATPage from './pages/ExecutionStudio/UAT'
+import CodeReviewPage from './pages/ExecutionStudio/CodeReview'
+import ReleasePage from './pages/ExecutionStudio/Release'
 import AiCliPage from './pages/AiCli'
-import TemplateStageConfig from './pages/TemplateStageConfig'
-import ComplexityRouter from './pages/ComplexityRouter'
-import DocForgeAdmin from './pages/DocForgeAdmin'
-import ArchGovernancePage from './pages/ArchGovernance'
+
+// Platform
+import SkillRegistry from './pages/SkillRegistry'
 import LlmConfig from './pages/LlmConfig'
+import TemplateStageConfig from './pages/TemplateStageConfig'
+import DocForgeAdmin from './pages/DocForgeAdmin'
 
 interface NavItem {
   label: string
@@ -42,61 +54,58 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
-    icon: '📊',
-    label: '项目中心',
+    icon: '🏢',
+    label: '项目工作台',
     items: [
-      { label: '项目工作台', path: '/projects' },
-      { label: '项目画布', path: '/canvas/default' },
-      { label: '复杂度评估', path: '/complexity-router' },
+      { label: '应用管理', path: '/project-center/application' },
+      { label: '项目管理', path: '/project-center/project' },
+      { label: '产物浏览器', path: '/project-center/artifact-browser' },
+      { label: '审批中心', path: '/project-center/approval' },
     ],
   },
   {
-    icon: '▶',
-    label: '执行中心',
+    icon: '🎨',
+    label: '需求设计室',
     items: [
-      { label: '执行监控', path: '/executions' },
-      { label: 'AI CLI', path: '/cli' },
-      { label: '监控看板', path: '/monitoring' },
+      { label: '脑暴室', path: '/requirement-studio/brainstorm' },
+      { label: '需求方案', path: '/requirement-studio/requirement-plan' },
+      { label: '需求草图', path: '/requirement-studio/sketch' },
+      { label: '需求确认', path: '/requirement-studio/requirement-gate' },
     ],
   },
   {
     icon: '🏗️',
-    label: '架构设计',
+    label: '方案设计室',
     items: [
-      { label: 'C4 架构', path: '/c4' },
-      { label: '线框图', path: '/wireframe' },
-      { label: '草图', path: '/sketches' },
-      { label: 'OpenUI', path: '/open-ui' },
-      { label: '数据绑定', path: '/binding' },
+      { label: '设计方案', path: '/solution-studio/design-plan' },
+      { label: '系统结构', path: '/solution-studio/system-structure' },
+      { label: '页面布局', path: '/solution-studio/page-layout' },
+      { label: '交互原型', path: '/solution-studio/interaction-prototype' },
+      { label: '接口对照', path: '/solution-studio/interface-check' },
+      { label: '设计定稿', path: '/solution-studio/design-finalization' },
     ],
   },
   {
-    icon: '📦',
-    label: '产物验证',
+    icon: '▶️',
+    label: '开发执行室',
     items: [
-      { label: '产物浏览器', path: '/artifacts' },
-      { label: '架构验证', path: '/arch-validation' },
-      { label: '架构治理', path: '/arch-governance' },
-      { label: '历史回溯', path: '/history' },
-    ],
-  },
-  {
-    icon: '🛡️',
-    label: '治理审批',
-    items: [
-      { label: '审批中心', path: '/gates' },
-      { label: '旁路审批', path: '/bypass' },
+      { label: '任务编排', path: '/execution-studio/task-orchestration' },
+      { label: '代码开发', path: '/execution-studio/coding' },
+      { label: '测试调试', path: '/execution-studio/testing' },
+      { label: 'UAT 验收', path: '/execution-studio/uat' },
+      { label: '代码审查', path: '/execution-studio/code-review' },
+      { label: '发布管理', path: '/execution-studio/release' },
+      { label: 'AI CLI', path: '/execution-studio/cli' },
     ],
   },
   {
     icon: '⚙️',
     label: '平台管理',
     items: [
-      { label: 'Application', path: '/applications' },
-      { label: 'Skill 治理', path: '/skills' },
-      { label: 'LLM 配置', path: '/settings/llm' },
-      { label: '模板配置', path: '/template-config' },
-      { label: '文档标准化', path: '/docforge' },
+      { label: 'Skill 治理', path: '/platform/skill-management' },
+      { label: 'LLM 配置', path: '/platform/llm-config' },
+      { label: '模板配置', path: '/platform/template-config' },
+      { label: '文档标准化', path: '/platform/doc-standard' },
     ],
   },
 ]
@@ -104,11 +113,10 @@ const navGroups: NavGroup[] = [
 function Sidebar() {
   const location = useLocation()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    '项目中心': true,
-    '执行中心': false,
-    '架构设计': false,
-    '产物验证': false,
-    '治理审批': false,
+    '项目工作台': true,
+    '需求设计室': false,
+    '方案设计室': false,
+    '开发执行室': false,
     '平台管理': false,
   })
 
@@ -117,12 +125,11 @@ function Sidebar() {
   }
 
   const isActive = (path: string) => {
-    if (path === '/canvas/default') {
-      return location.pathname.startsWith('/canvas')
+    if (path.endsWith('/*')) {
+      const prefix = path.slice(0, -2)
+      return location.pathname === prefix || location.pathname.startsWith(prefix + '/')
     }
-    return (
-      location.pathname === path || location.pathname.startsWith(path + '/')
-    )
+    return location.pathname === path || location.pathname.startsWith(path + '/')
   }
 
   return (
@@ -221,6 +228,16 @@ function Sidebar() {
 
 const LS_PROJECT_KEY = 'arsitect:lastProjectId'
 
+// Project Context for global projectId access
+export const ProjectContext = createContext<{
+  currentProjectId: string
+  setCurrentProjectId: (id: string) => void
+}>({ currentProjectId: '', setCurrentProjectId: () => {} })
+
+export function useProjectContext() {
+  return useContext(ProjectContext)
+}
+
 function TopBar({
   currentProjectId,
   onProjectChange,
@@ -248,7 +265,7 @@ function TopBar({
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <Link
-          to="/projects/create"
+          to="/project-center/project/create"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -284,6 +301,23 @@ function TopBar({
   )
 }
 
+// Route guard: requires projectId for design studio pages
+function ProjectRequiredGuard({ children }: { children: React.ReactNode }) {
+  const { currentProjectId } = useProjectContext()
+  const location = useLocation()
+
+  if (!currentProjectId) {
+    return (
+      <Navigate
+        to="/project-center/project"
+        state={{ from: location.pathname, message: '请先选择或创建一个项目' }}
+        replace
+      />
+    )
+  }
+  return <>{children}</>
+}
+
 function AppLayout() {
   const [currentProjectId, setCurrentProjectId] = useState(() => {
     try {
@@ -307,48 +341,141 @@ function AppLayout() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <TopBar currentProjectId={currentProjectId} onProjectChange={handleProjectChange} />
-        <main style={{ flex: 1, padding: 24, overflowY: 'auto', background: '#f9fafb' }}>
-          <Routes>
-            <Route path="/applications" element={<AppDashboard />} />
-            <Route path="/skills" element={<SkillRegistry />} />
-            <Route path="/projects" element={<ProjectDashboard />} />
-            <Route path="/projects/create" element={<ProjectCreate />} />
-            <Route path="/projects/:projectId" element={<ProjectDashboard />} />
+    <ProjectContext.Provider value={{ currentProjectId, setCurrentProjectId: handleProjectChange }}>
+      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        <Sidebar />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <TopBar currentProjectId={currentProjectId} onProjectChange={handleProjectChange} />
+          <main style={{ flex: 1, padding: 24, overflowY: 'auto', background: '#f9fafb' }}>
+            <Routes>
+              {/* ═══════════════════════════════════════════════════════════
+                 项目工作台
+                 ═══════════════════════════════════════════════════════════ */}
+              <Route path="/project-center/application" element={<AppDashboard />} />
+              <Route path="/project-center/project" element={<ProjectDashboard />} />
+              <Route path="/project-center/project/create" element={<ProjectCreate />} />
+              <Route path="/project-center/project/:projectId" element={<ProjectDashboard />} />
+              <Route path="/project-center/artifact-browser" element={<ArtifactViewer />} />
+              <Route path="/project-center/approval" element={<GateCenter />} />
+              <Route path="/project-center/approval/history" element={<GateHistoryPage />} />
+              <Route path="/project-center/approval/:gateId" element={<GateDetailPage />} />
 
-            <Route path="/executions" element={<ExecutionMonitor />} />
-            <Route path="/executions/:executionId" element={<ExecutionMonitor />} />
-            <Route path="/cli" element={<AiCliPage />} />
-            <Route path="/gates" element={<GateCenter />} />
-            <Route path="/gates/history" element={<GateHistoryPage />} />
-            <Route path="/gates/:gateId" element={<GateDetailPage />} />
-            <Route path="/artifacts" element={<ArtifactViewer />} />
-            <Route path="/c4" element={<C4Navigator />} />
-            <Route path="/c4/:projectId" element={<C4Navigator />} />
-            <Route path="/monitoring" element={<MonitoringDashboard />} />
-            <Route path="/history" element={<HistoryViewer />} />
-            <Route path="/arch-validation" element={<ArchValidation />} />
-            <Route path="/bypass" element={<BypassManager />} />
-            <Route path="/open-ui" element={<OpenUIPreview />} />
-            <Route path="/wireframe" element={<WireframeCanvas />} />
-            <Route path="/binding" element={<BindingPanel />} />
-            <Route path="/sketches" element={<SketchGallery />} />
-            <Route path="/canvas/:projectId" element={<CanvasPage />} />
-            <Route path="/template-config" element={<TemplateStageConfig />} />
-            <Route path="/complexity-router" element={<ComplexityRouter />} />
-            <Route path="/docforge" element={<DocForgeAdmin />} />
-            <Route path="/settings/llm" element={<LlmConfig />} />
-            <Route path="/arch-governance" element={<ArchGovernancePage />} />
-            <Route path="/arch-governance/:projectId" element={<ArchGovernancePage />} />
-            <Route path="/" element={<AppDashboard />} />
-          </Routes>
-        </main>
+              {/* ═══════════════════════════════════════════════════════════
+                 需求设计室 — 需要项目ID
+                 ═══════════════════════════════════════════════════════════ */}
+              <Route path="/requirement-studio/brainstorm" element={<ProjectRequiredGuard><BrainstormPage /></ProjectRequiredGuard>} />
+              <Route path="/requirement-studio/requirement-plan" element={<ProjectRequiredGuard><RequirementPlanPage /></ProjectRequiredGuard>} />
+              <Route path="/requirement-studio/sketch" element={<ProjectRequiredGuard><SketchGallery /></ProjectRequiredGuard>} />
+              <Route path="/requirement-studio/requirement-gate" element={<ProjectRequiredGuard><RequirementGatePage /></ProjectRequiredGuard>} />
+
+              {/* ═══════════════════════════════════════════════════════════
+                 方案设计室 — 需要项目ID
+                 ═══════════════════════════════════════════════════════════ */}
+              <Route path="/solution-studio/design-plan" element={<ProjectRequiredGuard><DesignPlanPage /></ProjectRequiredGuard>} />
+              <Route path="/solution-studio/system-structure" element={<ProjectRequiredGuard><C4Navigator /></ProjectRequiredGuard>} />
+              <Route path="/solution-studio/page-layout" element={<ProjectRequiredGuard><WireframeCanvas /></ProjectRequiredGuard>} />
+              <Route path="/solution-studio/interaction-prototype" element={<ProjectRequiredGuard><OpenUIPreview /></ProjectRequiredGuard>} />
+              <Route path="/solution-studio/interface-check" element={<ProjectRequiredGuard><BindingPanel /></ProjectRequiredGuard>} />
+              <Route path="/solution-studio/design-finalization" element={<ProjectRequiredGuard><DesignFinalizationPage /></ProjectRequiredGuard>} />
+
+              {/* ═══════════════════════════════════════════════════════════
+                 开发执行室
+                 ═══════════════════════════════════════════════════════════ */}
+              <Route path="/execution-studio/task-orchestration" element={<ProjectRequiredGuard><TaskOrchestrationPage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/coding" element={<ProjectRequiredGuard><CodeDevPage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/coding/:projectId" element={<ProjectRequiredGuard><CodeDevPage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/testing" element={<ProjectRequiredGuard><TestingPage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/uat" element={<ProjectRequiredGuard><UATPage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/code-review" element={<ProjectRequiredGuard><CodeReviewPage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/release" element={<ProjectRequiredGuard><ReleasePage /></ProjectRequiredGuard>} />
+              <Route path="/execution-studio/cli" element={<AiCliPage />} />
+
+              {/* ═══════════════════════════════════════════════════════════
+                 平台管理
+                 ═══════════════════════════════════════════════════════════ */}
+              <Route path="/platform/skill-management" element={<SkillRegistry />} />
+              <Route path="/platform/llm-config" element={<LlmConfig />} />
+              <Route path="/platform/template-config" element={<TemplateStageConfig />} />
+              <Route path="/platform/doc-standard" element={<DocForgeAdmin />} />
+
+              {/* ═══════════════════════════════════════════════════════════
+                 旧路由重定向（兼容性）
+                 ═══════════════════════════════════════════════════════════ */}
+
+              {/* 项目工作台旧路由 */}
+              <Route path="/project-center/workbench" element={<Navigate to="/project-center/project" replace />} />
+              <Route path="/project-center/workbench/*" element={<Navigate to="/project-center/project" replace />} />
+
+              {/* 需求设计室拆分重定向 */}
+              <Route path="/requirement-studio/*" element={<Navigate to="/requirement-studio/brainstorm" replace />} />
+              <Route path="/requirement-studio/requirement-outline" element={<Navigate to="/requirement-studio/requirement-plan" replace />} />
+              <Route path="/requirement-studio/requirement-detailed" element={<Navigate to="/requirement-studio/requirement-plan" replace />} />
+              <Route path="/requirement-studio/design-outline" element={<Navigate to="/solution-studio/design-plan" replace />} />
+              <Route path="/requirement-studio/design-detailed" element={<Navigate to="/solution-studio/design-plan" replace />} />
+              <Route path="/requirement-studio/artifacts" element={<Navigate to="/solution-studio/design-plan" replace />} />
+              <Route path="/requirement-studio/governance" element={<Navigate to="/solution-studio/design-finalization" replace />} />
+
+              {/* 方案设计室改名重定向 */}
+              <Route path="/c4" element={<Navigate to="/solution-studio/system-structure" replace />} />
+              <Route path="/c4/*" element={<Navigate to="/solution-studio/system-structure" replace />} />
+              <Route path="/wireframe" element={<Navigate to="/solution-studio/page-layout" replace />} />
+              <Route path="/wireframe/*" element={<Navigate to="/solution-studio/page-layout" replace />} />
+              <Route path="/open-ui" element={<Navigate to="/solution-studio/interaction-prototype" replace />} />
+              <Route path="/open-ui/*" element={<Navigate to="/solution-studio/interaction-prototype" replace />} />
+              <Route path="/binding" element={<Navigate to="/solution-studio/interface-check" replace />} />
+              <Route path="/binding/*" element={<Navigate to="/solution-studio/interface-check" replace />} />
+              <Route path="/arch-governance" element={<Navigate to="/solution-studio/design-finalization" replace />} />
+              <Route path="/arch-governance/*" element={<Navigate to="/solution-studio/design-finalization" replace />} />
+              <Route path="/sketches" element={<Navigate to="/requirement-studio/sketch" replace />} />
+              <Route path="/sketches/*" element={<Navigate to="/requirement-studio/sketch" replace />} />
+
+              {/* 开发执行室改名+合并重定向 */}
+              <Route path="/execution/task-center" element={<Navigate to="/execution-studio/task-orchestration" replace />} />
+              <Route path="/execution/canvas" element={<Navigate to="/execution-studio/coding" replace />} />
+              <Route path="/execution/canvas/:projectId" element={<Navigate to="/execution-studio/coding" replace />} />
+              <Route path="/execution/issues" element={<Navigate to="/execution-studio/testing" replace />} />
+              <Route path="/execution/monitor" element={<Navigate to="/execution-studio/task-orchestration" replace />} />
+              <Route path="/execution/monitor/:executionId" element={<Navigate to="/execution-studio/task-orchestration" replace />} />
+              <Route path="/execution/cli" element={<Navigate to="/execution-studio/cli" replace />} />
+              <Route path="/execution/dashboard" element={<Navigate to="/project-center/project" replace />} />
+
+              {/* 产物验证合并到项目工作台 */}
+              <Route path="/artifact-verification/browser" element={<Navigate to="/project-center/artifact-browser" replace />} />
+              <Route path="/artifact-verification/validation" element={<Navigate to="/solution-studio/design-finalization" replace />} />
+              <Route path="/artifact-verification/history" element={<Navigate to="/project-center/artifact-browser" replace />} />
+
+              {/* 治理审批合并到项目工作台 */}
+              <Route path="/governance/approval-center" element={<Navigate to="/project-center/approval" replace />} />
+              <Route path="/governance/approval-center/*" element={<Navigate to="/project-center/approval" replace />} />
+              <Route path="/governance/bypass" element={<Navigate to="/project-center/approval" replace />} />
+              <Route path="/gates" element={<Navigate to="/project-center/approval" replace />} />
+              <Route path="/gates/*" element={<Navigate to="/project-center/approval" replace />} />
+
+              {/* 历史遗留重定向 */}
+              <Route path="/projects" element={<Navigate to="/project-center/project" replace />} />
+              <Route path="/projects/create" element={<Navigate to="/project-center/project/create" replace />} />
+              <Route path="/projects/:projectId" element={<Navigate to="/project-center/project" replace />} />
+              <Route path="/applications" element={<Navigate to="/project-center/application" replace />} />
+              <Route path="/executions" element={<Navigate to="/execution-studio/task-orchestration" replace />} />
+              <Route path="/executions/:executionId" element={<Navigate to="/execution-studio/task-orchestration" replace />} />
+              <Route path="/cli" element={<Navigate to="/execution-studio/cli" replace />} />
+              <Route path="/monitoring" element={<Navigate to="/project-center/project" replace />} />
+              <Route path="/artifacts" element={<Navigate to="/project-center/artifact-browser" replace />} />
+              <Route path="/arch-validation" element={<Navigate to="/solution-studio/design-finalization" replace />} />
+              <Route path="/history" element={<Navigate to="/project-center/artifact-browser" replace />} />
+              <Route path="/bypass" element={<Navigate to="/project-center/approval" replace />} />
+              <Route path="/skills" element={<Navigate to="/platform/skill-management" replace />} />
+              <Route path="/settings/llm" element={<Navigate to="/platform/llm-config" replace />} />
+              <Route path="/template-config" element={<Navigate to="/platform/template-config" replace />} />
+              <Route path="/docforge" element={<Navigate to="/platform/doc-standard" replace />} />
+
+              <Route path="/" element={<AppDashboard />} />
+            </Routes>
+          </main>
+        </div>
+        <GlobalToast />
       </div>
-      <GlobalToast />
-    </div>
+    </ProjectContext.Provider>
   )
 }
 

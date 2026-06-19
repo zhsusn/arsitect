@@ -72,9 +72,7 @@ class TestConfigService:
             )
         )
 
-        resolved = await svc.resolve(
-            "llm_permission", project_id="proj-1", user_id="user-1"
-        )
+        resolved = await svc.resolve("llm_permission", project_id="proj-1", user_id="user-1")
         assert resolved["config"]["default_mode"] == "allow"
 
     async def test_update_node(self, db_session: Any) -> None:

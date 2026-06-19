@@ -18,12 +18,13 @@ from typing import Any
 # Data models
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FieldSpec:
     """A field definition from the IO table."""
 
     name: str
-    page_ref: str = ""          # e.g. "新建项目-步骤①"
+    page_ref: str = ""  # e.g. "新建项目-步骤①"
     field_type: str = "text"
     required: bool = False
     validation: str = ""
@@ -39,7 +40,7 @@ class ButtonSpec:
     trigger: str = "click"
     preconditions: str = ""
     success_result: str = ""
-    target_page: str = ""       # parsed from success_result / nav targets
+    target_page: str = ""  # parsed from success_result / nav targets
 
 
 @dataclass
@@ -47,14 +48,14 @@ class PageSpec:
     """Structured specification for a single page."""
 
     page_name: str
-    page_id: str = ""           # e.g. Pg_Dashboard from Mermaid
+    page_id: str = ""  # e.g. Pg_Dashboard from Mermaid
     url_route: str = ""
     page_type: str = "FORM"
     description: str = ""
     fields: list[FieldSpec] = field(default_factory=list)
     buttons: list[ButtonSpec] = field(default_factory=list)
-    nav_targets: list[str] = field(default_factory=list)   # outgoing page names
-    incoming_from: list[str] = field(default_factory=list) # incoming page names
+    nav_targets: list[str] = field(default_factory=list)  # outgoing page names
+    incoming_from: list[str] = field(default_factory=list)  # incoming page names
 
 
 @dataclass
@@ -64,7 +65,7 @@ class NavEdge:
     source: str
     target: str
     label: str = ""
-    style: str = "solid"        # solid or dashed
+    style: str = "solid"  # solid or dashed
 
 
 @dataclass
@@ -88,14 +89,21 @@ _TABLE_ROW_RE = re.compile(r"^\|(.+)\|$", re.MULTILINE)
 _MERMAID_BLOCK_RE = re.compile(r"```mermaid\n(.*?)```", re.DOTALL)
 
 # Header metadata patterns
-_MODULE_ID_RE = re.compile(r"[\*\-]?\s*\*\*模块编号\*\*\s*[:：]\s*(.+?)(?:\s*$|\s+\*\*)", re.MULTILINE)
-_MODULE_NAME_RE = re.compile(r"[\*\-]?\s*\*\*模块名称\*\*\s*[:：]\s*(.+?)(?:\s*$|\s+\*\*)", re.MULTILINE)
-_RELATED_STORIES_RE = re.compile(r"[\*\-]?\s*\*\*关联用户故事\*\*\s*[:：]\s*(.+?)(?:\s*$|\s+\*\*)", re.MULTILINE)
+_MODULE_ID_RE = re.compile(
+    r"[\*\-]?\s*\*\*模块编号\*\*\s*[:：]\s*(.+?)(?:\s*$|\s+\*\*)", re.MULTILINE
+)
+_MODULE_NAME_RE = re.compile(
+    r"[\*\-]?\s*\*\*模块名称\*\*\s*[:：]\s*(.+?)(?:\s*$|\s+\*\*)", re.MULTILINE
+)
+_RELATED_STORIES_RE = re.compile(
+    r"[\*\-]?\s*\*\*关联用户故事\*\*\s*[:：]\s*(.+?)(?:\s*$|\s+\*\*)", re.MULTILINE
+)
 
 
 # ---------------------------------------------------------------------------
 # Markdown table parser
 # ---------------------------------------------------------------------------
+
 
 def _parse_markdown_table(block: str) -> list[dict[str, str]]:
     """Parse a markdown table into list of row-dicts."""
@@ -198,7 +206,20 @@ def _extract_all_sections(content: str, *title_keywords: str) -> list[str]:
 _PAGE_TYPE_KEYWORDS: dict[str, list[str]] = {
     "LIST": ["列表", "查询", "搜索", "筛选", "分页", "批量", "table", "list"],
     "DETAIL": ["详情", "查看", "明细", "信息展示", "面板", "profile", "detail"],
-    "DASHBOARD": ["仪表盘", "统计", "指标", "图表", "概览", "工作台", "看板", "总览页", "首页", "dashboard", "chart", "homepage"],
+    "DASHBOARD": [
+        "仪表盘",
+        "统计",
+        "指标",
+        "图表",
+        "概览",
+        "工作台",
+        "看板",
+        "总览页",
+        "首页",
+        "dashboard",
+        "chart",
+        "homepage",
+    ],
     "FORM": ["表单", "填写", "提交", "编辑", "创建", "form", "input"],
     "MODAL": ["弹窗", "弹层", "对话框", "modal", "dialog", "浮层", "侧滑", "抽屉", "drawer"],
     "SEARCH": ["搜索", "检索", "查找", "search", "filter"],
@@ -227,12 +248,13 @@ def _infer_page_type(page_name: str, description: str = "") -> str:
             scores[pt] = total
     if not scores:
         return "FORM"
-    return max(scores, key=scores.get)  # type: ignore[return-value]
+    return max(scores, key=lambda k: scores[k])
 
 
 # ---------------------------------------------------------------------------
 # Mermaid flowchart parser
 # ---------------------------------------------------------------------------
+
 
 def _parse_mermaid_flowchart(mermaid_text: str) -> tuple[list[str], list[NavEdge]]:
     """Parse mermaid flowchart LR into nodes and edges.
@@ -240,7 +262,7 @@ def _parse_mermaid_flowchart(mermaid_text: str) -> tuple[list[str], list[NavEdge
     Returns:
         (node_labels, edges) where node_labels are human-readable page names.
     """
-    nodes: dict[str, str] = {}   # id -> label
+    nodes: dict[str, str] = {}  # id -> label
     edges: list[NavEdge] = []
 
     for line in mermaid_text.splitlines():
@@ -263,7 +285,7 @@ def _parse_mermaid_flowchart(mermaid_text: str) -> tuple[list[str], list[NavEdge
 
         # Edge definitions: A["label"] -->|label| B["label"]  or A -.->|label| B
         edge_match = re.findall(
-            r'(Pg_\w+)(?:\[[^\]]*\])?\s*(-\.->|-->)\s*\|([^|]*)\|\s*(Pg_\w+)(?:\[[^\]]*\])?',
+            r"(Pg_\w+)(?:\[[^\]]*\])?\s*(-\.->|-->)\s*\|([^|]*)\|\s*(Pg_\w+)(?:\[[^\]]*\])?",
             line,
         )
         for src, arrow, label, tgt in edge_match:
@@ -271,14 +293,16 @@ def _parse_mermaid_flowchart(mermaid_text: str) -> tuple[list[str], list[NavEdge
                 NavEdge(
                     source=nodes.get(src, src),
                     target=nodes.get(tgt, tgt),
-                    label=label.strip('"') if label.startswith('"') and label.endswith('"') else label,
+                    label=label.strip('"')
+                    if label.startswith('"') and label.endswith('"')
+                    else label,
                     style="dashed" if "-.->" in arrow else "solid",
                 )
             )
 
         # Edge without label: A["label"] --> B["label"]
         edge_match2 = re.findall(
-            r'(Pg_\w+)(?:\[[^\]]*\])?\s*(-\.->|--)\s*(Pg_\w+)(?:\[[^\]]*\])?',
+            r"(Pg_\w+)(?:\[[^\]]*\])?\s*(-\.->|--)\s*(Pg_\w+)(?:\[[^\]]*\])?",
             line,
         )
         for src, arrow, tgt in edge_match2:
@@ -297,6 +321,7 @@ def _parse_mermaid_flowchart(mermaid_text: str) -> tuple[list[str], list[NavEdge
 # ---------------------------------------------------------------------------
 # Main resolver
 # ---------------------------------------------------------------------------
+
 
 def parse_module_requirements(content: str, md_path: str = "") -> ModuleSpec:
     """Parse a single module-requirements.md into ModuleSpec."""
@@ -381,8 +406,7 @@ def parse_module_requirements(content: str, md_path: str = "") -> ModuleSpec:
 
     for pg in spec.pages:
         pg.nav_targets = [
-            e.target for e in spec.nav_edges
-            if e.source in pg.page_name or pg.page_name in e.source
+            e.target for e in spec.nav_edges if e.source in pg.page_name or pg.page_name in e.source
         ]
         pg.incoming_from = incoming.get(pg.page_name, [])
         if pg.page_name in page_id_map:
@@ -460,7 +484,9 @@ def _parse_interaction_section(page_map: dict[str, PageSpec], section_text: str)
         if not val:
             continue
         # Look for page references like "Pg_XXX" or Chinese page names
-        nav_mentions = re.findall(r"(?:跳转至|打开|进入|返回|关闭|导航至)([^，,。.；;\n]{1,15})", val)
+        nav_mentions = re.findall(
+            r"(?:跳转至|打开|进入|返回|关闭|导航至)([^，,。.；;\n]{1,15})", val
+        )
         for mention in nav_mentions:
             mention = mention.strip()
             if mention and current_page and mention not in current_page.nav_targets:
@@ -470,6 +496,7 @@ def _parse_interaction_section(page_map: dict[str, PageSpec], section_text: str)
 # ---------------------------------------------------------------------------
 # Batch resolver for a project
 # ---------------------------------------------------------------------------
+
 
 def scan_module_requirements(base_path: pathlib.Path) -> list[pathlib.Path]:
     """Scan openspec for all module-requirements.md files."""
@@ -500,6 +527,7 @@ def resolve_project_specs(base_path: pathlib.Path) -> list[ModuleSpec]:
 # ---------------------------------------------------------------------------
 # Flatten to simple dicts for sketch_generator consumption
 # ---------------------------------------------------------------------------
+
 
 def flatten_specs_to_pages(specs: list[ModuleSpec]) -> list[dict[str, Any]]:
     """Flatten ModuleSpec list into page dicts compatible with sketch_generator."""

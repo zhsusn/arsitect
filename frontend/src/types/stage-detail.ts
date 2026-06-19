@@ -90,6 +90,7 @@ export interface ProjectStage {
   stage_id: string
   order_index: number
   status: string
+  runtime_status: string
   primary_skill_id: string | null
   skippable: boolean
   is_frozen: boolean

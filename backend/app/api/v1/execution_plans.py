@@ -98,9 +98,7 @@ async def list_all_execution_plans(
             updated_at=plan.updated_at,
         )
 
-    summaries = await asyncio.gather(*[
-        _build_summary(plan, pname) for plan, pname in rows
-    ])
+    summaries = await asyncio.gather(*[_build_summary(plan, pname) for plan, pname in rows])
     return list(summaries)
 
 
@@ -134,16 +132,28 @@ async def create_execution_plan(
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> ExecutionPlanResponseDTO:
     """生成执行计划。"""
+    project = await db.get(Project, project_id)
+    if project is None:
+        raise NotFoundError(detail=f"Project '{project_id}' not found")
+
+    template_level = payload.template_level or project.template_level
     generator = ExecutionPlanGenerator(
         plan_repo=ExecutionPlanRepository(db),
         node_repo=PlanNodeRepository(db),
         group_repo=ParallelGroupRepository(db),
     )
-    plan = await generator.generate_plan(
-        project_id=project_id,
-        template_level=payload.template_level or "Standard",
-        skill_nodes=payload.skill_nodes,
-    )
+    if not payload.skill_nodes:
+        plan = await generator.generate_plan_from_project(
+            project_id=project_id,
+            template_level=template_level,
+            execution_strategy=None,
+        )
+    else:
+        plan = await generator.generate_plan(
+            project_id=project_id,
+            template_level=template_level,
+            skill_nodes=payload.skill_nodes,
+        )
     nodes = await PlanNodeRepository(db).list_by_plan(plan.plan_id)
     groups = await ParallelGroupRepository(db).list_by_plan(plan.plan_id)
     return _build_plan_response(plan, nodes, groups)
@@ -314,9 +324,7 @@ async def get_execution_status(
     return {
         "execution_id": execution_id,
         "plan_id": execution_id,
-        "nodes": [
-            {"node_id": n.node_id, "status": n.status} for n in nodes
-        ],
+        "nodes": [{"node_id": n.node_id, "status": n.status} for n in nodes],
     }
 
 
@@ -368,9 +376,7 @@ def _build_plan_response(
             {
                 "group_id": g.group_id,
                 "stage_id": g.stage_id,
-                "skill_ids": [
-                    node_id_to_skill.get(nid, nid) for nid in node_ids_in_group
-                ],
+                "skill_ids": [node_id_to_skill.get(nid, nid) for nid in node_ids_in_group],
                 "group_type": g.group_type,
             }
         )
@@ -389,6 +395,13 @@ def _build_plan_response(
         for n in nodes
     ]
 
+    dependency_matrix: dict[str, Any] = {}
+    if plan.dependency_matrix:
+        try:
+            dependency_matrix = json.loads(plan.dependency_matrix)
+        except json.JSONDecodeError:
+            dependency_matrix = {}
+
     return ExecutionPlanResponseDTO(
         plan_id=plan.plan_id,
         project_id=plan.project_id,
@@ -397,7 +410,7 @@ def _build_plan_response(
         template_level=plan.template_level,
         node_order=[n.node_id for n in nodes],
         parallel_groups=group_dtos,  # type: ignore[arg-type]
-        dependency_matrix={},
+        dependency_matrix=dependency_matrix,
         nodes=node_dtos,
         created_at=plan.created_at,
         updated_at=plan.updated_at,

@@ -23,6 +23,7 @@ from app.schemas.config_node import (
     ProviderTestResponse,
 )
 from app.services.config_service import ConfigService
+from app.services.llm.base import LLMProvider
 from app.services.llm.kimi_cli import KimiCLIProvider
 from app.services.llm.openai import OpenAIProvider
 from app.services.llm_permission_service import (
@@ -83,7 +84,7 @@ class ConfigNodeQuery(BaseModel):
     scope_target: str | None = Query(None)
     key: str | None = Query(None)
     is_enabled: bool | None = Query(None)
-    limit: int = Query(100, ge=1, le=200)
+    limit: int = Query(100, ge=1, le=1000)
     offset: int = Query(0, ge=0)
 
 
@@ -180,9 +181,7 @@ async def test_provider_node(
         return ProviderTestResponse(success=False, message=str(exc))
 
     if node.node_type != "llm_provider":
-        return ProviderTestResponse(
-            success=False, message="只能测试 llm_provider 类型节点"
-        )
+        return ProviderTestResponse(success=False, message="只能测试 llm_provider 类型节点")
 
     config = dict(node.config_json)
     provider = config.get("provider", "kimi-cli")
@@ -190,7 +189,7 @@ async def test_provider_node(
     try:
         if provider in {"kimi", "kimi-cli"}:
             cli_path = config.get("kimi_cli_path", "kimi")
-            p = KimiCLIProvider(cli_path=cli_path)
+            p: LLMProvider = KimiCLIProvider(cli_path=cli_path)
             await p.generate("ping", temperature=0.2)
         elif provider == "openai":
             p = OpenAIProvider(
@@ -202,9 +201,7 @@ async def test_provider_node(
         else:
             return ProviderTestResponse(success=False, message=f"未知 provider: {provider}")
         latency = int((datetime.now(UTC) - start).total_seconds() * 1000)
-        return ProviderTestResponse(
-            success=True, message="连接成功", latency_ms=latency
-        )
+        return ProviderTestResponse(success=True, message="连接成功", latency_ms=latency)
     except Exception as exc:  # noqa: BLE001
         return ProviderTestResponse(success=False, message=f"连接失败: {exc}")
 
@@ -261,7 +258,7 @@ async def get_default_llm_provider(
 ) -> dict[str, Any]:
     """Get default LLM provider config."""
     svc = ConfigService(db)
-    return await svc.get_default_llm_provider()
+    return await svc.get_default_llm_provider() or {}
 
 
 @router.get("/default-permission-policy", response_model=dict[str, Any])

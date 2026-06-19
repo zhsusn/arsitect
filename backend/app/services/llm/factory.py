@@ -39,7 +39,7 @@ def get_llm_provider_from_config(config: dict[str, Any]) -> LLMProvider:
     """Build an LLM provider from a config node payload.
 
     Args:
-        config: Merged config_json + secret_json from a ConfigNode.
+        config: Merged config_json + secret_json from a provider node.
 
     Returns:
         An initialized LLM provider.
@@ -63,31 +63,23 @@ async def get_llm_provider_async(
     project_id: str | None = None,
     user_id: str | None = None,
 ) -> LLMProvider:
-    """Return an LLM provider resolved dynamically from ConfigNode.
+    """Return an LLM provider resolved dynamically from dedicated LLM tables.
 
     Args:
         db: AsyncSession.
-        provider_key: Optional specific provider node key to use.
+        provider_key: Optional specific provider key to use.
         project_id: Optional project scope for resolution.
         user_id: Optional user scope for resolution.
 
     Returns:
         An initialized LLM provider.
     """
-    from app.services.config_service import ConfigService
+    from app.services.llm_provider_service import LlmProviderService
 
-    svc = ConfigService(db)
-    if provider_key:
-        node = await svc.get_node_by_key(
-            "llm_provider", "global", None, provider_key
-        ) or await svc.get_node_by_key(
-            "llm_provider", "project", project_id, provider_key
-        )
-        if node:
-            config = dict(node.config_json)
-            if node.secret_json:
-                config.update(node.secret_json)
-            return get_llm_provider_from_config(config)
-
-    config = await svc._get_default_llm_provider_full()
+    svc = LlmProviderService(db)
+    config = await svc.resolve_provider(
+        provider_key=provider_key,
+        project_id=project_id,
+        user_id=user_id,
+    )
     return get_llm_provider_from_config(config)

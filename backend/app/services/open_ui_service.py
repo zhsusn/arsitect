@@ -74,9 +74,7 @@ class OpenUIService:
         )
         return list(result.scalars().all())
 
-    async def update_spec(
-        self, spec_id: str, updates: dict[str, Any]
-    ) -> OpenUISpec:
+    async def update_spec(self, spec_id: str, updates: dict[str, Any]) -> OpenUISpec:
         """Update an existing spec."""
         spec = await self.get_spec(spec_id)
         for key, value in updates.items():
@@ -229,11 +227,10 @@ class OpenUIService:
         Simple regex-based extraction for MVP.
         """
         import re as _re
+
         containers: list[dict[str, str]] = []
         seen: set[str] = set()
-        for m in _re.finditer(
-            r"^\s*([a-zA-Z0-9_]+)\s*\[(.*?)\]", dsl_text, _re.MULTILINE
-        ):
+        for m in _re.finditer(r"^\s*([a-zA-Z0-9_]+)\s*\[(.*?)\]", dsl_text, _re.MULTILINE):
             nid = m.group(1).strip()
             label = m.group(2).strip()
             if nid not in seen:

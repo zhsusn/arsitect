@@ -144,9 +144,7 @@ class KimiCLIProvider(LLMProvider):
         # produced useful content.  Treat non-zero exit codes as fatal only when
         # no output was captured.
         if proc.returncode != 0 and not result:
-            raise RuntimeError(
-                f"Kimi CLI failed (exit {proc.returncode}): {stderr or 'no output'}"
-            )
+            raise RuntimeError(f"Kimi CLI failed (exit {proc.returncode}): {stderr or 'no output'}")
         return result
 
     async def _generate_stream_sync_threaded(

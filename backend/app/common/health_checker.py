@@ -153,9 +153,7 @@ class HealthChecker:
                 result.stderr,
             )
         except Exception as exc:
-            return HealthResult(
-                "docker", ServiceStatus.UNAVAILABLE, 0.0, str(exc)
-            )
+            return HealthResult("docker", ServiceStatus.UNAVAILABLE, 0.0, str(exc))
 
     @staticmethod
     async def check_openui(base_url: str | None = None) -> HealthResult:
@@ -185,9 +183,7 @@ class HealthChecker:
                     f"HTTP {response.status_code}",
                 )
         except Exception as exc:
-            return HealthResult(
-                "openui", ServiceStatus.UNAVAILABLE, 0.0, str(exc)
-            )
+            return HealthResult("openui", ServiceStatus.UNAVAILABLE, 0.0, str(exc))
 
     @staticmethod
     async def check_git() -> HealthResult:
@@ -207,13 +203,9 @@ class HealthChecker:
                     0.0,
                     result.stdout.strip(),
                 )
-            return HealthResult(
-                "git", ServiceStatus.UNAVAILABLE, 0.0, result.stderr
-            )
+            return HealthResult("git", ServiceStatus.UNAVAILABLE, 0.0, result.stderr)
         except Exception as exc:
-            return HealthResult(
-                "git", ServiceStatus.UNAVAILABLE, 0.0, str(exc)
-            )
+            return HealthResult("git", ServiceStatus.UNAVAILABLE, 0.0, str(exc))
 
     @staticmethod
     async def check_kimi_cli() -> HealthResult:
@@ -240,9 +232,7 @@ class HealthChecker:
                 result.stderr,
             )
         except Exception as exc:
-            return HealthResult(
-                "kimi-cli", ServiceStatus.UNAVAILABLE, 0.0, str(exc)
-            )
+            return HealthResult("kimi-cli", ServiceStatus.UNAVAILABLE, 0.0, str(exc))
 
 
 # Global singleton
@@ -255,7 +245,5 @@ def get_health_checker() -> HealthChecker:
     if _health_checker is None:
         from app.core.config import settings
 
-        _health_checker = HealthChecker(
-            check_interval=settings.HEALTH_CHECK_INTERVAL_SECONDS
-        )
+        _health_checker = HealthChecker(check_interval=settings.HEALTH_CHECK_INTERVAL_SECONDS)
     return _health_checker

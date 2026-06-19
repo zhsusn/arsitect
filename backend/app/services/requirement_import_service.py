@@ -130,9 +130,7 @@ class RequirementImportService:
 
         app = await self._session.get(Application, project.application_id)
         if app is None or not app.local_path:
-            raise BadRequestError(
-                detail="Project has no associated application or local path"
-            )
+            raise BadRequestError(detail="Project has no associated application or local path")
 
         # Search openspec detailed requirements
         search_pattern = "openspec/changes/*/detailed-requirements/**/module-requirements.md"

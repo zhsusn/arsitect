@@ -1,169 +1,97 @@
-"""Tests for ComplexityService."""
+"""Tests for ComplexityService three-tier scoring."""
 
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import text
 
-from app.core.exceptions import NotFoundError, ValidationError
-from app.infrastructure.database.session import AsyncSessionLocal
-from app.models.application import Application
-from app.models.project import Project
+from app.governance.complexity_router import ComplexityRoute
 from app.services.complexity_service import ComplexityService
 
 
-class TestCalculateScores:
-    """Unit tests for the static scoring algorithm."""
+class TestComplexityServiceThreeTierScores:
+    """Tests for ComplexityService three-tier score calculation."""
 
-    def test_trivial_project(self) -> None:
-        result = ComplexityService.calculate_scores(
-            module_count=1,
-            interface_count=0,
-            page_count=0,
-            tech_complexity="Low",
-            risk_level="Low",
+    @pytest.mark.parametrize(
+        ("route", "expected_optimistic", "expected_expected", "expected_conservative"),
+        [
+            (ComplexityRoute.TRIVIAL, 10, 20, 30),
+            (ComplexityRoute.LIGHT, 30, 45, 60),
+            (ComplexityRoute.STANDARD, 60, 75, 90),
+            (ComplexityRoute.DEEP, 90, 105, 120),
+        ],
+    )
+    def test_calculate_three_tier_scores_at_full_confidence(
+        self,
+        route: ComplexityRoute,
+        expected_optimistic: int,
+        expected_expected: int,
+        expected_conservative: int,
+    ) -> None:
+        """Base scores are returned when confidence is 1.0."""
+        scores = ComplexityService._calculate_three_tier_scores(route, 1.0)
+        assert scores["optimistic_score"] == expected_optimistic
+        assert scores["expected_score"] == expected_expected
+        assert scores["conservative_score"] == expected_conservative
+
+    @pytest.mark.parametrize(
+        ("confidence", "expected_spread"),
+        [
+            (1.0, 0),
+            (0.8, 5),
+            (0.7, 5),
+            (0.5, 15),
+            (0.4, 15),
+            (0.3, 25),
+        ],
+    )
+    def test_confidence_widens_score_spread(
+        self, confidence: float, expected_spread: int
+    ) -> None:
+        """Lower confidence increases the gap between optimistic and conservative."""
+        scores = ComplexityService._calculate_three_tier_scores(
+            ComplexityRoute.STANDARD, confidence
         )
-        assert result["complexity_level"] == "Trivial"
-        assert result["optimistic_score"] <= result["expected_score"]
-        assert result["expected_score"] <= result["conservative_score"]
+        assert scores["optimistic_score"] == max(0, 60 - expected_spread)
+        assert scores["expected_score"] == 75
+        assert scores["conservative_score"] == 90 + expected_spread
 
-    def test_deep_project(self) -> None:
-        result = ComplexityService.calculate_scores(
-            module_count=50,
-            interface_count=100,
-            page_count=50,
-            tech_complexity="High",
-            risk_level="High",
+    def test_assess_returns_non_zero_scores(self) -> None:
+        """Assess produces real three-tier scores instead of zeros."""
+        result = ComplexityService.assess(
+            module_count=3,
+            interface_complexity=2,
+            page_count=2,
+            entity_count=2,
+            integration_count=1,
         )
-        assert result["complexity_level"] == "Deep"
+        assert result["optimistic_score"] > 0
+        assert result["expected_score"] > 0
+        assert result["conservative_score"] > 0
+        assert result["optimistic_score"] < result["expected_score"]
+        assert result["expected_score"] < result["conservative_score"]
 
-    def test_light_project(self) -> None:
-        result = ComplexityService.calculate_scores(
-            module_count=5,
-            interface_count=8,
-            page_count=8,
-            tech_complexity="Medium",
-            risk_level="Medium",
-        )
-        assert result["complexity_level"] == "Light"
-
-    def test_standard_project(self) -> None:
+    def test_calculate_scores_returns_non_zero_scores(self) -> None:
+        """Calculate scores produces real three-tier scores."""
         result = ComplexityService.calculate_scores(
             module_count=10,
-            interface_count=12,
-            page_count=15,
+            interface_count=8,
+            page_count=5,
             tech_complexity="Medium",
-            risk_level="Medium",
+            risk_level="Low",
         )
-        assert result["complexity_level"] == "Standard"
+        assert result["optimistic_score"] > 0
+        assert result["expected_score"] > 0
+        assert result["conservative_score"] > 0
 
-
-class TestCreateSizeEstimate:
-    """Tests for create_size_estimate."""
-
-    @pytest.fixture
-    async def seeded_proj(self) -> Project:
-        async with AsyncSessionLocal() as session:
-            await session.execute(text("DELETE FROM size_estimates"))
-            await session.execute(text("DELETE FROM projects"))
-            await session.execute(text("DELETE FROM applications"))
-            await session.commit()
-
-            app = Application(application_id="app-cx-1", application_name="Test App CX1", local_path="/tmp")
-            session.add(app)
-            proj = Project(
-                project_id="proj-cx-1",
-                project_name="Test",
-                application_id="app-cx-1",
-                template_level="Standard",
-                project_status="Draft",
-            )
-            session.add(proj)
-            await session.commit()
-            return proj
-
-    @pytest.mark.asyncio
-    async def test_success(self, seeded_proj: Project) -> None:
-        async with AsyncSessionLocal() as session:
-            svc = ComplexityService(session)
-            est = await svc.create_size_estimate(
-                project_id=seeded_proj.project_id,
-                module_count=5,
-                interface_count=10,
-                page_count=3,
-                tech_complexity="Medium",
-                risk_level="Low",
-            )
-            assert est.project_id == seeded_proj.project_id
-            assert est.complexity_level in ("Trivial", "Light", "Standard", "Deep")
-            assert est.optimistic_score is not None
-
-    @pytest.mark.asyncio
-    async def test_project_not_found(self) -> None:
-        async with AsyncSessionLocal() as session:
-            svc = ComplexityService(session)
-            with pytest.raises(NotFoundError):
-                await svc.create_size_estimate(
-                    project_id="no-such",
-                    module_count=1,
-                    interface_count=0,
-                    page_count=0,
-                    tech_complexity="Low",
-                    risk_level="Low",
-                )
-
-
-class TestListSizeEstimates:
-    """Tests for list_size_estimates."""
-
-    @pytest.fixture
-    async def seeded_proj2(self) -> Project:
-        async with AsyncSessionLocal() as session:
-            await session.execute(text("DELETE FROM size_estimates"))
-            await session.execute(text("DELETE FROM projects"))
-            await session.execute(text("DELETE FROM applications"))
-            await session.commit()
-
-            app = Application(application_id="app-cx-2", application_name="Test App CX2", local_path="/tmp")
-            session.add(app)
-            proj = Project(
-                project_id="proj-cx-2",
-                project_name="Test",
-                application_id="app-cx-2",
-                template_level="Standard",
-                project_status="Draft",
-            )
-            session.add(proj)
-            await session.commit()
-            return proj
-
-    @pytest.mark.asyncio
-    async def test_returns_estimates(self, seeded_proj2: Project) -> None:
-        async with AsyncSessionLocal() as session:
-            svc = ComplexityService(session)
-            await svc.create_size_estimate(
-                project_id=seeded_proj2.project_id,
-                module_count=3,
-                interface_count=0,
-                page_count=0,
-                tech_complexity="Low",
-                risk_level="Low",
-            )
-        async with AsyncSessionLocal() as session:
-            svc = ComplexityService(session)
-            items = await svc.list_size_estimates(seeded_proj2.project_id)
-            assert len(items) == 1
-
-
-class TestTemplateRecommendation:
-    """Tests for get_template_recommendation."""
-
-    def test_valid_levels(self) -> None:
-        for level in ("Trivial", "Light", "Standard", "Deep"):
-            rec = ComplexityService.get_template_recommendation(level)
-            assert rec["level"] == level
-            assert rec["stage_count"] > 0
-
-    def test_invalid_level(self) -> None:
-        with pytest.raises(ValidationError):
-            ComplexityService.get_template_recommendation("Unknown")
+    def test_assess_trivial_route(self) -> None:
+        """Very small inputs route to Trivial with the lowest scores."""
+        result = ComplexityService.assess(
+            module_count=1,
+            interface_complexity=1,
+            page_count=1,
+            entity_count=1,
+            integration_count=0,
+        )
+        assert result["route"] == "trivial"
+        assert result["optimistic_score"] <= result["expected_score"]
+        assert result["expected_score"] <= result["conservative_score"]

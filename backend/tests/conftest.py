@@ -22,13 +22,19 @@ from app.models.bypass_record import BypassRecord  # noqa: F401
 from app.models.canvas_state import CanvasState  # noqa: F401
 from app.models.cli_session import ArchIssue, BugRecord, CliMessage, CliSession  # noqa: F401
 from app.models.config_node import ConfigNode  # noqa: F401
+from app.models.execution_issue import ExecutionIssue  # noqa: F401
+from app.models.execution_task import ExecutionTask  # noqa: F401
 from app.models.execution_log import ExecutionLog  # noqa: F401
 from app.models.execution_plan import ExecutionPlan  # noqa: F401
 from app.models.gate_decision import GateDecision  # noqa: F401
+from app.models.llm_policy import LlmPolicy  # noqa: F401
+from app.models.llm_policy_rule import LlmPolicyRule  # noqa: F401
+from app.models.llm_provider import LlmProvider  # noqa: F401
 from app.models.open_ui_spec import OpenUISpec  # noqa: F401
 from app.models.operation_log import OperationLog  # noqa: F401
 from app.models.parallel_group import ParallelGroup  # noqa: F401
 from app.models.plan_node import PlanNode  # noqa: F401
+from app.models.policy_template import PolicyTemplate  # noqa: F401
 from app.models.project import Project  # noqa: F401
 from app.models.project_member import ProjectMember  # noqa: F401
 from app.models.project_stage import ProjectStage  # noqa: F401
@@ -41,7 +47,9 @@ from app.models.skill_dag import SkillDAGEdge, SkillDAGNode  # noqa: F401
 from app.models.skill_execution import SkillExecution  # noqa: F401
 from app.models.template import Template  # noqa: F401
 from app.models.template_stage import TemplateStage  # noqa: F401
+from app.models.user_story import UserStory  # noqa: F401
 from app.models.wireframe import Wireframe  # noqa: F401
+from app.models.wireframe_page import WireframePage  # noqa: F401
 
 # Use an in-memory database with StaticPool so all connections share
 # the same SQLite in-memory database.
@@ -53,11 +61,13 @@ test_engine = create_async_engine(
 
 
 @event.listens_for(test_engine.sync_engine, "connect")
-def _set_sqlite_pragma(dbapi_conn, connection_record):
+def _set_sqlite_pragma(dbapi_conn: Any, connection_record: Any) -> None:
     """Enable foreign key constraints for SQLite."""
     cursor = dbapi_conn.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
+
+
 TestAsyncSessionLocal = async_sessionmaker(
     bind=test_engine,
     class_=AsyncSession,
@@ -80,7 +90,7 @@ async def _init_database() -> None:
 
 
 @pytest_asyncio.fixture
-async def db_session() -> AsyncGenerator[Any, None]:
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """Yield a fresh async session that rolls back on exit."""
     async with TestAsyncSessionLocal() as session:
         await session.begin()
@@ -89,19 +99,34 @@ async def db_session() -> AsyncGenerator[Any, None]:
 
 
 @pytest_asyncio.fixture
+async def seed_templates(db_session: AsyncSession) -> AsyncSession:
+    """Seed built-in policy templates into the current session."""
+    from app.core.seed import _seed_policy_templates
+
+    await _seed_policy_templates(db_session)
+    await db_session.flush()
+    return db_session
+
+
+@pytest_asyncio.fixture
 async def client() -> AsyncGenerator[TestClient, None]:
     """Yield a TestClient with a shared async session.
 
     Integration tests that span multiple HTTP requests need a single
     database session so that ``flush()`` (without ``commit()``) is
-    visible across requests.
+    visible across requests. Policy templates are seeded into the shared
+    session so template-dependent endpoints can be exercised without
+    running the full application lifespan.
     """
+    from app.core.seed import _seed_policy_templates
     from app.infrastructure.database.session import get_db
     from main import app
 
     shared_session = TestAsyncSessionLocal()
+    await _seed_policy_templates(shared_session)
+    await shared_session.flush()
 
-    async def override_get_db():
+    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield shared_session
 
     app.dependency_overrides[get_db] = override_get_db

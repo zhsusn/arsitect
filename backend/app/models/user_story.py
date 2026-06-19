@@ -29,15 +29,9 @@ class UserStory(Base):
     page_desc: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="页面描述段落，用于 PageSpec 解析"
     )
-    priority: Mapped[str] = mapped_column(
-        String(8), nullable=False, default="P1"
-    )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    priority: Mapped[str] = mapped_column(String(8), nullable=False, default="P1")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

@@ -25,6 +25,8 @@ from app.schemas.template import (
     TemplateDeviationLogDTO,
     TemplateDeviationPreviewDTO,
     TemplateDeviationPreviewRequestDTO,
+    TemplateExecutionStrategyResponseDTO,
+    TemplateExecutionStrategyUpdateDTO,
     TemplateResponseDTO,
     TemplateStageDTO,
     TemplateStageUpdateDTO,
@@ -59,6 +61,23 @@ async def get_template(
     return TemplateDetailDTO(
         template=TemplateResponseDTO.model_validate(detail["template"]),
         stages=[TemplateStageDTO.model_validate(s) for s in detail["stages"]],
+    )
+
+
+@router.put("/{level}/execution-strategy", response_model=TemplateExecutionStrategyResponseDTO)
+async def update_template_execution_strategy(
+    level: str,
+    dto: TemplateExecutionStrategyUpdateDTO,
+    db: AsyncSession = Depends(get_db),
+) -> TemplateExecutionStrategyResponseDTO:
+    """Update a template's default execution strategy."""
+    svc = StageConfigService(db)
+    tpl = await svc.update_execution_strategy(
+        level, dto.default_execution_strategy
+    )
+    return TemplateExecutionStrategyResponseDTO(
+        template_id=tpl.template_id,
+        default_execution_strategy=tpl.default_execution_strategy,
     )
 
 
@@ -157,20 +176,21 @@ async def confirm_template_deviation(
         ps = ProjectStage(
             project_stage_id=str(uuid.uuid4()),
             project_id=project_id,
-            stage_id=tpl_stage.stage_id,
+            stage_id=tpl_stage.business_stage_key,
             order_index=current_max_order + i,
             status="DEFINED",
             primary_skill_id=tpl_stage.primary_skill_id,
+            auxiliary_skill_ids=tpl_stage.auxiliary_skill_ids,
             skippable=tpl_stage.skippable,
             merge_group_id=tpl_stage.merge_group_id,
+            is_gate_required=tpl_stage.is_gate_required,
+            auto_advance=tpl_stage.auto_advance,
         )
         db.add(ps)
 
     # Compute stage deviations against the default template for the route.
     stage_svc = StageConfigService(db)
-    actual_stage_ids = [
-        s.stage_id for s in impact["retained_stages"] + impact["removed_stages"]
-    ]
+    actual_stage_ids = [s.stage_id for s in impact["retained_stages"] + impact["removed_stages"]]
     deviations = stage_svc.compute_deviations(
         project_id=project_id,
         template_route=dto.new_template_id.lower(),
@@ -189,9 +209,7 @@ async def confirm_template_deviation(
                 "frozen_count": impact["frozen_count"],
                 "removed_count": impact["removed_count"],
                 "added_count": impact["added_count"],
-                "deviation_items": [
-                    item.model_dump() for item in dto.deviation_items
-                ],
+                "deviation_items": [item.model_dump() for item in dto.deviation_items],
                 "stage_deviations": [
                     {
                         "project_id": d.project_id,
@@ -262,12 +280,9 @@ async def update_stage_skippable(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectStageDTO:
     """Update skippable flag for a project stage."""
-    stmt = (
-        select(ProjectStage)
-        .where(
-            ProjectStage.project_stage_id == stage_id,
-            ProjectStage.project_id == project_id,
-        )
+    stmt = select(ProjectStage).where(
+        ProjectStage.project_stage_id == stage_id,
+        ProjectStage.project_id == project_id,
     )
     result = await db.execute(stmt)
     stage = result.scalar_one_or_none()
@@ -292,12 +307,9 @@ async def reorder_stages(
 ) -> list[ProjectStageDTO]:
     """Reorder project stages."""
     stage_ids = [s[0] for s in dto.stage_orders]
-    stmt = (
-        select(ProjectStage)
-        .where(
-            ProjectStage.project_stage_id.in_(stage_ids),
-            ProjectStage.project_id == project_id,
-        )
+    stmt = select(ProjectStage).where(
+        ProjectStage.project_stage_id.in_(stage_ids),
+        ProjectStage.project_id == project_id,
     )
     result = await db.execute(stmt)
     stages = {s.project_stage_id: s for s in result.scalars().all()}
@@ -307,9 +319,7 @@ async def reorder_stages(
         if stage is None:
             raise NotFoundError(detail=f"Stage '{stage_id}' not found")
         if stage.is_frozen:
-            raise ValidationError(
-                detail=f"Stage '{stage_id}' is frozen and cannot be reordered"
-            )
+            raise ValidationError(detail=f"Stage '{stage_id}' is frozen and cannot be reordered")
         stage.order_index = new_order
         db.add(stage)
 
@@ -338,9 +348,7 @@ async def merge_stages(
     stmt = (
         select(ProjectStage)
         .where(
-            ProjectStage.project_stage_id.in_(
-                [dto.source_stage_id, dto.target_stage_id]
-            ),
+            ProjectStage.project_stage_id.in_([dto.source_stage_id, dto.target_stage_id]),
             ProjectStage.project_id == project_id,
         )
         .order_by(ProjectStage.order_index)
@@ -383,12 +391,9 @@ async def split_stage(
     db: AsyncSession = Depends(get_db),
 ) -> list[ProjectStageDTO]:
     """Split a project stage into two."""
-    stmt = (
-        select(ProjectStage)
-        .where(
-            ProjectStage.project_stage_id == dto.stage_id,
-            ProjectStage.project_id == project_id,
-        )
+    stmt = select(ProjectStage).where(
+        ProjectStage.project_stage_id == dto.stage_id,
+        ProjectStage.project_id == project_id,
     )
     result = await db.execute(stmt)
     stage = result.scalar_one_or_none()
@@ -447,10 +452,7 @@ async def freeze_project_template(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Freeze all project stages — called when project transitions to Active."""
-    stmt = (
-        select(ProjectStage)
-        .where(ProjectStage.project_id == project_id)
-    )
+    stmt = select(ProjectStage).where(ProjectStage.project_id == project_id)
     result = await db.execute(stmt)
     stages = list(result.scalars().all())
     frozen_count = 0

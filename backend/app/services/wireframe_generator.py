@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -174,7 +175,7 @@ def domain_mapper(nodes: list[C4Node]) -> list[MappedPage]:
                 )
             continue
 
-        best_pt = max(scores, key=scores.get)  # type: ignore[type-arg]
+        best_pt = max(scores, key=lambda k: scores[k])
         best_score = scores[best_pt]
         confidence = min(100, best_score * 25 + 20)
         source = "auto" if confidence >= 80 else "low_conf"
@@ -194,11 +195,24 @@ def domain_mapper(nodes: list[C4Node]) -> list[MappedPage]:
 # LayoutPlanner — SVG wireframe renderers
 # ------------------------------------------------------------------
 
-def _svg_rect(x: int, y: int, w: int, h: int, fill: str = "#fff", stroke: str = "#adb5bd", attrs: str = "") -> str:
-    return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{fill}" stroke="{stroke}" {attrs}/>'
+
+def _svg_rect(
+    x: int, y: int, w: int, h: int, fill: str = "#fff", stroke: str = "#adb5bd", attrs: str = ""
+) -> str:
+    return (
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{fill}" stroke="{stroke}" {attrs}/>'
+    )
 
 
-def _svg_text(x: int, y: int, text: str, size: int = 12, color: str = "#495057", anchor: str = "start", weight: str = "normal") -> str:
+def _svg_text(
+    x: int,
+    y: int,
+    text: str,
+    size: int = 12,
+    color: str = "#495057",
+    anchor: str = "start",
+    weight: str = "normal",
+) -> str:
     return (
         f'<text x="{x}" y="{y}" font-size="{size}" fill="{color}" '
         f'text-anchor="{anchor}" font-weight="{weight}">{_esc(text)}</text>'
@@ -229,7 +243,9 @@ def _layout_list(entity_name: str, w: int = 640) -> str:
     lines.append(_svg_rect(padding, y, w - padding * 2, row_h, fill="#e9ecef", stroke="#adb5bd"))
     for i, c in enumerate(cols):
         cx = padding + col_w * i + col_w // 2
-        lines.append(_svg_text(cx, y + 28, c, size=12, color="#495057", anchor="middle", weight="bold"))
+        lines.append(
+            _svg_text(cx, y + 28, c, size=12, color="#495057", anchor="middle", weight="bold")
+        )
     y += row_h
     for _ in range(4):
         lines.append(_svg_rect(padding, y, w - padding * 2, row_h, fill="#fff", stroke="#dee2e6"))
@@ -253,7 +269,17 @@ def _layout_detail(entity_name: str, w: int = 480) -> str:
     y = 80
     for i in range(6):
         lines.append(_svg_text(padding, y + 18, f"属性 {i + 1}:", size=12, color="#868e96"))
-        lines.append(_svg_rect(padding + 80, y, w - padding * 2 - 80, 28, fill="#fff", stroke="#ced4da", attrs='stroke-dasharray="3 3"'))
+        lines.append(
+            _svg_rect(
+                padding + 80,
+                y,
+                w - padding * 2 - 80,
+                28,
+                fill="#fff",
+                stroke="#ced4da",
+                attrs='stroke-dasharray="3 3"',
+            )
+        )
         y += 42
     lines.append("</svg>")
     return "\n".join(lines)
@@ -292,13 +318,17 @@ def _layout_form(entity_name: str, w: int = 480) -> str:
     y = 64
     for i in range(5):
         lines.append(_svg_text(padding, y + 18, f"字段 {i + 1}", size=12, color="#868e96"))
-        lines.append(_svg_rect(padding + 70, y, w - padding * 2 - 70, 32, fill="#fff", stroke="#ced4da"))
+        lines.append(
+            _svg_rect(padding + 70, y, w - padding * 2 - 70, 32, fill="#fff", stroke="#ced4da")
+        )
         y += 48
     y += 8
     lines.append(_svg_rect(padding, y, 90, 36, fill="#e9ecef", stroke="#495057", attrs='rx="4"'))
     lines.append(_svg_text(padding + 45, y + 24, "提交", size=14, color="#212529", anchor="middle"))
     lines.append(_svg_rect(padding + 110, y, 90, 36, fill="#fff", stroke="#adb5bd", attrs='rx="4"'))
-    lines.append(_svg_text(padding + 155, y + 24, "取消", size=14, color="#495057", anchor="middle"))
+    lines.append(
+        _svg_text(padding + 155, y + 24, "取消", size=14, color="#495057", anchor="middle")
+    )
     lines.append("</svg>")
     return "\n".join(lines)
 
@@ -310,10 +340,20 @@ def _layout_modal(entity_name: str, w: int = 400) -> str:
     lines: list[str] = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">',
         '<rect width="100%" height="100%" fill="rgba(0,0,0,0.04)"/>',
-        _svg_rect(cx, cy, w - cx * 2, h - cy * 2, fill="#fff", stroke="#495057", attrs='stroke-width="2" rx="6"'),
+        _svg_rect(
+            cx,
+            cy,
+            w - cx * 2,
+            h - cy * 2,
+            fill="#fff",
+            stroke="#495057",
+            attrs='stroke-width="2" rx="6"',
+        ),
         _svg_text(cx + 20, cy + 32, entity_name, size=15, color="#212529", weight="bold"),
         _svg_text(cx + 20, cy + 70, "提示内容占位...", size=13, color="#868e96"),
-        _svg_rect(w - cx - 90, h - cy - 48, 70, 32, fill="#e9ecef", stroke="#495057", attrs='rx="4"'),
+        _svg_rect(
+            w - cx - 90, h - cy - 48, 70, 32, fill="#e9ecef", stroke="#495057", attrs='rx="4"'
+        ),
         _svg_text(w - cx - 55, h - cy - 26, "确认", size=12, color="#212529", anchor="middle"),
         _svg_rect(w - cx - 170, h - cy - 48, 70, 32, fill="#fff", stroke="#adb5bd", attrs='rx="4"'),
         _svg_text(w - cx - 135, h - cy - 26, "取消", size=12, color="#495057", anchor="middle"),
@@ -336,7 +376,11 @@ def _layout_search(entity_name: str, w: int = 600) -> str:
     ]
     y = 120
     for i in range(3):
-        lines.append(_svg_rect(padding, y, 120, 28, fill="#fff", stroke="#adb5bd", attrs='stroke-dasharray="3 3"'))
+        lines.append(
+            _svg_rect(
+                padding, y, 120, 28, fill="#fff", stroke="#adb5bd", attrs='stroke-dasharray="3 3"'
+            )
+        )
         lines.append(_svg_text(padding + 8, y + 19, f"条件 {i + 1}", size=11, color="#868e96"))
         y += 44
     lines.append("</svg>")
@@ -359,10 +403,14 @@ def _layout_wizard(entity_name: str, w: int = 560) -> str:
         color = "#495057" if i == 0 else "#dee2e6"
         text_color = "#fff" if i == 0 else "#868e96"
         lines.append(f'<circle cx="{sx + 12}" cy="{y + 12}" r="12" fill="{color}"/>')
-        lines.append(_svg_text(sx + 12, y + 17, str(i + 1), size=11, color=text_color, anchor="middle"))
+        lines.append(
+            _svg_text(sx + 12, y + 17, str(i + 1), size=11, color=text_color, anchor="middle")
+        )
         lines.append(_svg_text(sx + 12, y + 40, step, size=11, color="#495057", anchor="middle"))
         if i < len(steps) - 1:
-            lines.append(f'<line x1="{sx + 28}" y1="{y + 12}" x2="{sx + step_w + 4}" y2="{y + 12}" stroke="#dee2e6" stroke-width="2"/>')
+            lines.append(
+                f'<line x1="{sx + 28}" y1="{y + 12}" x2="{sx + step_w + 4}" y2="{y + 12}" stroke="#dee2e6" stroke-width="2"/>'
+            )
     lines.append("</svg>")
     return "\n".join(lines)
 
@@ -375,14 +423,22 @@ def _layout_unknown(entity_name: str, w: int = 480) -> str:
         _svg_rect(0, 0, w, h, fill="#f8f9fa", stroke="#dee2e6", attrs='stroke-width="2"'),
         _svg_text(padding, 36, entity_name, size=18, color="#212529", weight="bold"),
         _svg_text(padding, 70, "页面类型待确认", size=13, color="#868e96"),
-        _svg_rect(padding, 100, w - padding * 2, 60, fill="#fff", stroke="#adb5bd", attrs='stroke-dasharray="4 2"'),
+        _svg_rect(
+            padding,
+            100,
+            w - padding * 2,
+            60,
+            fill="#fff",
+            stroke="#adb5bd",
+            attrs='stroke-dasharray="4 2"',
+        ),
         _svg_text(padding + 8, 138, "请人工指定页面类型后重新生成", size=12, color="#adb5bd"),
         "</svg>",
     ]
     return "\n".join(lines)
 
 
-_LAYOUT_RENDERERS: dict[str, callable] = {  # type: ignore[type-arg]
+_LAYOUT_RENDERERS: dict[str, Callable[..., str]] = {
     "LIST": _layout_list,
     "DETAIL": _layout_detail,
     "DASHBOARD": _layout_dashboard,
@@ -410,7 +466,11 @@ def layout_planner(mapped_pages: list[MappedPage]) -> list[WireframePageData]:
         layout = {
             "page_type": mp.page_type,
             "title": mp.entity_name,
-            "regions": [{"name": "标题区", "ratio": 0.1}, {"name": "内容区", "ratio": 0.75}, {"name": "操作区", "ratio": 0.15}],
+            "regions": [
+                {"name": "标题区", "ratio": 0.1},
+                {"name": "内容区", "ratio": 0.75},
+                {"name": "操作区", "ratio": 0.15},
+            ],
         }
         results.append(
             WireframePageData(
@@ -431,9 +491,8 @@ def layout_planner(mapped_pages: list[MappedPage]) -> list[WireframePageData]:
 # NavigationLinker
 # ------------------------------------------------------------------
 
-def navigation_linker(
-    mapped_pages: list[MappedPage], edges: list[C4Edge]
-) -> list[NavLinkData]:
+
+def navigation_linker(mapped_pages: list[MappedPage], edges: list[C4Edge]) -> list[NavLinkData]:
     """基于 C4 边关系建立页面跳转关系.
 
     Args:
@@ -449,7 +508,10 @@ def navigation_linker(
         if edge.source in page_ids and edge.target in page_ids:
             # Simple heuristic: if edge label contains write operations -> strong
             label = (edge.label or "").lower()
-            is_strong = any(k in label for k in ["创建", "提交", "更新", "删除", "post", "put", "delete", "write"])
+            is_strong = any(
+                k in label
+                for k in ["创建", "提交", "更新", "删除", "post", "put", "delete", "write"]
+            )
             links.append(
                 NavLinkData(
                     source_entity_id=edge.source,
@@ -464,6 +526,7 @@ def navigation_linker(
 # ------------------------------------------------------------------
 # Orchestrator
 # ------------------------------------------------------------------
+
 
 def generate_wireframe_from_c4(dsl_text: str) -> dict[str, Any]:
     """完整的 WireframeEngine 三阶段流水线.

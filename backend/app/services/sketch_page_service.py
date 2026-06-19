@@ -69,9 +69,7 @@ class SketchPageService:
             raise NotFoundError(detail=f"SketchPage '{page_id}' not found")
         return page
 
-    async def list_pages(
-        self, project_id: str, story_id: str | None = None
-    ) -> list[SketchPage]:
+    async def list_pages(self, project_id: str, story_id: str | None = None) -> list[SketchPage]:
         """List sketch pages for a project."""
         stmt = (
             select(SketchPage)
@@ -83,9 +81,7 @@ class SketchPageService:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def update_page(
-        self, page_id: str, updates: dict[str, Any]
-    ) -> SketchPage:
+    async def update_page(self, page_id: str, updates: dict[str, Any]) -> SketchPage:
         """Update an existing sketch page."""
         page = await self.get_page(page_id)
         for key, value in updates.items():

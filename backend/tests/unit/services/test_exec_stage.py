@@ -47,9 +47,7 @@ class FakeAsyncClient:
 async def test_execute_success(monkeypatch) -> None:
     """Happy path returns success result."""
     fake = FakeAsyncClient(FakeResponse('{"ok": true}', 200))
-    monkeypatch.setattr(
-        httpx, "AsyncClient", lambda **kwargs: fake
-    )
+    monkeypatch.setattr(httpx, "AsyncClient", lambda **kwargs: fake)
 
     stage = ExecStage()
     result = await stage.execute("http://ai.local/run", {"prompt": "hello"})

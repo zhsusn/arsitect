@@ -133,6 +133,8 @@ def e2e_servers() -> Generator[dict, None, None]:
 
     # Use npm script; batch files require shell=True on Windows.
     frontend_cmd = f'npm run dev -- --port {frontend_port} --host'
+    frontend_env = os.environ.copy()
+    frontend_env["VITE_API_URL"] = backend_url
     with open(frontend_log, "w", encoding="utf-8") as frontend_stdout:
         frontend_proc = subprocess.Popen(
             frontend_cmd,
@@ -143,6 +145,7 @@ def e2e_servers() -> Generator[dict, None, None]:
             encoding="utf-8",
             errors="replace",
             shell=True,
+            env=frontend_env,
         )
 
     _wait_for_port("localhost", frontend_port, timeout=60.0)

@@ -18,11 +18,12 @@ from app.services.page_spec_resolver import ModuleSpec, PageSpec
 # Data models
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PathGap:
     """A gap / inconsistency found during validation."""
 
-    gap_type: str          # "missing_page" | "missing_edge" | "orphan_page" | "unreachable_page"
+    gap_type: str  # "missing_page" | "missing_edge" | "orphan_page" | "unreachable_page"
     story_id: str = ""
     story_title: str = ""
     page_name: str = ""
@@ -68,9 +69,10 @@ class ValidationReport:
 # Path extraction from story page_desc
 # ---------------------------------------------------------------------------
 
+
 def _extract_page_mentions(text: str, all_page_names: set[str]) -> list[str]:
     """Extract ordered page mentions from story text."""
-    mentions: list[str] = []
+    mentions: list[tuple[int, str]] = []
     seen: set[str] = set()
     # Try to find exact page names first
     for page_name in sorted(all_page_names, key=len, reverse=True):
@@ -117,7 +119,7 @@ def _extract_implied_transitions(text: str, page_names: set[str]) -> list[tuple[
         _, tgt = mentions[i + 1]
         if src == tgt:
             continue
-        between = text[mentions[i][0] + len(src):mentions[i + 1][0]]
+        between = text[mentions[i][0] + len(src) : mentions[i + 1][0]]
         if any(kw in between for kw in nav_keywords):
             transitions.append((src, tgt))
 
@@ -127,6 +129,7 @@ def _extract_implied_transitions(text: str, page_names: set[str]) -> list[tuple[
 # ---------------------------------------------------------------------------
 # Main validator
 # ---------------------------------------------------------------------------
+
 
 class StoryPathValidator:
     """Validate user story paths against requirement module specs."""
@@ -238,7 +241,7 @@ class StoryPathValidator:
             candidate = m.group(1).strip()
             if candidate not in known_pages and "页面" in candidate:
                 unknowns.append(candidate)
-        for m in re.finditer(r'《([^《》]{2,20})》', text):
+        for m in re.finditer(r"《([^《》]{2,20})》", text):
             candidate = m.group(1).strip()
             if candidate not in known_pages:
                 unknowns.append(candidate)

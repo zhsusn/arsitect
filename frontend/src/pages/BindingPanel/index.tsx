@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import ProjectSelector from '../../components/ProjectSelector'
+import { useProjectContext } from '../../App'
 import {
   type CoverageScan,
   type CoverageScanItem,
@@ -11,18 +11,11 @@ import {
   reviewItem,
 } from '../../services/binding'
 
-const LS_PROJECT_KEY = 'arsitect:lastProjectId'
-
 type TabKey = 'gap' | 'redundant' | 'matched' | 'diff'
 
 export default function BindingPanel() {
-  const [projectId, setProjectId] = useState(() => {
-    try {
-      return localStorage.getItem(LS_PROJECT_KEY) || ''
-    } catch {
-      return ''
-    }
-  })
+  const { currentProjectId } = useProjectContext()
+  const projectId = currentProjectId
   const [scans, setScans] = useState<CoverageScan[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,16 +24,8 @@ export default function BindingPanel() {
   const [tab, setTab] = useState<TabKey>('gap')
   const [scanLoading, setScanLoading] = useState(false)
   const [writebackLoading, setWritebackLoading] = useState(false)
-
-  useEffect(() => {
-    try {
-      if (projectId.trim()) {
-        localStorage.setItem(LS_PROJECT_KEY, projectId)
-      }
-    } catch {
-      // ignore
-    }
-  }, [projectId])
+  const [showDiffModal, setShowDiffModal] = useState(false)
+  const [selectedDiffItem, setSelectedDiffItem] = useState<CoverageScanItem | null>(null)
 
   const loadScans = useCallback(async () => {
     if (!projectId.trim()) return
@@ -158,12 +143,15 @@ export default function BindingPanel() {
     return '#dc2626'
   }
 
+  if (!projectId) {
+    return <div style={{ padding: 40, color: '#6b7280' }}>请先在顶部选择项目</div>
+  }
+
   return (
     <div style={{ maxWidth: 1120 }}>
       <h1 style={{ marginBottom: 16 }}>原型-架构双向绑定</h1>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <ProjectSelector value={projectId} onChange={setProjectId} />
         <button onClick={handleRunScan} disabled={!projectId.trim() || loading}>
           {loading ? '扫描中...' : '开始检测'}
         </button>
@@ -311,11 +299,62 @@ export default function BindingPanel() {
                         </button>
                       </>
                     )}
+                    {item.result_type === 'diff' && (
+                      <button
+                        onClick={() => { setSelectedDiffItem(item); setShowDiffModal(true) }}
+                        style={{ fontSize: 12, padding: '4px 10px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: 4, cursor: 'pointer' }}
+                      >
+                        同步差异
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 差异同步弹窗 */}
+      {showDiffModal && selectedDiffItem && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: 520, maxHeight: '70vh', overflow: 'auto' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 600 }}>接口一致性差异同步</h3>
+            <div style={{ marginBottom: 12, padding: 12, background: '#f9fafb', borderRadius: 6, fontSize: 13 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>{selectedDiffItem.interface_name}</div>
+              <div style={{ color: '#6b7280', fontFamily: 'monospace' }}>{selectedDiffItem.method_type} {selectedDiffItem.endpoint_path}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+              <div style={{ padding: 10, background: '#fef2f2', borderRadius: 4, border: '1px solid #fecaca' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#dc2626', marginBottom: 4 }}>OpenAPI 定义</div>
+                <div style={{ fontSize: 12, color: '#4b5563', fontFamily: 'monospace' }}>{selectedDiffItem.expected_params || '—'}</div>
+              </div>
+              <div style={{ padding: 10, background: '#eff6ff', borderRadius: 4, border: '1px solid #bfdbfe' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', marginBottom: 4 }}>OpenUI 绑定</div>
+                <div style={{ fontSize: 12, color: '#4b5563', fontFamily: 'monospace' }}>{selectedDiffItem.actual_params || '—'}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                onClick={() => setShowDiffModal(false)}
+                style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #e5e7eb', background: '#fff', borderRadius: 4, cursor: 'pointer' }}
+              >
+                取消
+              </button>
+              <button
+                onClick={() => { setShowDiffModal(false); console.log('同步到 OpenUI', selectedDiffItem.item_id) }}
+                style={{ padding: '8px 16px', fontSize: 13, background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+              >
+                同步到 OpenUI
+              </button>
+              <button
+                onClick={() => { setShowDiffModal(false); console.log('同步到 OpenAPI', selectedDiffItem.item_id) }}
+                style={{ padding: '8px 16px', fontSize: 13, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+              >
+                同步到 OpenAPI
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

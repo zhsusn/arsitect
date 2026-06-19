@@ -1,2 +1,0 @@
-Unknown error: Error serializing to JSON: UnicodeEncodeError: 'utf-8' codec 
-can't encode character '\udcaf' in position 5: surrogates not allowed

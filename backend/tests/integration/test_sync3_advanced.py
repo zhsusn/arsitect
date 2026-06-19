@@ -110,7 +110,12 @@ class TestSync3Advanced:
         # Canvas state save & get
         canvas_payload = {
             "nodes": [
-                {"id": "n1", "type": "stage", "position": {"x": 0, "y": 0}, "data": {"label": "Stage 1"}}
+                {
+                    "id": "n1",
+                    "type": "stage",
+                    "position": {"x": 0, "y": 0},
+                    "data": {"label": "Stage 1"},
+                }
             ],
             "edges": [],
             "viewport": {"x": 0, "y": 0, "zoom": 1},

@@ -23,10 +23,18 @@ class Template(Base):
     estimated_skill_count: Mapped[int] = mapped_column(Integer, nullable=False)
     applicable_complexity: Mapped[str] = mapped_column(String(16), nullable=False)
     config_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    default_execution_strategy: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="semi_auto"
+    )
+    merge_policy_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         CheckConstraint(
             "template_id IN ('Trivial', 'Light', 'Standard', 'Deep')",
             name="ck_template_id",
+        ),
+        CheckConstraint(
+            "default_execution_strategy IN ('full_auto', 'semi_auto', 'full_manual')",
+            name="ck_template_default_execution_strategy",
         ),
     )

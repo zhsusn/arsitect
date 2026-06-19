@@ -114,10 +114,7 @@ async def get_heatmap(
     """Get rework heatmap for a project."""
     viewer = HistoryViewer(db)
     heatmap = await viewer.get_rework_heatmap(project_id)
-    return {
-        key: HeatmapCellDTO(**value)
-        for key, value in heatmap.items()
-    }
+    return {key: HeatmapCellDTO(**value) for key, value in heatmap.items()}
 
 
 @router.get(
@@ -249,9 +246,7 @@ async def detect_gaps(
         gaps = await binder.detect_gaps(project_id)
     else:
         interfaces = [m.model_dump() for m in dto]
-        gaps = await binder.detect_gaps_from_interfaces(
-            project_id, interfaces
-        )
+        gaps = await binder.detect_gaps_from_interfaces(project_id, interfaces)
     return [
         InterfaceGapDTO(
             contract_id=g.contract_id,

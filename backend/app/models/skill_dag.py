@@ -27,21 +27,15 @@ class SkillDAGNode(Base):
         ForeignKey("skills.skill_id", ondelete="CASCADE"),
         nullable=False,
     )
-    position_x: Mapped[float] = mapped_column(
-        nullable=False, default=0.0
-    )
-    position_y: Mapped[float] = mapped_column(
-        nullable=False, default=0.0
-    )
+    position_x: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    position_y: Mapped[float] = mapped_column(nullable=False, default=0.0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
-    __table_args__ = (
-        {"sqlite_autoincrement": False},
-    )
+    __table_args__ = ({"sqlite_autoincrement": False},)
 
 
 class SkillDAGEdge(Base):
@@ -60,18 +54,12 @@ class SkillDAGEdge(Base):
         ForeignKey("skill_dag_nodes.node_id", ondelete="CASCADE"),
         nullable=False,
     )
-    confidence: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=100
-    )
-    is_auto_parsed: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    confidence: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
+    is_auto_parsed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
-    __table_args__ = (
-        {"sqlite_autoincrement": False},
-    )
+    __table_args__ = ({"sqlite_autoincrement": False},)

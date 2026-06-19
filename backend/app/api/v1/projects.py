@@ -2,26 +2,43 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from typing import Any
+
+from fastapi import APIRouter, Depends, Request, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.advanced import _get_notification_manager
 from app.core.exceptions import NotFoundError
 from app.infrastructure.database.session import get_db
 from app.models.project import Project
 from app.schemas.common import PageResponse
+from app.schemas.gate import GateDecisionResponseDTO
 from app.schemas.project import (
     BindSizeEstimateDTO,
     OperationLogItemDTO,
     ProjectCreateDTO,
+    ProjectExecutionStrategyResponseDTO,
+    ProjectExecutionStrategyUpdateDTO,
     ProjectOverviewDTO,
     ProjectResponseDTO,
     ProjectUpdateDTO,
     RiskAlertDTO,
+    StageAdvanceResponseDTO,
+    StageExecuteResponseDTO,
+    StageGateDecisionDTO,
+    StageGateDecisionResponseDTO,
     StageProgressDTO,
+    StageProgressResponseDTO,
+    StageRollbackRequestDTO,
+    StageRollbackResponseDTO,
+    StageStartResponseDTO,
     TimeboxEntryDTO,
 )
 from app.services.project_service import ProjectService
 from app.services.risk_scanner_service import RiskScannerService
+from app.services.stage_gate_controller import StageGateController
+from app.services.stage_orchestrator import StageOrchestrator
 
 router = APIRouter(tags=["projects"])
 
@@ -39,9 +56,7 @@ async def list_projects(
 ) -> PageResponse[ProjectResponseDTO]:
     """List projects under an application with pagination."""
     svc = ProjectService(db)
-    items, total = await svc.list_projects(
-        app_id, page=page, page_size=page_size
-    )
+    items, total = await svc.list_projects(app_id, page=page, page_size=page_size)
     total_pages = (total + page_size - 1) // page_size
     return PageResponse[ProjectResponseDTO](
         data=[ProjectResponseDTO.model_validate(p) for p in items],
@@ -67,7 +82,7 @@ async def create_project(
     """Create a new project under an application."""
     svc = ProjectService(db)
     return await svc.create_project(
-        project_id=dto.project_id,
+        project_id=dto.project_id or "",
         project_name=dto.project_name,
         application_id=app_id,
         template_level=dto.template_level,
@@ -98,6 +113,24 @@ async def update_project(
         project_id,
         project_name=dto.project_name,
         project_description=dto.project_description,
+    )
+
+
+@router.put(
+    "/projects/{project_id}/execution-strategy",
+    response_model=ProjectExecutionStrategyResponseDTO,
+)
+async def update_project_execution_strategy(
+    project_id: str,
+    dto: ProjectExecutionStrategyUpdateDTO,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, object]:
+    """Update project execution strategy."""
+    svc = ProjectService(db)
+    return await svc.update_execution_strategy(
+        project_id,
+        execution_strategy=dto.execution_strategy,
+        reason=dto.reason,
     )
 
 
@@ -187,7 +220,7 @@ async def get_project_overview(
 ) -> ProjectOverviewDTO:
     """Get aggregated project overview for detail drawer."""
     svc = ProjectService(db)
-    return await svc.get_project_overview(project_id)
+    return ProjectOverviewDTO.model_validate(await svc.get_project_overview(project_id))
 
 
 # Stage progress
@@ -201,7 +234,7 @@ async def list_project_stages(
 ) -> list[StageProgressDTO]:
     """List stage progress for a project."""
     svc = ProjectService(db)
-    return await svc.list_project_stages(project_id)
+    return [StageProgressDTO.model_validate(s) for s in await svc.list_project_stages(project_id)]
 
 
 # Operation logs
@@ -216,7 +249,7 @@ async def list_project_operation_logs(
 ) -> list[OperationLogItemDTO]:
     """List recent operation logs for a project."""
     svc = ProjectService(db)
-    return await svc.list_operation_logs(project_id, limit=limit)
+    return [OperationLogItemDTO.model_validate(item) for item in await svc.list_operation_logs(project_id, limit=limit)]
 
 
 # Bind size estimate
@@ -230,3 +263,118 @@ async def bind_size_estimate(
     svc = ProjectService(db)
     await svc.bind_size_estimate(project_id, dto.estimate_id)
     return {"status": "ok", "project_id": project_id}
+
+
+# Stage orchestration endpoints
+@router.post("/projects/{project_id}/start", response_model=StageStartResponseDTO)
+async def start_project(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """启动项目阶段流水线。"""
+    orchestrator = StageOrchestrator(session=db)
+    return await orchestrator.start_project(project_id)
+
+
+@router.post(
+    "/projects/{project_id}/stages/{stage_id}/execute",
+    response_model=StageExecuteResponseDTO,
+)
+async def execute_project_stage(
+    project_id: str,
+    stage_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """手动触发阶段执行。"""
+    orchestrator = StageOrchestrator(session=db)
+    return await orchestrator.execute_stage(stage_id)
+
+
+@router.post(
+    "/projects/{project_id}/stages/{stage_id}/advance",
+    response_model=StageAdvanceResponseDTO,
+)
+async def advance_project_stage(
+    project_id: str,
+    stage_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """手动推进到下一阶段。"""
+    orchestrator = StageOrchestrator(session=db)
+    return await orchestrator.advance_stage(stage_id)
+
+
+@router.post(
+    "/projects/{project_id}/stages/{stage_id}/gate/decide",
+    response_model=StageGateDecisionResponseDTO,
+)
+async def decide_project_stage_gate(
+    project_id: str,
+    stage_id: str,
+    dto: StageGateDecisionDTO,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Gate 决策。"""
+    orchestrator = StageOrchestrator(session=db)
+    return await orchestrator.decide_gate(stage_id, dto.decision, dto.reason)
+
+
+@router.get(
+    "/projects/{project_id}/stages/{stage_id}/gate",
+    response_model=GateDecisionResponseDTO | None,
+)
+async def get_project_stage_gate(
+    project_id: str,
+    stage_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> GateDecisionResponseDTO | None:
+    """获取阶段当前 pending 的 Gate 决策记录。"""
+    controller = StageGateController(db)
+    gate = await controller.get_pending_gate(stage_id)
+    if gate is None:
+        return None
+    return GateDecisionResponseDTO.model_validate(gate)
+
+
+@router.get(
+    "/projects/{project_id}/stage-progress",
+    response_model=StageProgressResponseDTO,
+)
+async def get_project_stage_progress(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """获取项目阶段进度与状态。"""
+    orchestrator = StageOrchestrator(session=db)
+    return await orchestrator.get_stage_progress(project_id)
+
+
+@router.get("/projects/{project_id}/sse")
+async def project_events_stream(
+    project_id: str,
+    request: Request,
+) -> StreamingResponse:
+    """SSE event stream for a project."""
+    manager = _get_notification_manager()
+    return await manager.connect_sse(project_id, request)
+
+
+@router.post(
+    "/projects/{project_id}/stages/{stage_id}/rollback",
+    response_model=StageRollbackResponseDTO,
+)
+async def rollback_project_stage(
+    project_id: str,
+    stage_id: str,
+    dto: StageRollbackRequestDTO,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """回滚到目标阶段并标记下游产物过期。"""
+    orchestrator = StageOrchestrator(session=db)
+    result = await orchestrator.rollback_stage(
+        project_stage_id=stage_id,
+        target_stage_id=dto.target_stage_id,
+        reason=dto.reason,
+        operator_id="system",
+    )
+    return StageRollbackResponseDTO(**result).model_dump()

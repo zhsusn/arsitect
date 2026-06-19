@@ -6,8 +6,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-import aiofiles  # type: ignore[import-untyped]
-import aiofiles.os as aio_os  # type: ignore[import-untyped]
+import aiofiles
+import aiofiles.os as aio_os
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, NotFoundError
@@ -44,6 +44,7 @@ class ArtifactService:
         project_id: str,
         stage_id: str | None = None,
         skill_id: str | None = None,
+        execution_id: str | None = None,
         file_name: str,
         file_path: str,
         file_type: str,
@@ -57,6 +58,7 @@ class ArtifactService:
             project_id=project_id,
             stage_id=stage_id,
             skill_id=skill_id,
+            execution_id=execution_id,
             file_name=file_name,
             file_path=file_path,
             file_type=file_type,
@@ -112,15 +114,15 @@ class ArtifactService:
                     "current_version": art.current_version,
                     "external_status": art.external_status,
                     "stale_flag": art.stale_flag,
-                    "updated_at": (
-                        art.updated_at.isoformat() if art.updated_at else None
-                    ),
+                    "stage_id": art.stage_id,
+                    "skill_id": art.skill_id,
+                    "execution_id": art.execution_id,
+                    "created_at": (art.created_at.isoformat() if art.created_at else None),
+                    "updated_at": (art.updated_at.isoformat() if art.updated_at else None),
                 }
             )
 
-        return [
-            {"directory": d, "files": files} for d, files in sorted(tree.items())
-        ]
+        return [{"directory": d, "files": files} for d, files in sorted(tree.items())]
 
     async def _check_external_status(self, artifact: ArtifactFile) -> None:
         """Check if the file still exists on disk and update status."""
@@ -169,9 +171,7 @@ class ArtifactService:
         try:
             return await self._read_file(artifact.file_path)
         except OSError:
-            versions = await self._version_repo.list_versions(
-                artifact.artifact_id, limit=1
-            )
+            versions = await self._version_repo.list_versions(artifact.artifact_id, limit=1)
             if versions:
                 return versions[0].content or ""
             return ""
@@ -223,8 +223,7 @@ class ArtifactService:
         target = await self._version_repo.get_version(artifact_id, version_number)
         if target is None:
             raise NotFoundError(
-                detail=f"Version {version_number} not found for artifact"
-                f" '{artifact_id}'"
+                detail=f"Version {version_number} not found for artifact '{artifact_id}'"
             )
 
         content = target.content or ""
@@ -249,15 +248,12 @@ class ArtifactService:
         """List artifact versions (latest 10)."""
         return await self._version_repo.list_versions(artifact_id)
 
-    async def get_version(
-        self, artifact_id: str, version_number: int
-    ) -> ArtifactVersion:
+    async def get_version(self, artifact_id: str, version_number: int) -> ArtifactVersion:
         """Get a specific artifact version."""
         version = await self._version_repo.get_version(artifact_id, version_number)
         if version is None:
             raise NotFoundError(
-                detail=f"Version {version_number} not found for artifact"
-                f" '{artifact_id}'"
+                detail=f"Version {version_number} not found for artifact '{artifact_id}'"
             )
         return version
 
@@ -278,10 +274,18 @@ class ArtifactService:
             "file_size_bytes": artifact.file_size_bytes,
             "current_version": artifact.current_version,
             "content_hash": content_hash,
-            "updated_at": (
-                artifact.updated_at.isoformat() if artifact.updated_at else None
-            ),
+            "updated_at": (artifact.updated_at.isoformat() if artifact.updated_at else None),
         }
+
+    async def get_download_path(self, artifact_id: str) -> str:
+        """Return the absolute file path for downloading an artifact."""
+        artifact = await self._repo.get_by_id(artifact_id)
+        if artifact is None:
+            raise NotFoundError(detail=f"Artifact '{artifact_id}' not found")
+        await self._check_external_status(artifact)
+        if artifact.external_status == "deleted":
+            raise NotFoundError(detail=f"Artifact '{artifact_id}' has been deleted externally")
+        return artifact.file_path
 
     async def _read_file(self, file_path: str) -> str:
         """Read text from file_path asynchronously."""

@@ -43,7 +43,9 @@ class TestProjectRepository:
             return app, proj
 
     @pytest.mark.asyncio
-    async def test_create_and_get(self, seeded_app_and_project: tuple[Application, Project]) -> None:
+    async def test_create_and_get(
+        self, seeded_app_and_project: tuple[Application, Project]
+    ) -> None:
         """Can create and retrieve a project."""
         app, _ = seeded_app_and_project
         async with AsyncSessionLocal() as session:
@@ -62,7 +64,9 @@ class TestProjectRepository:
             assert fetched.project_name == "New Project"
 
     @pytest.mark.asyncio
-    async def test_list_by_application(self, seeded_app_and_project: tuple[Application, Project]) -> None:
+    async def test_list_by_application(
+        self, seeded_app_and_project: tuple[Application, Project]
+    ) -> None:
         """Can list projects by application."""
         app, _ = seeded_app_and_project
         async with AsyncSessionLocal() as session:
@@ -100,7 +104,9 @@ class TestProjectRepository:
             assert ok is False
 
     @pytest.mark.asyncio
-    async def test_exists_by_name(self, seeded_app_and_project: tuple[Application, Project]) -> None:
+    async def test_exists_by_name(
+        self, seeded_app_and_project: tuple[Application, Project]
+    ) -> None:
         """Name existence check works."""
         app, _ = seeded_app_and_project
         async with AsyncSessionLocal() as session:
@@ -109,7 +115,9 @@ class TestProjectRepository:
             assert await repo.exists_by_name(app.application_id, "No Such Project") is False
 
     @pytest.mark.asyncio
-    async def test_archive_activate_cancel(self, seeded_app_and_project: tuple[Application, Project]) -> None:
+    async def test_archive_activate_cancel(
+        self, seeded_app_and_project: tuple[Application, Project]
+    ) -> None:
         """State transitions update status correctly."""
         _, proj = seeded_app_and_project
         async with AsyncSessionLocal() as session:

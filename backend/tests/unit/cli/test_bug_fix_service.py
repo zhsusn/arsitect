@@ -47,9 +47,7 @@ class TestBugFixService:
     async def test_analyze_bug(self, bug_service: BugFixService) -> None:
         """TEST-1515: analyze_bug returns root cause and affected files."""
         error_input = (
-            "Traceback:\n"
-            '  File "src/app.py", line 5, in handler\n'
-            "    raise KeyError('x')\n"
+            "Traceback:\n  File \"src/app.py\", line 5, in handler\n    raise KeyError('x')\n"
         )
         result = await bug_service.analyze_bug(error_input)
 
@@ -200,7 +198,7 @@ class TestBugFixService:
         bug_session: str,
     ) -> None:
         """TEST-1525: save_bug_record links a bug to a previously matching signature."""
-        error_input = "ValueError: duplicate\nTraceback:\n  File \"src/a.py\"\n"
+        error_input = 'ValueError: duplicate\nTraceback:\n  File "src/a.py"\n'
         first = await bug_service.save_bug_record(
             BugRecordCreate(
                 project_id="proj-1",

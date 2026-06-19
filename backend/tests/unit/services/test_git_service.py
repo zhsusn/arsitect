@@ -45,9 +45,7 @@ def test_branch_name_format(git_service: GitService) -> None:
     assert "issue-1" in name
 
 
-def test_full_workflow_in_temporary_repo(
-    git_service: GitService, tmp_path: Path
-) -> None:
+def test_full_workflow_in_temporary_repo(git_service: GitService, tmp_path: Path) -> None:
     """TEST-1725: Create branch, commit and reset in a real repo."""
     import subprocess
 

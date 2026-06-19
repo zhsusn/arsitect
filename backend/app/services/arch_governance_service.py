@@ -209,10 +209,11 @@ class ArchGovernanceService:
         """
         issue = await self.get_issue(issue_id)
         issue.governance_plan = (
-            f"Mock plan for {issue.issue_type}: refactor affected files and "
-            "add regression tests."
+            f"Mock plan for {issue.issue_type}: refactor affected files and add regression tests."
         )
-        issue.refactor_diff = f"--- a/{issue.location}\n+++ b/{issue.location}\n@@ -1 +1 @@\n- old\n+ new\n"
+        issue.refactor_diff = (
+            f"--- a/{issue.location}\n+++ b/{issue.location}\n@@ -1 +1 @@\n- old\n+ new\n"
+        )
         issue.status = ArchIssueStatus.PLANNED
         issue.updated_at = datetime.now(UTC)
         self._session.add(issue)
@@ -302,9 +303,7 @@ class ArchGovernanceService:
                     session_id, "暂无可自动执行的变更，请在架构治理页面重新扫描。"
                 ).model_dump()
             )
-            await sender(
-                self._build_done(session_id, {"total": 0, "pending": 0}).model_dump()
-            )
+            await sender(self._build_done(session_id, {"total": 0, "pending": 0}).model_dump())
             return
 
         pending = 0
@@ -317,9 +316,7 @@ class ArchGovernanceService:
                     ).model_dump()
                 )
 
-                if change.get("auto_applicable") and not change.get(
-                    "requires_confirmation", True
-                ):
+                if change.get("auto_applicable") and not change.get("requires_confirmation", True):
                     await sender(
                         self._build_text(
                             session_id,
@@ -349,11 +346,7 @@ class ArchGovernanceService:
                 ).model_dump()
             )
         else:
-            await sender(
-                self._build_text(
-                    session_id, "所有自动变更已执行完毕。"
-                ).model_dump()
-            )
+            await sender(self._build_text(session_id, "所有自动变更已执行完毕。").model_dump())
         await sender(
             self._build_done(session_id, {"total": total, "pending": pending}).model_dump()
         )
@@ -410,9 +403,7 @@ class ArchGovernanceService:
             try:
                 from app.c4 import registry_extractor
 
-                stats = await asyncio.to_thread(
-                    registry_extractor.extract_registry, project_id
-                )
+                stats = await asyncio.to_thread(registry_extractor.extract_registry, project_id)
                 issue.status = ArchIssueStatus.EXECUTED
                 issue.executed_at = datetime.now(UTC)
                 issue.updated_at = datetime.now(UTC)
@@ -423,9 +414,7 @@ class ArchGovernanceService:
                     f"已重新抽取 C4 Registry：{stats['components']} 个组件，"
                     f"{stats['relationships']} 条关系"
                 )
-                await sender(
-                    self._build_text(session_id, summary).model_dump()
-                )
+                await sender(self._build_text(session_id, summary).model_dump())
                 return ExecResult(
                     success=True,
                     output=summary,
@@ -439,9 +428,7 @@ class ArchGovernanceService:
                 self._session.add(issue)
                 await self._session.flush()
                 await sender(
-                    self._build_text(
-                        session_id, f"C4 Registry 抽取失败：{exc}"
-                    ).model_dump()
+                    self._build_text(session_id, f"C4 Registry 抽取失败：{exc}").model_dump()
                 )
                 return ExecResult(
                     success=False,
@@ -465,9 +452,7 @@ class ArchGovernanceService:
                 issue.updated_at = datetime.now(UTC)
                 self._session.add(issue)
                 await self._session.flush()
-                await sender(
-                    self._build_text(session_id, f"已删除：{target_path}").model_dump()
-                )
+                await sender(self._build_text(session_id, f"已删除：{target_path}").model_dump())
                 return ExecResult(
                     success=True,
                     output=f"Deleted {target_path}",
@@ -513,20 +498,18 @@ class ArchGovernanceService:
                     user_hint=user_hint,
                 )
                 await sender(
-                    self._build_thinking(session_id, "AI 正在分析问题并生成修复方案...").model_dump()
+                    self._build_thinking(
+                        session_id, "AI 正在分析问题并生成修复方案..."
+                    ).model_dump()
                 )
 
                 collected_chunks: list[str] = []
 
                 async def _on_chunk(chunk: str) -> None:
                     collected_chunks.append(chunk)
-                    await sender(
-                        self._build_thinking(session_id, chunk).model_dump()
-                    )
+                    await sender(self._build_thinking(session_id, chunk).model_dump())
 
-                llm_output = await self._llm_gateway.generate_stream(
-                    prompt, on_chunk=_on_chunk
-                )
+                llm_output = await self._llm_gateway.generate_stream(prompt, on_chunk=_on_chunk)
                 file_changes = AIOutputParser.parse_file_changes(
                     llm_output, fallback_target=target_path
                 )
@@ -553,6 +536,7 @@ class ArchGovernanceService:
                 )
             except Exception as exc:  # noqa: BLE001
                 import traceback
+
                 tb = traceback.format_exc()
                 print(f"[ARCH FIX] LLM error: {exc!r}\n{tb}")
                 await sender(
@@ -608,9 +592,7 @@ class ArchGovernanceService:
                 )
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"{path}: {exc}")
-                await sender(
-                    self._build_text(session_id, f"执行失败：{path} - {exc}").model_dump()
-                )
+                await sender(self._build_text(session_id, f"执行失败：{path} - {exc}").model_dump())
 
         if errors and not applied:
             if branch_name:
@@ -644,9 +626,7 @@ class ArchGovernanceService:
                 if not rel_backup:
                     continue
                 backup_path = self._file_backup.project_root / rel_backup
-                target_abs = self._file_backup.resolve_target(
-                    item["path"], project_id
-                )
+                target_abs = self._file_backup.resolve_target(item["path"], project_id)
                 try:
                     self._file_backup.restore(backup_path, target_abs)
                 except Exception as restore_exc:  # noqa: BLE001
@@ -759,9 +739,7 @@ class ArchGovernanceService:
         """
         absolute_path = self._file_backup.resolve_target(target_path, project_id)
         backup_path = self._file_backup.backup(absolute_path, session_id)
-        result = self._file_backup.apply_change(
-            absolute_path, action, content, backup_path
-        )
+        result = self._file_backup.apply_change(absolute_path, action, content, backup_path)
         verify = self._file_backup.verify(absolute_path, content)
         if not verify["ok"]:
             self._file_backup.restore(backup_path, absolute_path)
@@ -770,9 +748,7 @@ class ArchGovernanceService:
         return {
             **result,
             "verified": verify,
-            "backup_path": str(
-                backup_path.relative_to(self._file_backup.project_root).as_posix()
-            ),
+            "backup_path": str(backup_path.relative_to(self._file_backup.project_root).as_posix()),
         }
 
     async def optimize_change(
@@ -869,9 +845,7 @@ class ArchGovernanceService:
         return issue
 
     @staticmethod
-    def _build_decision_card(
-        change: dict[str, Any], strategy_prompt: str = ""
-    ) -> dict[str, Any]:
+    def _build_decision_card(change: dict[str, Any], strategy_prompt: str = "") -> dict[str, Any]:
         """Build an arch-decision CLI card from a change dict."""
         return {
             "type": "arch-decision",
@@ -941,9 +915,7 @@ class ArchGovernanceService:
             type="card",
             session_id=session_id,
             timestamp=_now_ms(),
-            payload=CliResponsePayload.model_construct(
-                card=CliCard.model_validate(card)
-            ),
+            payload=CliResponsePayload.model_construct(card=CliCard.model_validate(card)),
         )
 
     @staticmethod
@@ -955,9 +927,7 @@ class ArchGovernanceService:
             type="done",
             session_id=session_id,
             timestamp=_now_ms(),
-            payload=CliResponsePayload.model_construct(
-                text=f"修复计划已推送：{summary}"
-            ),
+            payload=CliResponsePayload.model_construct(text=f"修复计划已推送：{summary}"),
         )
 
     async def scan_filesystem(

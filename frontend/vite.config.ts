@@ -5,8 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
-  const API_TARGET = env.VITE_API_URL || 'http://127.0.0.1:8000'
-  const WS_TARGET = env.VITE_WS_URL || 'ws://127.0.0.1:8000'
+  const API_TARGET =
+    process.env.VITE_API_URL || env.VITE_API_URL || 'http://127.0.0.1:8000'
+  const WS_TARGET =
+    process.env.VITE_WS_URL || env.VITE_WS_URL || 'ws://127.0.0.1:8000'
 
   return {
     plugins: [react(), tailwindcss()],
@@ -19,10 +21,6 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: API_TARGET,
-          changeOrigin: true,
-        },
-        '/sse': {
           target: API_TARGET,
           changeOrigin: true,
         },

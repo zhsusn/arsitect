@@ -37,9 +37,7 @@ class TriggerValidator:
             校验结果 DTO。
         """
         if dto.trigger_action == "SINGLE_EXECUTE":
-            running = await self._has_running_execution(
-                dto.target_stage_id, skill_name
-            )
+            running = await self._has_running_execution(dto.target_stage_id, skill_name)
             if running:
                 return TriggerValidationResultDTO(
                     valid=False,
@@ -83,9 +81,7 @@ class TriggerValidator:
 
         return TriggerValidationResultDTO(valid=True)
 
-    async def _has_running_execution(
-        self, stage_id: str | None, skill_name: str
-    ) -> bool:
+    async def _has_running_execution(self, stage_id: str | None, skill_name: str) -> bool:
         """Check if there is a RUNNING execution for the given stage and skill.
 
         Args:
@@ -98,10 +94,7 @@ class TriggerValidator:
         if stage_id is None:
             return False
         executions = await self._exec_repo.list_by_stage(stage_id)
-        return any(
-            e.skill_name == skill_name and e.overall_status == "RUNNING"
-            for e in executions
-        )
+        return any(e.skill_name == skill_name and e.overall_status == "RUNNING" for e in executions)
 
     def _is_release_skill(self, skill_name: str) -> bool:
         """判定 Skill 是否为发布相关类型。

@@ -4,12 +4,14 @@ Encapsulates the logic previously in scripts/migrate_docs.py,
 extract_c4_entities.py, inject_c4_tags.py and fill_dependencies.py
 so it can be invoked both from CLI and from the Admin API.
 """
+
 from __future__ import annotations
 
 import hashlib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -44,10 +46,24 @@ SPECIAL_FILES: dict[str, tuple[str, str]] = {
 }
 
 _GENERIC_IDS = {
-    "api", "service", "repository", "store", "manager",
-    "engine", "handler", "controller", "router", "adapter",
-    "dr-003", "dr-004", "dr-005", "dr-009", "dr-010", "dr-015",
+    "api",
+    "service",
+    "repository",
+    "store",
+    "manager",
+    "engine",
+    "handler",
+    "controller",
+    "router",
+    "adapter",
+    "dr-003",
+    "dr-004",
+    "dr-005",
+    "dr-009",
+    "dr-010",
+    "dr-015",
 }
+
 
 # ------------------------------------------------------------------
 # Result DTOs
@@ -85,91 +101,432 @@ class DependencyResult:
 # Pinyin mapping (truncated for brevity; full map loaded from file or kept inline)
 # ------------------------------------------------------------------
 _PINYIN: dict[str, str] = {
-    "一": "yi", "二": "er", "三": "san", "四": "si", "五": "wu",
-    "六": "liu", "七": "qi", "八": "ba", "九": "jiu", "十": "shi",
-    "百": "bai", "千": "qian", "万": "wan", "亿": "yi",
-    "执": "zhi", "行": "xing", "摘": "zhai", "要": "yao", "背": "bei",
-    "景": "jing", "问": "wen", "题": "ti", "功": "gong", "能": "neng",
-    "范": "fan", "围": "wei", "非": "fei", "需": "xu", "求": "qiu",
-    "用": "yong", "户": "hu", "画": "hua", "像": "xiang", "系": "xi",
-    "统": "tong", "架": "jia", "构": "gou", "数": "shu", "据": "ju",
-    "流": "liu", "运": "yun", "时": "shi", "为": "wei", "质": "zhi",
-    "量": "liang", "属": "shu", "性": "xing", "维": "wei", "治": "zhi",
-    "理": "li", "设": "she", "计": "ji", "总": "zong", "览": "lan",
-    "列": "lie", "表": "biao", "详": "xiang", "情": "qing", "模": "mo",
-    "块": "kuai", "组": "zu", "件": "jian", "接": "jie", "口": "kou",
-    "契": "qi", "约": "yue", "库": "ku", "索": "suo", "引": "yin",
-    "迁": "qian", "移": "yi", "划": "hua", "验": "yan", "收": "shou",
-    "标": "biao", "准": "zhun", "测": "ce", "试": "shi", "报": "bao",
-    "告": "gao", "风": "feng", "险": "xian", "管": "guan", "变": "bian",
-    "更": "geng", "日": "ri", "志": "zhi", "审": "shen", "查": "cha",
-    "记": "ji", "录": "lu", "决": "jue", "策": "ce", "冻": "dong",
-    "结": "jie", "人": "ren", "工": "gong", "闸": "zha", "门": "men",
-    "进": "jin", "度": "du", "追": "zhui", "踪": "zong", "状": "zhuang",
-    "态": "tai", "机": "ji", "转": "zhuan", "换": "huan", "业": "ye",
-    "务": "wu", "规": "gui", "则": "ze", "实": "shi", "体": "ti",
-    "关": "guan", "领": "ling", "域": "yu", "型": "xing",
-    "容": "rong", "器": "qi", "部": "bu", "署": "shu", "安": "an",
-    "全": "quan", "监": "jian", "控": "kong", "异": "yi", "常": "chang",
-    "处": "chu", "配": "pei", "置": "zhi",
-    "权": "quan", "限": "xian", "角": "jiao", "色": "se", "登": "deng", "注": "zhu", "册": "ce", "退": "tui", "出": "chu",
-    "首": "shou", "页": "ye", "仪": "yi", "盘": "pan", "看": "kan",
-    "板": "ban", "导": "dao", "航": "hang", "菜": "cai", "单": "dan",
-    "搜": "sou", "筛": "shai", "选": "xuan", "排": "pai", "序": "xu",
-    "分": "fen", "弹": "tan", "窗": "chuang", "向": "xiang",
-    "精": "jing", "灵": "ling", "帮": "bang", "助": "zhu", "文": "wen",
-    "档": "dang", "反": "fan", "馈": "kui", "意": "yi", "见": "jian", "于": "yu", "版": "ban", "本": "ben", "新": "xin",
-    "检": "jian", "同": "tong", "步": "bu", "备": "bei",
-    "份": "fen", "恢": "hui", "复": "fu", "入": "ru", "打": "da",
-    "印": "yin", "享": "xiang", "下": "xia", "载": "zai", "上": "shang",
-    "传": "chuan", "拖": "tuo", "拽": "zhuai", "制": "zhi",
-    "粘": "zhan", "贴": "tie", "剪": "jian", "切": "qie", "撤": "che",
-    "销": "xiao", "重": "zhong", "做": "zuo", "取": "qu",
-    "消": "xiao", "编": "bian", "辑": "ji", "删": "shan", "除": "chu",
-    "建": "jian", "创": "chuang", "修": "xiu", "改": "gai",
-    "阅": "yue", "读": "du", "预": "yu", "确": "que",
-    "认": "ren", "提": "ti", "交": "jiao", "保": "bao", "存": "cun",
-    "暂": "zan", "发": "fa", "布": "bu", "批": "pi",
-    "通": "tong", "过": "guo", "驳": "bo", "回": "hui", "派": "pai",
-    "指": "zhi", "督": "du", "询": "xun", "析": "xi",
-    "图": "tu", "评": "ping", "估": "gu",
-    "算": "suan", "警": "jing", "知": "zhi", "息": "xi", "邮": "you", "短": "duan",
-    "信": "xin", "推": "tui", "送": "song", "订": "ding", "藏": "cang",
-    "签": "qian", "类": "lei", "归": "gui", "目": "mu",
-    "夹": "jia", "路": "lu", "径": "jing", "地": "di", "址": "zhi",
-    "名": "ming", "称": "cheng", "识": "shi", "号": "hao", "代": "dai",
-    "码": "ma", "期": "qi", "间": "jian", "长": "chang",
-    "周": "zhou", "频": "pin", "率": "lv", "隔": "ge", "延": "yan",
-    "迟": "chi", "等": "deng", "待": "dai", "超": "chao",
-    "到": "dao", "截": "jie", "止": "zhi", "开": "kai", "始": "shi", "束": "shu", "启": "qi", "动": "dong", "停": "ting",
-    "初": "chu", "化": "hua",
-    "装": "zhuang", "卸": "xie", "线": "xian", "灰": "hui", "滚": "gun", "升": "sheng", "级": "ji",
-    "降": "jiang", "兼": "jian", "适": "shi", "优": "you", "调": "tiao",
-    "压": "ya", "缩": "suo", "缓": "huan", "加": "jia",
-    "速": "su", "效": "xiao", "吞": "tun",
-    "吐": "tu", "并": "bing", "负": "fu", "力": "li", "饱": "bao", "和": "he", "满": "man",
-    "足": "zu", "达": "da", "完": "wan", "现": "xian", "付": "fu", "产": "chan", "生": "sheng", "绩": "ji",
-    "水": "shui", "平": "ping", "潜": "qian", "毅": "yi", "专": "zhuan", "集": "ji", "中": "zhong", "洞": "dong", "造": "zao", "想": "xiang", "思": "si", "逻": "luo", "解": "jie", "忆": "yi", "学": "xue", "习": "xi",
-    "应": "ying", "抗": "kang", "承": "cheng", "受": "shou",
-    "忍": "ren", "包": "bao",
-    "吸": "xi", "利": "li", "共": "gong", "覆": "fu", "盖": "gai", "核": "he", "心": "xin",
+    "一": "yi",
+    "二": "er",
+    "三": "san",
+    "四": "si",
+    "五": "wu",
+    "六": "liu",
+    "七": "qi",
+    "八": "ba",
+    "九": "jiu",
+    "十": "shi",
+    "百": "bai",
+    "千": "qian",
+    "万": "wan",
+    "亿": "yi",
+    "执": "zhi",
+    "行": "xing",
+    "摘": "zhai",
+    "要": "yao",
+    "背": "bei",
+    "景": "jing",
+    "问": "wen",
+    "题": "ti",
+    "功": "gong",
+    "能": "neng",
+    "范": "fan",
+    "围": "wei",
+    "非": "fei",
+    "需": "xu",
+    "求": "qiu",
+    "用": "yong",
+    "户": "hu",
+    "画": "hua",
+    "像": "xiang",
+    "系": "xi",
+    "统": "tong",
+    "架": "jia",
+    "构": "gou",
+    "数": "shu",
+    "据": "ju",
+    "流": "liu",
+    "运": "yun",
+    "时": "shi",
+    "为": "wei",
+    "质": "zhi",
+    "量": "liang",
+    "属": "shu",
+    "性": "xing",
+    "维": "wei",
+    "治": "zhi",
+    "理": "li",
+    "设": "she",
+    "计": "ji",
+    "总": "zong",
+    "览": "lan",
+    "列": "lie",
+    "表": "biao",
+    "详": "xiang",
+    "情": "qing",
+    "模": "mo",
+    "块": "kuai",
+    "组": "zu",
+    "件": "jian",
+    "接": "jie",
+    "口": "kou",
+    "契": "qi",
+    "约": "yue",
+    "库": "ku",
+    "索": "suo",
+    "引": "yin",
+    "迁": "qian",
+    "移": "yi",
+    "划": "hua",
+    "验": "yan",
+    "收": "shou",
+    "标": "biao",
+    "准": "zhun",
+    "测": "ce",
+    "试": "shi",
+    "报": "bao",
+    "告": "gao",
+    "风": "feng",
+    "险": "xian",
+    "管": "guan",
+    "变": "bian",
+    "更": "geng",
+    "日": "ri",
+    "志": "zhi",
+    "审": "shen",
+    "查": "cha",
+    "记": "ji",
+    "录": "lu",
+    "决": "jue",
+    "策": "ce",
+    "冻": "dong",
+    "结": "jie",
+    "人": "ren",
+    "工": "gong",
+    "闸": "zha",
+    "门": "men",
+    "进": "jin",
+    "度": "du",
+    "追": "zhui",
+    "踪": "zong",
+    "状": "zhuang",
+    "态": "tai",
+    "机": "ji",
+    "转": "zhuan",
+    "换": "huan",
+    "业": "ye",
+    "务": "wu",
+    "规": "gui",
+    "则": "ze",
+    "实": "shi",
+    "体": "ti",
+    "关": "guan",
+    "领": "ling",
+    "域": "yu",
+    "型": "xing",
+    "容": "rong",
+    "器": "qi",
+    "部": "bu",
+    "署": "shu",
+    "安": "an",
+    "全": "quan",
+    "监": "jian",
+    "控": "kong",
+    "异": "yi",
+    "常": "chang",
+    "处": "chu",
+    "配": "pei",
+    "置": "zhi",
+    "权": "quan",
+    "限": "xian",
+    "角": "jiao",
+    "色": "se",
+    "登": "deng",
+    "注": "zhu",
+    "册": "ce",
+    "退": "tui",
+    "出": "chu",
+    "首": "shou",
+    "页": "ye",
+    "仪": "yi",
+    "盘": "pan",
+    "看": "kan",
+    "板": "ban",
+    "导": "dao",
+    "航": "hang",
+    "菜": "cai",
+    "单": "dan",
+    "搜": "sou",
+    "筛": "shai",
+    "选": "xuan",
+    "排": "pai",
+    "序": "xu",
+    "分": "fen",
+    "弹": "tan",
+    "窗": "chuang",
+    "向": "xiang",
+    "精": "jing",
+    "灵": "ling",
+    "帮": "bang",
+    "助": "zhu",
+    "文": "wen",
+    "档": "dang",
+    "反": "fan",
+    "馈": "kui",
+    "意": "yi",
+    "见": "jian",
+    "于": "yu",
+    "版": "ban",
+    "本": "ben",
+    "新": "xin",
+    "检": "jian",
+    "同": "tong",
+    "步": "bu",
+    "备": "bei",
+    "份": "fen",
+    "恢": "hui",
+    "复": "fu",
+    "入": "ru",
+    "打": "da",
+    "印": "yin",
+    "享": "xiang",
+    "下": "xia",
+    "载": "zai",
+    "上": "shang",
+    "传": "chuan",
+    "拖": "tuo",
+    "拽": "zhuai",
+    "制": "zhi",
+    "粘": "zhan",
+    "贴": "tie",
+    "剪": "jian",
+    "切": "qie",
+    "撤": "che",
+    "销": "xiao",
+    "重": "zhong",
+    "做": "zuo",
+    "取": "qu",
+    "消": "xiao",
+    "编": "bian",
+    "辑": "ji",
+    "删": "shan",
+    "除": "chu",
+    "建": "jian",
+    "创": "chuang",
+    "修": "xiu",
+    "改": "gai",
+    "阅": "yue",
+    "读": "du",
+    "预": "yu",
+    "确": "que",
+    "认": "ren",
+    "提": "ti",
+    "交": "jiao",
+    "保": "bao",
+    "存": "cun",
+    "暂": "zan",
+    "发": "fa",
+    "布": "bu",
+    "批": "pi",
+    "通": "tong",
+    "过": "guo",
+    "驳": "bo",
+    "回": "hui",
+    "派": "pai",
+    "指": "zhi",
+    "督": "du",
+    "询": "xun",
+    "析": "xi",
+    "图": "tu",
+    "评": "ping",
+    "估": "gu",
+    "算": "suan",
+    "警": "jing",
+    "知": "zhi",
+    "息": "xi",
+    "邮": "you",
+    "短": "duan",
+    "信": "xin",
+    "推": "tui",
+    "送": "song",
+    "订": "ding",
+    "藏": "cang",
+    "签": "qian",
+    "类": "lei",
+    "归": "gui",
+    "目": "mu",
+    "夹": "jia",
+    "路": "lu",
+    "径": "jing",
+    "地": "di",
+    "址": "zhi",
+    "名": "ming",
+    "称": "cheng",
+    "识": "shi",
+    "号": "hao",
+    "代": "dai",
+    "码": "ma",
+    "期": "qi",
+    "间": "jian",
+    "长": "chang",
+    "周": "zhou",
+    "频": "pin",
+    "率": "lv",
+    "隔": "ge",
+    "延": "yan",
+    "迟": "chi",
+    "等": "deng",
+    "待": "dai",
+    "超": "chao",
+    "到": "dao",
+    "截": "jie",
+    "止": "zhi",
+    "开": "kai",
+    "始": "shi",
+    "束": "shu",
+    "启": "qi",
+    "动": "dong",
+    "停": "ting",
+    "初": "chu",
+    "化": "hua",
+    "装": "zhuang",
+    "卸": "xie",
+    "线": "xian",
+    "灰": "hui",
+    "滚": "gun",
+    "升": "sheng",
+    "级": "ji",
+    "降": "jiang",
+    "兼": "jian",
+    "适": "shi",
+    "优": "you",
+    "调": "tiao",
+    "压": "ya",
+    "缩": "suo",
+    "缓": "huan",
+    "加": "jia",
+    "速": "su",
+    "效": "xiao",
+    "吞": "tun",
+    "吐": "tu",
+    "并": "bing",
+    "负": "fu",
+    "力": "li",
+    "饱": "bao",
+    "和": "he",
+    "满": "man",
+    "足": "zu",
+    "达": "da",
+    "完": "wan",
+    "现": "xian",
+    "付": "fu",
+    "产": "chan",
+    "生": "sheng",
+    "绩": "ji",
+    "水": "shui",
+    "平": "ping",
+    "潜": "qian",
+    "毅": "yi",
+    "专": "zhuan",
+    "集": "ji",
+    "中": "zhong",
+    "洞": "dong",
+    "造": "zao",
+    "想": "xiang",
+    "思": "si",
+    "逻": "luo",
+    "解": "jie",
+    "忆": "yi",
+    "学": "xue",
+    "习": "xi",
+    "应": "ying",
+    "抗": "kang",
+    "承": "cheng",
+    "受": "shou",
+    "忍": "ren",
+    "包": "bao",
+    "吸": "xi",
+    "利": "li",
+    "共": "gong",
+    "覆": "fu",
+    "盖": "gai",
+    "核": "he",
+    "心": "xin",
     # ---- Common particles ----
-    "的": "de", "了": "le", "在": "zai", "是": "shi", "有": "you", "与": "yu", "及": "ji", "或": "huo", "但": "dan",
-    "而": "er", "以": "yi", "将": "jiang", "把": "ba",
-    "被": "bei", "让": "rang", "给": "gei", "对": "dui", "从": "cong", "由": "you", "自": "zi",
-    "至": "zhi", "按": "an", "依": "yi", "照": "zhao",
-    "因": "yin", "此": "ci", "故": "gu", "若": "ruo", "如": "ru",
-    "即": "ji", "便": "bian", "虽": "sui", "然": "ran", "所": "suo",
-    "之": "zhi", "其": "qi", "他": "ta", "它": "ta", "她": "ta",
-    "们": "men", "哪": "na", "那": "na", "里": "li", "这": "zhe",
-    "些": "xie", "什": "shen", "么": "me", "怎": "zen", "谁": "shui",
-    "何": "he", "个": "ge", "还": "hai", "也": "ye",
-    "都": "dou", "就": "jiu", "只": "zhi", "又": "you",
-    "再": "zai", "最": "zui", "太": "tai", "很": "hen",
-    "特": "te", "比": "bi", "较": "jiao", "相": "xiang", "当": "dang",
-    "极": "ji", "尤": "you", "愈": "yu", "来": "lai", "越": "yue",
-    "不": "bu", "没": "mei", "无": "wu", "未": "wei", "否": "fou",
-    "勿": "wu", "莫": "mo", "毋": "wu",
+    "的": "de",
+    "了": "le",
+    "在": "zai",
+    "是": "shi",
+    "有": "you",
+    "与": "yu",
+    "及": "ji",
+    "或": "huo",
+    "但": "dan",
+    "而": "er",
+    "以": "yi",
+    "将": "jiang",
+    "把": "ba",
+    "被": "bei",
+    "让": "rang",
+    "给": "gei",
+    "对": "dui",
+    "从": "cong",
+    "由": "you",
+    "自": "zi",
+    "至": "zhi",
+    "按": "an",
+    "依": "yi",
+    "照": "zhao",
+    "因": "yin",
+    "此": "ci",
+    "故": "gu",
+    "若": "ruo",
+    "如": "ru",
+    "即": "ji",
+    "便": "bian",
+    "虽": "sui",
+    "然": "ran",
+    "所": "suo",
+    "之": "zhi",
+    "其": "qi",
+    "他": "ta",
+    "它": "ta",
+    "她": "ta",
+    "们": "men",
+    "哪": "na",
+    "那": "na",
+    "里": "li",
+    "这": "zhe",
+    "些": "xie",
+    "什": "shen",
+    "么": "me",
+    "怎": "zen",
+    "谁": "shui",
+    "何": "he",
+    "个": "ge",
+    "还": "hai",
+    "也": "ye",
+    "都": "dou",
+    "就": "jiu",
+    "只": "zhi",
+    "又": "you",
+    "再": "zai",
+    "最": "zui",
+    "太": "tai",
+    "很": "hen",
+    "特": "te",
+    "比": "bi",
+    "较": "jiao",
+    "相": "xiang",
+    "当": "dang",
+    "极": "ji",
+    "尤": "you",
+    "愈": "yu",
+    "来": "lai",
+    "越": "yue",
+    "不": "bu",
+    "没": "mei",
+    "无": "wu",
+    "未": "wei",
+    "否": "fou",
+    "勿": "wu",
+    "莫": "mo",
+    "毋": "wu",
 }
 
 
@@ -217,8 +574,13 @@ def migrate_legacy_docs(src_root: Path, dst_root: Path | None = None) -> Migrati
         if any(p in src.parts for p in ("baseline", "delta", "compiled", "_meta")):
             continue
         if src.name in (
-            "progress.md", "plan.md", "tasks.md", "human-decisions.md",
-            "master-flow.md", "prd-000-toc.md", "release-notes.md",
+            "progress.md",
+            "plan.md",
+            "tasks.md",
+            "human-decisions.md",
+            "master-flow.md",
+            "prd-000-toc.md",
+            "release-notes.md",
         ):
             result.skipped.append(str(src.relative_to(src_root)))
             continue
@@ -281,8 +643,8 @@ def migrate_legacy_docs(src_root: Path, dst_root: Path | None = None) -> Migrati
         "## Migrated files",
         "",
     ]
-    for rel, fid in result.migrated:
-        manifest_lines.append(f"- `{rel}` → `{fid}`")
+    for rel_path, fid in result.migrated:
+        manifest_lines.append(f"- `{rel_path}` → `{fid}`")
     if result.skipped:
         manifest_lines.extend(["", "## Skipped files", ""])
         for s in result.skipped:
@@ -293,8 +655,14 @@ def migrate_legacy_docs(src_root: Path, dst_root: Path | None = None) -> Migrati
     return result
 
 
-def _extract_meta(content: str, rel_path: Path) -> dict:
-    meta = {"title": "", "version": "1.0.0", "status": "DRAFT", "author": "agent-migration", "date": "2026-06-10"}
+def _extract_meta(content: str, rel_path: Path) -> dict[str, Any]:
+    meta = {
+        "title": "",
+        "version": "1.0.0",
+        "status": "DRAFT",
+        "author": "agent-migration",
+        "date": "2026-06-10",
+    }
     m = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     if m:
         meta["title"] = m.group(1).strip()
@@ -343,11 +711,14 @@ def _strip_legacy_meta(content: str) -> str:
             i += 1
             continue
         if not changelog_stripped and (
-            "修改记录" in line or "版本历史" in line
+            "修改记录" in line
+            or "版本历史" in line
             or ("版本" in line and "日期" in line and "修改人" in line)
         ):
             j = i
-            while j < n and (lines[j].strip() == "" or lines[j].startswith("|") or lines[j].startswith(">")):
+            while j < n and (
+                lines[j].strip() == "" or lines[j].startswith("|") or lines[j].startswith(">")
+            ):
                 j += 1
             i = j
             changelog_stripped = True
@@ -357,8 +728,22 @@ def _strip_legacy_meta(content: str) -> str:
             while j < n and lines[j].startswith(">"):
                 j += 1
             block_text = "\n".join(lines[i:j])
-            keywords = ["版本", "状态", "作者", "日期", "评审人", "冻结时间", "变更", "设计日期",
-                        "模块编号", "模块名称", "关联需求", "关联用户故事", "上游基线", "下游基线"]
+            keywords = [
+                "版本",
+                "状态",
+                "作者",
+                "日期",
+                "评审人",
+                "冻结时间",
+                "变更",
+                "设计日期",
+                "模块编号",
+                "模块名称",
+                "关联需求",
+                "关联用户故事",
+                "上游基线",
+                "下游基线",
+            ]
             if any(kw in block_text for kw in keywords):
                 while j < n and lines[j].strip() == "":
                     j += 1
@@ -372,12 +757,12 @@ def _strip_legacy_meta(content: str) -> str:
 def _inject_anchors(content: str) -> str:
     seen: set[str] = set()
 
-    def repl(m: re.Match) -> str:
+    def repl(m: re.Match[str]) -> str:
         prefix = m.group(1)
         title = m.group(2).strip()
         existing = m.group(3)
         if existing:
-            return m.group(0)
+            return str(m.group(0))
         slug = slugify(title)
         orig = slug
         counter = 1
@@ -392,8 +777,14 @@ def _inject_anchors(content: str) -> str:
 
 
 def _build_front_matter(
-    doc_type: str, fragment_id: str, title: str, version: str,
-    status: str, author: str, iteration: str, tags: list[str],
+    doc_type: str,
+    fragment_id: str,
+    title: str,
+    version: str,
+    status: str,
+    author: str,
+    iteration: str,
+    tags: list[str],
 ) -> str:
     level = DOC_TYPE_LEVEL_MAP.get(doc_type, "")
     safe_title = title.replace('"', '\\"')
@@ -405,12 +796,12 @@ def _build_front_matter(
         f'version: "{version}"',
         'version_type: "BASELINE"',
         f'author: "{author}"',
-        f'tags: {tags}',
+        f"tags: {tags}",
         f'status: "{status}"',
         f'iteration: "{iteration}"',
         "dependencies:",
-        "  - fragment_id: \"\"",
-        "    version: \"\"",
+        '  - fragment_id: ""',
+        '    version: ""',
     ]
     if level:
         lines.append("c4_binding:")
@@ -432,11 +823,11 @@ def _derive_seq(src: Path) -> int:
 # Step 2 — Extract C4 entities
 # ------------------------------------------------------------------
 def extract_c4_entities(src_root: Path, registry_path: Path) -> C4RegistryResult:
-    systems: dict[str, dict] = {}
-    actors: dict[str, dict] = {}
-    containers: dict[str, dict] = {}
-    components: dict[str, dict] = {}
-    interfaces: list[dict] = []
+    systems: dict[str, dict[str, Any]] = {}
+    actors: dict[str, dict[str, Any]] = {}
+    containers: dict[str, dict[str, Any]] = {}
+    components: dict[str, dict[str, Any]] = {}
+    interfaces: list[dict[str, Any]] = []
 
     hld_dir = src_root / "high-level-design"
     for md_file in sorted(hld_dir.rglob("*.md")):
@@ -452,12 +843,20 @@ def extract_c4_entities(src_root: Path, registry_path: Path) -> C4RegistryResult
             for eid, name, aliases in l1:
                 if eid not in systems:
                     systems[eid] = {"name": name, "aliases": aliases, "level": "L1"}
-            actors["developer"] = {"name": "超级个体", "aliases": ["独立开发者", "Tech Lead", "Pg_User"], "level": "L1"}
+            actors["developer"] = {
+                "name": "超级个体",
+                "aliases": ["独立开发者", "Tech Lead", "Pg_User"],
+                "level": "L1",
+            }
         if "Container" in content:
             l2 = [
                 ("frontend-spa", "React 19 SPA", ["Frontend", "前端", "Pg_SPA", "SPA"]),
                 ("backend-api", "FastAPI", ["REST API", "REST API + SSE", "Pg_API"]),
-                ("skill-orchestrator", "Skill Orchestrator", ["PocketFlow 三阶段调度", "编排引擎", "Pg_Orchestrator"]),
+                (
+                    "skill-orchestrator",
+                    "Skill Orchestrator",
+                    ["PocketFlow 三阶段调度", "编排引擎", "Pg_Orchestrator"],
+                ),
                 ("c4-dsl-engine", "C4 DSL Engine", ["自研解析渲染", "Pg_C4Engine"]),
                 ("wireframe-engine", "WireframeEngine", ["领域感知线框", "Pg_Wireframe"]),
                 ("sqlite-db", "SQLite", ["元数据与状态", "Pg_SQLite"]),
@@ -479,13 +878,25 @@ def extract_c4_entities(src_root: Path, registry_path: Path) -> C4RegistryResult
                 ("c4-api", "C4 API", ["DSL / 渲染 / 导出", "Pg_C4API"]),
                 ("prototype-api", "Prototype API", ["OpenUI / Wireframe", "Pg_ProtoAPI"]),
                 ("project-service", "Project Service", ["双态管理 / Timebox", "Pg_ProjectSvc"]),
-                ("orchestrator-service", "Orchestrator Service", ["DAG 调度 / 并行执行", "Pg_OrcheSvc"]),
+                (
+                    "orchestrator-service",
+                    "Orchestrator Service",
+                    ["DAG 调度 / 并行执行", "Pg_OrcheSvc"],
+                ),
                 ("skill-service", "Skill Service", ["CLI 适配 / 日志捕获", "Pg_SkillSvc"]),
                 ("artifact-service", "Artifact Service", ["Git 快照 / 冲突检测", "Pg_ArtifactSvc"]),
                 ("gate-service", "Gate Service", ["自检摘要 / HITL", "Pg_GateSvc"]),
-                ("size-estimate-service", "SizeEstimate Service", ["五维度评估 / 路由", "Pg_SizeSvc"]),
+                (
+                    "size-estimate-service",
+                    "SizeEstimate Service",
+                    ["五维度评估 / 路由", "Pg_SizeSvc"],
+                ),
                 ("c4-service", "C4 Service", ["DSL 生成 / 层级穿透", "Pg_C4Svc"]),
-                ("prototype-service", "Prototype Service", ["OpenUI 适配 / Wireframe", "Pg_ProtoSvc"]),
+                (
+                    "prototype-service",
+                    "Prototype Service",
+                    ["OpenUI 适配 / Wireframe", "Pg_ProtoSvc"],
+                ),
                 ("db-repository", "Repository", ["SQLAlchemy 2.0", "Pg_DBRepo"]),
                 ("file-repository", "File Repository", ["本地文件系统", "Pg_FileRepo"]),
                 ("git-repository", "Git Repository", ["GitPython", "Pg_GitRepo"]),
@@ -508,10 +919,36 @@ def extract_c4_entities(src_root: Path, registry_path: Path) -> C4RegistryResult
             if eid not in components:
                 components[eid] = {"name": comp, "aliases": [comp], "level": "L3"}
         for node_id, label, _ in _extract_mermaid_nodes(content):
-            suffixes = ["Router", "Service", "Repository", "Store", "Manager", "Engine", "Adapter", "Handler", "Controller"]
+            suffixes = [
+                "Router",
+                "Service",
+                "Repository",
+                "Store",
+                "Manager",
+                "Engine",
+                "Adapter",
+                "Handler",
+                "Controller",
+            ]
             if any(suffix in label for suffix in suffixes):
                 first_word = label.split()[0] if " " in label else label
-                generic = {"API", "Service", "Repository", "Store", "Manager", "Engine", "Handler", "Controller", "Router", "Adapter", "File", "Git", "DB", "SSE", "CLI"}
+                generic = {
+                    "API",
+                    "Service",
+                    "Repository",
+                    "Store",
+                    "Manager",
+                    "Engine",
+                    "Handler",
+                    "Controller",
+                    "Router",
+                    "Adapter",
+                    "File",
+                    "Git",
+                    "DB",
+                    "SSE",
+                    "CLI",
+                }
                 if first_word in generic and len(label) < 10:
                     continue
                 eid = _slug_id(first_word)
@@ -529,14 +966,16 @@ def extract_c4_entities(src_root: Path, registry_path: Path) -> C4RegistryResult
         content = md_file.read_text(encoding="utf-8-sig")
         for method, path in _extract_api_endpoints(content):
             if not any(i["method"] == method and i["path"] == path for i in interfaces):
-                iid = _slug_id(f"{method}-{path.replace('/', '-').replace('{', '').replace('}', '')}")
+                iid = _slug_id(
+                    f"{method}-{path.replace('/', '-').replace('{', '').replace('}', '')}"
+                )
                 interfaces.append({"id": iid, "method": method, "path": path})
 
     # ------------------------------------------------------------------
     # Extract relationships and component container assignments from
     # Mermaid diagrams in all design documents.
     # ------------------------------------------------------------------
-    relationships: list[dict] = []
+    relationships: list[dict[str, Any]] = []
     all_design_dirs = [hld_dir, dd_dir, src_root / "interface-contracts"]
 
     for design_dir in all_design_dirs:
@@ -627,9 +1066,19 @@ def _extract_mermaid_nodes(content: str) -> list[tuple[str, str, str]]:
                 node_id = m.group(1)
                 label = _clean_mermaid_label(m.group(2))
                 if node_id.startswith("subgraph") or label in (
-                    "API", "Service", "Repository", "Store", "Manager",
-                    "Engine", "Handler", "Controller", "Router", "Adapter",
-                    "API 层", "Service 层", "Repository 层",
+                    "API",
+                    "Service",
+                    "Repository",
+                    "Store",
+                    "Manager",
+                    "Engine",
+                    "Handler",
+                    "Controller",
+                    "Router",
+                    "Adapter",
+                    "API 层",
+                    "Service 层",
+                    "Repository 层",
                 ):
                     continue
                 if len(label) < 3:
@@ -666,7 +1115,7 @@ def _extract_mermaid_data(content: str) -> tuple[list[tuple[str, str, str]], dic
 
             # Subgraph start: subgraph name["label"] or subgraph name
             if line.startswith("subgraph "):
-                m = re.match(r'subgraph\s+([A-Za-z_]\w*)(?:\[[^\]]*\]|\([^\)]*\)|\{[^}]*\})?', line)
+                m = re.match(r"subgraph\s+([A-Za-z_]\w*)(?:\[[^\]]*\]|\([^\)]*\)|\{[^}]*\})?", line)
                 if m:
                     current_subgraph = m.group(1)
                     subgraph_depth += 1
@@ -682,7 +1131,7 @@ def _extract_mermaid_data(content: str) -> tuple[list[tuple[str, str, str]], dic
 
             # Relationship: A --> B  or  A -->|desc| B  or  A --- B
             rel_m = re.match(
-                r'^([A-Za-z_]\w*)\s+(-->|---|==>|===>|-\.->)\s*(?:\|([^|]*)\|)?\s+([A-Za-z_]\w*)',
+                r"^([A-Za-z_]\w*)\s+(-->|---|==>|===>|-\.->)\s*(?:\|([^|]*)\|)?\s+([A-Za-z_]\w*)",
                 line,
             )
             if rel_m:
@@ -692,7 +1141,7 @@ def _extract_mermaid_data(content: str) -> tuple[list[tuple[str, str, str]], dic
                 continue
 
             # Node declaration inside subgraph: nodeId["label"] / nodeId((...)) / nodeId{...}
-            node_m = re.match(r'^([A-Za-z_]\w*)(?:\[[^\]]*\]|\([^\)]*\)|\{[^}]*\])', line)
+            node_m = re.match(r"^([A-Za-z_]\w*)(?:\[[^\]]*\]|\([^\)]*\)|\{[^}]*\])", line)
             if node_m and current_subgraph:
                 node_id = node_m.group(1)
                 if node_id not in memberships:
@@ -701,7 +1150,7 @@ def _extract_mermaid_data(content: str) -> tuple[list[tuple[str, str, str]], dic
     return relationships, memberships
 
 
-def _map_mermaid_id(mermaid_id: str, elements: dict[str, dict]) -> str | None:
+def _map_mermaid_id(mermaid_id: str, elements: dict[str, dict[str, Any]]) -> str | None:
     """Map a Mermaid node ID (e.g. Pg_SPA) to a registry element ID (e.g. frontend-spa)."""
     if mermaid_id in elements:
         return mermaid_id
@@ -728,10 +1177,28 @@ def _infer_component_container(comp_id: str, comp_name: str) -> str:
     if comp_id in _COMPONENT_CONTAINER_MAP:
         return _COMPONENT_CONTAINER_MAP[comp_id]
     # React components (PascalCase names) usually belong to frontend
-    if comp_name and comp_name[0].isupper() and any(
-        suffix in comp_name for suffix in
-        ["Page", "Panel", "Shell", "Handle", "Layer", "Bar", "Card",
-         "List", "Modal", "Dialog", "Drawer", "Tab", "View", "Manager"]
+    if (
+        comp_name
+        and comp_name[0].isupper()
+        and any(
+            suffix in comp_name
+            for suffix in [
+                "Page",
+                "Panel",
+                "Shell",
+                "Handle",
+                "Layer",
+                "Bar",
+                "Card",
+                "List",
+                "Modal",
+                "Dialog",
+                "Drawer",
+                "Tab",
+                "View",
+                "Manager",
+            ]
+        )
     ):
         return "frontend-spa"
     # Default backend container
@@ -790,7 +1257,7 @@ def inject_c4_tags(baseline_root: Path, registry_path: Path) -> C4TagResult:
     return C4TagResult(modified=modified, skipped=skipped)
 
 
-def _inject_tags_for_doc(baseline_path: Path, registry: dict) -> str | None:
+def _inject_tags_for_doc(baseline_path: Path, registry: dict[str, Any]) -> str | None:
     content = baseline_path.read_text(encoding="utf-8-sig")
     meta, body = _parse_front_matter(content)
     if not meta:
@@ -799,7 +1266,13 @@ def _inject_tags_for_doc(baseline_path: Path, registry: dict) -> str | None:
     doc_type = meta.get("doc_type", "")
     level = meta.get("c4_binding", {}).get("level", "")
     if not level:
-        level = {"PRD": "L1", "ARCH": "L2", "DB_DESIGN": "L2", "DETAIL_DESIGN": "L3", "API_DESIGN": "L3"}.get(doc_type, "")
+        level = {
+            "PRD": "L1",
+            "ARCH": "L2",
+            "DB_DESIGN": "L2",
+            "DETAIL_DESIGN": "L3",
+            "API_DESIGN": "L3",
+        }.get(doc_type, "")
     if not level:
         return None
 
@@ -841,14 +1314,14 @@ def _inject_tags_for_doc(baseline_path: Path, registry: dict) -> str | None:
     return new_content
 
 
-def _parse_front_matter(content: str) -> tuple[dict, str]:
+def _parse_front_matter(content: str) -> tuple[dict[str, Any], str]:
     if not content.startswith("---\n"):
         return {}, content
     end = content.find("\n---\n", 4)
     if end == -1:
         return {}, content
     fm = yaml.safe_load(content[4:end])
-    body = content[end + 5:].lstrip("\n")
+    body = content[end + 5 :].lstrip("\n")
     return fm or {}, body
 
 
@@ -857,7 +1330,7 @@ def _body_contains_any(body: str, names: list[str]) -> bool:
     return any(name in clean for name in names)
 
 
-def _collect_matching_entities(registry: dict, doc_level: str) -> list[tuple[str, list[str]]]:
+def _collect_matching_entities(registry: dict[str, Any], doc_level: str) -> list[tuple[str, list[str]]]:
     tags: list[tuple[str, list[str]]] = []
     if doc_level == "L1":
         for eid, info in registry.get("systems", {}).items():
@@ -875,7 +1348,12 @@ def _collect_matching_entities(registry: dict, doc_level: str) -> list[tuple[str
                 continue
             tags.append((f"@C4-L3-Component:{eid}", [info["name"]] + info.get("aliases", [])))
         for iface in registry.get("interfaces", []):
-            tags.append((f"@C4-Interface:{iface['method']} {iface['path']}", [f"{iface['method']} {iface['path']}", iface["path"]]))
+            tags.append(
+                (
+                    f"@C4-Interface:{iface['method']} {iface['path']}",
+                    [f"{iface['method']} {iface['path']}", iface["path"]],
+                )
+            )
         for eid, info in registry.get("containers", {}).items():
             tags.append((f"@C4-L2-Container:{eid}", [info["name"]] + info.get("aliases", [])))
         for eid, info in registry.get("systems", {}).items():
@@ -905,7 +1383,7 @@ def fill_dependencies(baseline_root: Path) -> DependencyResult:
             continue
 
         meta = yaml.safe_load(m.group(1))
-        body = content[m.end():]
+        body = content[m.end() :]
 
         fid = meta.get("fragment_id")
         doc_type = meta.get("doc_type", "")
@@ -940,7 +1418,7 @@ def fill_dependencies(baseline_root: Path) -> DependencyResult:
             skipped += 1
             continue
 
-        deps_list: list[dict] = []
+        deps_list: list[dict[str, Any]] = []
         for dep_fid in sorted(dep_ids):
             dep_version = index.get(dep_fid, {}).get("version", "1.0.0")
             deps_list.append({"fragment_id": dep_fid, "version": dep_version})
@@ -954,8 +1432,8 @@ def fill_dependencies(baseline_root: Path) -> DependencyResult:
     return DependencyResult(modified=modified, skipped=skipped)
 
 
-def _build_index(baseline_root: Path) -> dict[str, dict]:
-    index: dict[str, dict] = {}
+def _build_index(baseline_root: Path) -> dict[str, dict[str, Any]]:
+    index: dict[str, dict[str, Any]] = {}
     for f in sorted(baseline_root.rglob("*.md")):
         if f.name.startswith("_"):
             continue
@@ -983,8 +1461,8 @@ def _build_index(baseline_root: Path) -> dict[str, dict]:
     return index
 
 
-def _build_alias_map(index: dict) -> dict[str, str | list[str]]:
-    alias_map: dict[str, str | list[str]] = {
+def _build_alias_map(index: dict[str, Any]) -> dict[str, Any]:
+    alias_map: dict[str, Any] = {
         "PRD-000": "prd-sdlc-visualizer-000",
         "HLD-001": "arch-sdlc-visualizer-001",
         "HLD-002": "arch-sdlc-visualizer-002",
@@ -1005,7 +1483,7 @@ def _build_alias_map(index: dict) -> dict[str, str | list[str]]:
     return alias_map
 
 
-def _resolve_alias(alias: str, alias_map: dict, current_doc_type: str) -> str | None:
+def _resolve_alias(alias: str, alias_map: dict[str, Any], current_doc_type: str) -> str | None:
     val = alias_map.get(alias)
     if val is None:
         return None
@@ -1014,11 +1492,11 @@ def _resolve_alias(alias: str, alias_map: dict, current_doc_type: str) -> str | 
     if current_doc_type == "DETAIL_DESIGN":
         for v in val:
             if "detail-design" in v:
-                return v
+                return str(v)
     elif current_doc_type == "PRD":
         for v in val:
             if "prd-" in v and "feat" in v:
-                return v
+                return str(v)
     return val[0] if val else None
 
 
@@ -1052,7 +1530,7 @@ def _extract_refs_from_body(body: str) -> set[str]:
     return refs
 
 
-def _get_default_upstream(doc_type: str, feature: str | None, fid: str, index: dict) -> list[str]:
+def _get_default_upstream(doc_type: str, feature: str | None, fid: str, index: dict[str, Any]) -> list[str]:
     deps: list[str] = []
     if fid == "prd-sdlc-visualizer-000":
         for bf_fid in ("changelog-sdlc-visualizer-146", "changelog-sdlc-visualizer-392"):

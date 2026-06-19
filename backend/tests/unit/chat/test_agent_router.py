@@ -100,9 +100,7 @@ async def test_free_chat_uses_configured_kimi_cli_provider(
     types = [m.get("type") for m in sent]
     assert "text" in types
     assert "thinking" in types
-    text_payloads = [
-        m["payload"]["text"] for m in sent if m.get("type") == "text"
-    ]
+    text_payloads = [m["payload"]["text"] for m in sent if m.get("type") == "text"]
     assert "Kimi CLI reply" in text_payloads
 
 

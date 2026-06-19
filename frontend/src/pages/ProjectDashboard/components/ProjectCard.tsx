@@ -25,6 +25,7 @@ interface ProjectCardProps {
   onEdit?: (id: string) => void
   onSizeEstimate?: (id: string) => void
   onSelect?: (id: string) => void
+  onAdjustStage?: (id: string) => void
 }
 
 export default function ProjectCard({
@@ -37,6 +38,7 @@ export default function ProjectCard({
   onEdit,
   onSizeEstimate,
   onSelect,
+  onAdjustStage,
 }: ProjectCardProps) {
   const risk = riskColors[project.risk_level] || riskColors.None
   const [menuOpen, setMenuOpen] = useState(false)
@@ -282,6 +284,26 @@ export default function ProjectCard({
             取消
           </button>
         )}
+        {(project.project_status === 'Active' || project.project_status === 'Draft') &&
+          onAdjustStage && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onAdjustStage(project.project_id)
+              }}
+              style={{
+                padding: '4px 10px',
+                fontSize: 12,
+                borderRadius: 4,
+                border: '1px solid #f59e0b',
+                background: '#fff',
+                color: '#d97706',
+                cursor: 'pointer',
+              }}
+            >
+              调整阶段
+            </button>
+          )}
       </div>
     </div>
   )

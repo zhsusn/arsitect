@@ -34,15 +34,9 @@ class OpenUIPage(Base):
     html_content: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="单页 HTML 内容片段"
     )
-    page_index: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    page_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

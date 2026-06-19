@@ -11,19 +11,19 @@ from app.common.health_checker import HealthChecker, ServiceStatus, get_health_c
 class FallbackAction(StrEnum):
     """Possible fallback actions when a service is unavailable."""
 
-    WIREFRAME = "wireframe"   # Degrade to wireframe UI
-    SKIP = "skip"             # Skip the feature
-    QUEUE = "queue"           # Queue for retry
-    NOTIFY = "notify"         # Notify user only
+    WIREFRAME = "wireframe"  # Degrade to wireframe UI
+    SKIP = "skip"  # Skip the feature
+    QUEUE = "queue"  # Queue for retry
+    NOTIFY = "notify"  # Notify user only
 
 
 @dataclass
 class FallbackRule:
     """A fallback rule for a specific service."""
 
-    service: str              # Service name
-    action: FallbackAction    # Fallback action
-    message: str              # User-facing message
+    service: str  # Service name
+    action: FallbackAction  # Fallback action
+    message: str  # User-facing message
 
 
 class FallbackManager:

@@ -42,8 +42,7 @@ class BindingRecord(Base):
             name="ck_binding_c4_level",
         ),
         CheckConstraint(
-            "relation_type IN ('binds_to','injects_into','implements',"
-            "'locates_at','generates')",
+            "relation_type IN ('binds_to','injects_into','implements','locates_at','generates')",
             name="ck_binding_relation_type",
         ),
         CheckConstraint(

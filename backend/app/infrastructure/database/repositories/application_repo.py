@@ -40,9 +40,7 @@ class ApplicationRepository:
 
         if workspace_id is not None:
             stmt = stmt.where(Application.workspace_id == workspace_id)
-            count_stmt = count_stmt.where(
-                Application.workspace_id == workspace_id
-            )
+            count_stmt = count_stmt.where(Application.workspace_id == workspace_id)
 
         stmt = stmt.offset(offset).limit(page_size)
         result = await self._session.execute(stmt)

@@ -27,27 +27,15 @@ class OpenUISpec(Base):
     prompt_text: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="提交给 OpenUI 服务的提示词"
     )
-    page_count: Mapped[int | None] = mapped_column(
-        Integer, nullable=True, comment="生成页面数"
-    )
+    page_count: Mapped[int | None] = mapped_column(Integer, nullable=True, comment="生成页面数")
     page_titles_json: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="页面标题列表 JSON"
     )
-    service_status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="UNKNOWN"
-    )
-    generation_duration_ms: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
-    )
-    content_hash: Mapped[str | None] = mapped_column(
-        String(64), nullable=True
-    )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    service_status: Mapped[str] = mapped_column(String(16), nullable=False, default="UNKNOWN")
+    generation_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

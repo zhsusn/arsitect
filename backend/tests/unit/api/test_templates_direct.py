@@ -168,7 +168,9 @@ class TestTemplatesRouterDirect:
 
         result = await confirm_template_deviation(
             "proj-confirm",
-            TemplateDeviationConfirmDTO(new_template_id="Deep", reason="测试偏离", risk_acknowledged=True),
+            TemplateDeviationConfirmDTO(
+                new_template_id="Deep", reason="测试偏离", risk_acknowledged=True
+            ),
             db=seeded,
         )
         assert "frozen" in result

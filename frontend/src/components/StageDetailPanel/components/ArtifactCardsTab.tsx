@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { useStageDetailStore } from '../../../stores/stageDetailStore'
 import { api } from '../../../services/api'
 import type { StageArtifactDirectory, StageArtifactFile } from '../../../types/stage-detail'
@@ -33,6 +34,7 @@ function formatBytes(bytes: number): string {
 
 export default function ArtifactCardsTab() {
   const stageId = useStageDetailStore((s) => s.stageId)
+  const projectId = useStageDetailStore((s) => s.projectId)
   const [directories, setDirectories] = useState<StageArtifactDirectory[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -122,6 +124,19 @@ export default function ArtifactCardsTab() {
 
   return (
     <div className="space-y-3">
+      {projectId && (
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-gray-500">
+            共 {allFiles.length} 个产物
+          </div>
+          <Link
+            to={`/artifacts?project_id=${projectId}&stage_id=${stageId}`}
+            className="text-xs font-medium text-blue-600 hover:text-blue-800"
+          >
+            在产物浏览器中查看 →
+          </Link>
+        </div>
+      )}
       {directories.map((dir) => (
         <div key={dir.directory}>
           <div className="mb-1 text-xs font-medium text-gray-400">{dir.directory}</div>

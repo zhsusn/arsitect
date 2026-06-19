@@ -252,15 +252,17 @@ def get_llm_gateway() -> LLMGateway:
 
 
 async def get_llm_gateway_async(db: AsyncSession) -> LLMGateway:
-    """Return the configured LLM gateway resolved from ConfigNode dynamically."""
-    from app.services.config_service import ConfigService
+    """Return the configured LLM gateway resolved from dedicated LLM tables."""
+    from app.services.llm_provider_service import LlmProviderService
 
-    svc = ConfigService(db)
-    config = await svc._get_default_llm_provider_full()
-    provider = str(config.get("provider", "kimi-cli")).lower()
-    if provider in {"kimi", "kimi-cli"}:
+    svc = LlmProviderService(db)
+    provider = await svc.resolve_default_provider()
+    config = svc.build_config(provider) if provider else svc.get_env_fallback_config()
+
+    provider_type = str(config.get("provider", "kimi-cli")).lower()
+    if provider_type in {"kimi", "kimi-cli"}:
         return KimiCLIGateway(cli_path=str(config.get("kimi_cli_path", "kimi")))
-    if provider in {"openai", "kimi-api"}:
+    if provider_type in {"openai", "kimi-api"}:
         return OpenAILLMGateway(
             api_base=config.get("api_base") or None,
             api_key=config.get("api_key") or None,

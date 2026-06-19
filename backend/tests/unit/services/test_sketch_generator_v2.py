@@ -34,7 +34,12 @@ def test_generate_from_module_specs_basic() -> None:
             "description": "分步向导",
             "module_id": "DR-001",
             "fields": [
-                {"name": "project_name", "type": "文本", "required": True, "validation": "1-64 字符"},
+                {
+                    "name": "project_name",
+                    "type": "文本",
+                    "required": True,
+                    "validation": "1-64 字符",
+                },
                 {"name": "template_level", "type": "单选", "required": True},
             ],
             "buttons": [

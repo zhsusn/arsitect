@@ -32,7 +32,9 @@ class TestAsyncSession:
         """init_db should succeed without error."""
         await init_db()
         async with AsyncSessionLocal() as session:
-            result = await session.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+            result = await session.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table'")
+            )
             tables = {row[0] for row in result.fetchall()}
             # Base.metadata is empty at this stage (no models defined yet)
             assert "sqlite_sequence" in tables or len(tables) >= 0

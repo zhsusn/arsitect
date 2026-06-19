@@ -257,3 +257,24 @@ export async function fetchApplications(): Promise<PageResponse<ApplicationItem>
   const res = await api.get<PageResponse<ApplicationItem>>('/v1/applications?page_size=100')
   return res.data
 }
+
+export interface ProjectExecutionStrategyResponse {
+  project_id: string
+  execution_strategy: string
+  updated_stage_ids: string[]
+}
+
+export async function updateProjectExecutionStrategy(
+  projectId: string,
+  execution_strategy: string,
+  reason?: string,
+): Promise<ProjectExecutionStrategyResponse> {
+  const res = await api.put<ProjectExecutionStrategyResponse>(
+    `/v1/projects/${projectId}/execution-strategy`,
+    {
+      execution_strategy,
+      reason,
+    },
+  )
+  return res.data
+}

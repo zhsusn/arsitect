@@ -65,9 +65,7 @@ class TestArtifactRouter:
                 content="Requirements",
             )
 
-        res = client.get(
-            f"/api/v1/artifacts/tree?project_id={seeded_project.project_id}"
-        )
+        res = client.get(f"/api/v1/artifacts/tree?project_id={seeded_project.project_id}")
         assert res.status_code == 200
         data = res.json()
         assert len(data) >= 1
@@ -75,9 +73,7 @@ class TestArtifactRouter:
         assert str(tmp_path / "docs") in directories
 
     @pytest.mark.asyncio
-    async def test_get_tree_with_search(
-        self, seeded_project: Project, tmp_path
-    ) -> None:
+    async def test_get_tree_with_search(self, seeded_project: Project, tmp_path) -> None:
         """GET /artifacts/tree?search= filters files."""
         async with AsyncSessionLocal() as session:
             svc = ArtifactService(session)
@@ -131,9 +127,7 @@ class TestArtifactRouter:
         assert data["is_partial"] is False
 
     @pytest.mark.asyncio
-    async def test_get_content_with_pagination(
-        self, seeded_project: Project, tmp_path
-    ) -> None:
+    async def test_get_content_with_pagination(self, seeded_project: Project, tmp_path) -> None:
         """GET /artifacts/{id}/content?offset=&limit= returns partial content."""
         async with AsyncSessionLocal() as session:
             svc = ArtifactService(session)
@@ -212,9 +206,7 @@ class TestArtifactRouter:
         assert data["operation_type"] == "snapshot"
 
     @pytest.mark.asyncio
-    async def test_save_content_conflict(
-        self, seeded_project: Project, tmp_path
-    ) -> None:
+    async def test_save_content_conflict(self, seeded_project: Project, tmp_path) -> None:
         """PUT with wrong expected_hash returns 409."""
         async with AsyncSessionLocal() as session:
             svc = ArtifactService(session)
@@ -293,9 +285,7 @@ class TestArtifactRouter:
             )
             await svc.save_content(art.artifact_id, "v2")
 
-        res = client.get(
-            "/api/v1/artifacts/art-api-7/versions/diff?from_version=1&to_version=2"
-        )
+        res = client.get("/api/v1/artifacts/art-api-7/versions/diff?from_version=1&to_version=2")
         assert res.status_code == 200
         data = res.json()
         assert data["from_version"] == 1
@@ -306,7 +296,30 @@ class TestArtifactRouter:
     @pytest.mark.asyncio
     async def test_diff_not_found(self, seeded_project: Project) -> None:
         """GET diff with missing version returns 404."""
-        res = client.get(
-            "/api/v1/artifacts/no-such-art/versions/diff?from_version=1&to_version=2"
-        )
+        res = client.get("/api/v1/artifacts/no-such-art/versions/diff?from_version=1&to_version=2")
+        assert res.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_download_artifact(self, seeded_project: Project, tmp_path) -> None:
+        """GET /artifacts/{id}/download returns file with attachment disposition."""
+        async with AsyncSessionLocal() as session:
+            svc = ArtifactService(session)
+            await svc.create_artifact(
+                artifact_id="art-api-dl",
+                project_id=seeded_project.project_id,
+                file_name="download.md",
+                file_path=str(tmp_path / "download.md"),
+                file_type="md",
+                content="Download me",
+            )
+
+        res = client.get("/api/v1/artifacts/art-api-dl/download")
+        assert res.status_code == 200
+        assert res.headers.get("content-disposition", "").startswith("attachment")
+        assert res.text == "Download me"
+
+    @pytest.mark.asyncio
+    async def test_download_artifact_not_found(self) -> None:
+        """GET download for unknown artifact returns 404."""
+        res = client.get("/api/v1/artifacts/no-such-art/download")
         assert res.status_code == 404

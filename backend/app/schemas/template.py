@@ -8,6 +8,22 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 
+class MergeGroupDTO(BaseModel):
+    """DTO for a merge group inside a merge policy."""
+
+    group_id: str
+    label: str
+    business_stage_keys: list[str]
+    gate_at_end: bool = True
+    auto_advance: bool = True
+
+
+class MergePolicyDTO(BaseModel):
+    """DTO for a template merge policy."""
+
+    groups: list[MergeGroupDTO] = Field(default_factory=list)
+
+
 class TemplateStageDTO(BaseModel):
     """DTO for a template stage."""
 
@@ -15,6 +31,7 @@ class TemplateStageDTO(BaseModel):
 
     stage_id: str
     stage_name: str
+    business_stage_key: str
     order_index: int
     template_id: str
     primary_skill_id: str | None = None
@@ -22,6 +39,8 @@ class TemplateStageDTO(BaseModel):
     gate_id: str | None = None
     skippable: bool = False
     merge_group_id: str | None = None
+    is_gate_required: bool = True
+    auto_advance: bool = False
 
     @field_validator("auxiliary_skill_ids", mode="before")
     @classmethod
@@ -43,10 +62,19 @@ class TemplateResponseDTO(BaseModel):
     estimated_skill_count: int
     applicable_complexity: str
     config_json: dict[str, Any] | None = None
+    default_execution_strategy: str = "semi_auto"
+    merge_policy_json: MergePolicyDTO | None = None
 
     @field_validator("config_json", mode="before")
     @classmethod
     def _parse_json_string(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return json.loads(v)
+        return v
+
+    @field_validator("merge_policy_json", mode="before")
+    @classmethod
+    def _parse_merge_policy(cls, v: Any) -> Any:
         if isinstance(v, str):
             return json.loads(v)
         return v
@@ -96,6 +124,21 @@ class TemplateStageUpdateDTO(BaseModel):
 
     primary_skill_id: str | None = Field(None, description="主 Skill ID")
     auxiliary_skill_ids: list[str] | None = Field(None, description="辅助 Skill ID 列表")
+
+
+class TemplateExecutionStrategyUpdateDTO(BaseModel):
+    """Request to update a template's default execution strategy."""
+
+    default_execution_strategy: str = Field(
+        ..., description="默认执行策略: full_auto / semi_auto / full_manual"
+    )
+
+
+class TemplateExecutionStrategyResponseDTO(BaseModel):
+    """Response for template execution strategy update."""
+
+    template_id: str
+    default_execution_strategy: str
 
 
 class DeviationItemDTO(BaseModel):

@@ -43,9 +43,7 @@ class ImportExportManager:
         if not project_id or ".." in project_id or "/" in project_id or "\\" in project_id:
             raise ValueError(f"Invalid project_id: {project_id}")
 
-    async def export_project(
-        self, project_id: str, output_path: str
-    ) -> str:
+    async def export_project(self, project_id: str, output_path: str) -> str:
         """Export project to a .arsitect file.
 
         Args:
@@ -100,9 +98,7 @@ class ImportExportManager:
 
             return str(zip_path)
 
-    async def import_project(
-        self, arsitect_path: str, target_project_id: str | None = None
-    ) -> str:
+    async def import_project(self, arsitect_path: str, target_project_id: str | None = None) -> str:
         """Import project from a .arsitect archive.
 
         Args:
@@ -118,9 +114,7 @@ class ImportExportManager:
 
         with zipfile.ZipFile(source, "r") as zf:
             manifest_data = json.loads(zf.read("manifest.json"))
-            project_id = target_project_id or manifest_data.get(
-                "project_id", "imported"
-            )
+            project_id = target_project_id or manifest_data.get("project_id", "imported")
             self._validate_project_id(project_id)
 
             with ProjectContext(project_id, base_dir=str(self.base_dir)) as ctx:
@@ -136,9 +130,7 @@ class ImportExportManager:
                 for info in zf.infolist():
                     target = (base / info.filename).resolve()
                     if not os.path.commonpath([target, base]) == str(base):
-                        raise ValueError(
-                            f"Unsafe archive entry: {info.filename}"
-                        )
+                        raise ValueError(f"Unsafe archive entry: {info.filename}")
                 zf.extractall(ctx.project_dir)
 
                 # Normalize DSL location

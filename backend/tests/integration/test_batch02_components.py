@@ -85,9 +85,7 @@ class TestBatch02E2E:
             session.add(baseline)
             await session.commit()
 
-        res = client.get(
-            f"/api/v1/validation/cross-layer?project_id={proj.project_id}"
-        )
+        res = client.get(f"/api/v1/validation/cross-layer?project_id={proj.project_id}")
         assert res.status_code == 200
         data = res.json()
         assert "passed" in data
@@ -251,6 +249,7 @@ class TestBatch02E2E:
             is_current=True,
         )
         import tempfile
+
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("class UserController:")
             temp_path = f.name

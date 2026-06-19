@@ -3,11 +3,12 @@
 Provides endpoints to trigger document standardization pipeline steps
 from the Arsitect frontend UI.
 """
+
 from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,6 +19,9 @@ from app.c4.baseline_store import C4BaselineStore
 from app.core.config import settings
 from app.docforge.c4_assembler import C4Assembler, C4Workspace
 from app.docforge.doc_migration_engine import (
+    C4RegistryResult,
+    C4TagResult,
+    DependencyResult,
     extract_c4_entities,
     fill_dependencies,
     inject_c4_tags,
@@ -189,59 +193,95 @@ async def run_pipeline_endpoint(req: PipelineRequest) -> PipelineResponse:
                 continue
             try:
                 res = await asyncio.to_thread(migrate_legacy_docs, src, baseline)
-                results.append(StepResult(
-                    step="migrate", success=True,
-                    detail={"migrated": len(res.migrated), "skipped": len(res.skipped), "errors": res.errors},
-                ))
+                results.append(
+                    StepResult(
+                        step="migrate",
+                        success=True,
+                        detail={
+                            "migrated": len(res.migrated),
+                            "skipped": len(res.skipped),
+                            "errors": res.errors,
+                        },
+                    )
+                )
             except Exception as exc:
                 results.append(StepResult(step="migrate", success=False, error=str(exc)))
                 failed += 1
         elif step == "extract_c4":
             if not src.exists():
-                results.append(StepResult(step="extract_c4", success=False, error="Source not found"))
+                results.append(
+                    StepResult(step="extract_c4", success=False, error="Source not found")
+                )
                 failed += 1
                 continue
             try:
-                res = await asyncio.to_thread(extract_c4_entities, src, registry)
-                results.append(StepResult(
-                    step="extract_c4", success=True,
-                    detail={
-                        "systems": res.systems, "actors": res.actors, "containers": res.containers,
-                        "components": res.components, "interfaces": res.interfaces,
-                    },
-                ))
+                registry_res = cast(
+                    C4RegistryResult,
+                    await asyncio.to_thread(extract_c4_entities, src, registry),
+                )
+                results.append(
+                    StepResult(
+                        step="extract_c4",
+                        success=True,
+                        detail={
+                            "systems": registry_res.systems,
+                            "actors": registry_res.actors,
+                            "containers": registry_res.containers,
+                            "components": registry_res.components,
+                            "interfaces": registry_res.interfaces,
+                        },
+                    )
+                )
             except Exception as exc:
                 results.append(StepResult(step="extract_c4", success=False, error=str(exc)))
                 failed += 1
         elif step == "inject_tags":
             if not baseline.exists():
-                results.append(StepResult(step="inject_tags", success=False, error="Baseline not found"))
+                results.append(
+                    StepResult(step="inject_tags", success=False, error="Baseline not found")
+                )
                 failed += 1
                 continue
             if not registry.exists():
-                results.append(StepResult(step="inject_tags", success=False, error="Registry not found"))
+                results.append(
+                    StepResult(step="inject_tags", success=False, error="Registry not found")
+                )
                 failed += 1
                 continue
             try:
-                res = await asyncio.to_thread(inject_c4_tags, baseline, registry)
-                results.append(StepResult(
-                    step="inject_tags", success=True,
-                    detail={"modified": res.modified, "skipped": res.skipped},
-                ))
+                tag_res = cast(
+                    C4TagResult,
+                    await asyncio.to_thread(inject_c4_tags, baseline, registry),
+                )
+                results.append(
+                    StepResult(
+                        step="inject_tags",
+                        success=True,
+                        detail={"modified": tag_res.modified, "skipped": tag_res.skipped},
+                    )
+                )
             except Exception as exc:
                 results.append(StepResult(step="inject_tags", success=False, error=str(exc)))
                 failed += 1
         elif step == "fill_deps":
             if not baseline.exists():
-                results.append(StepResult(step="fill_deps", success=False, error="Baseline not found"))
+                results.append(
+                    StepResult(step="fill_deps", success=False, error="Baseline not found")
+                )
                 failed += 1
                 continue
             try:
-                res = await asyncio.to_thread(fill_dependencies, baseline)
-                results.append(StepResult(
-                    step="fill_deps", success=True,
-                    detail={"modified": res.modified, "skipped": res.skipped},
-                ))
+                dep_res = cast(
+                    DependencyResult,
+                    await asyncio.to_thread(fill_dependencies, baseline),
+                )
+                results.append(
+                    StepResult(
+                        step="fill_deps",
+                        success=True,
+                        detail={"modified": dep_res.modified, "skipped": dep_res.skipped},
+                    )
+                )
             except Exception as exc:
                 results.append(StepResult(step="fill_deps", success=False, error=str(exc)))
                 failed += 1
@@ -260,15 +300,33 @@ async def run_pipeline_endpoint(req: PipelineRequest) -> PipelineResponse:
 @router.get("/pipeline-steps")
 async def list_pipeline_steps() -> list[dict[str, str]]:
     return [
-        {"key": "migrate", "label": "文档迁移", "description": "将旧文档转换为 YAML Front Matter + 章节锚点"},
-        {"key": "extract_c4", "label": "C4 实体提取", "description": "从设计文档提取系统、容器、组件和接口"},
-        {"key": "inject_tags", "label": "C4 标签注入", "description": "根据文档层级注入 @C4- 绑定引用标签"},
-        {"key": "fill_deps", "label": "依赖填充", "description": "根据默认规则 + 正文引用填充 dependencies 字段"},
+        {
+            "key": "migrate",
+            "label": "文档迁移",
+            "description": "将旧文档转换为 YAML Front Matter + 章节锚点",
+        },
+        {
+            "key": "extract_c4",
+            "label": "C4 实体提取",
+            "description": "从设计文档提取系统、容器、组件和接口",
+        },
+        {
+            "key": "inject_tags",
+            "label": "C4 标签注入",
+            "description": "根据文档层级注入 @C4- 绑定引用标签",
+        },
+        {
+            "key": "fill_deps",
+            "label": "依赖填充",
+            "description": "根据默认规则 + 正文引用填充 dependencies 字段",
+        },
     ]
 
 
 @router.get("/migration-manifest")
-async def get_migration_manifest(src_root: str = Query(default="openspec/changes/sdlc-visualizer")) -> dict:
+async def get_migration_manifest(
+    src_root: str = Query(default="openspec/changes/sdlc-visualizer"),
+) -> dict[str, Any]:
     manifest = settings.project_root / src_root / "baseline" / "_migration-manifest.md"
     if not manifest.exists():
         return {"exists": False, "content": None}
@@ -276,7 +334,9 @@ async def get_migration_manifest(src_root: str = Query(default="openspec/changes
 
 
 @router.get("/c4-registry")
-async def get_c4_registry(src_root: str = Query(default="openspec/changes/sdlc-visualizer")) -> dict:
+async def get_c4_registry(
+    src_root: str = Query(default="openspec/changes/sdlc-visualizer"),
+) -> dict[str, Any]:
     registry = settings.project_root / src_root / "baseline" / "_c4-registry.yaml"
     if not registry.exists():
         return {"exists": False, "content": None}
@@ -313,34 +373,42 @@ async def sync_c4_baseline(
         workspace.actors.append({"id": eid, "name": info.get("name", eid)})
 
     for eid, info in registry.get("containers", {}).items():
-        workspace.containers.append({
-            "id": eid,
-            "name": info.get("name", eid),
-            "technology": ", ".join(info.get("aliases", [])),
-        })
+        workspace.containers.append(
+            {
+                "id": eid,
+                "name": info.get("name", eid),
+                "technology": ", ".join(info.get("aliases", [])),
+            }
+        )
 
     for eid, info in registry.get("components", {}).items():
-        workspace.components.append({
-            "id": eid,
-            "name": info.get("name", eid),
-            "properties": {},
-        })
+        workspace.components.append(
+            {
+                "id": eid,
+                "name": info.get("name", eid),
+                "properties": {},
+            }
+        )
 
     for iface in registry.get("interfaces", []):
-        workspace.interfaces.append({
-            "id": iface["id"],
-            "name": f"{iface['method']} {iface['path']}",
-            "properties": {"method": iface["method"], "path": iface["path"]},
-        })
+        workspace.interfaces.append(
+            {
+                "id": iface["id"],
+                "name": f"{iface['method']} {iface['path']}",
+                "properties": {"method": iface["method"], "path": iface["path"]},
+            }
+        )
 
     # Simple relationships: connect all containers to system
     if workspace.system:
         for c in workspace.containers:
-            workspace.relationships.append({
-                "source": workspace.system["id"],
-                "target": c["id"],
-                "description": "contains",
-            })
+            workspace.relationships.append(
+                {
+                    "source": workspace.system["id"],
+                    "target": c["id"],
+                    "description": "contains",
+                }
+            )
 
     assembler = C4Assembler()
     dsl_content = assembler.serialize_to_yaml(workspace)

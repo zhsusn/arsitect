@@ -92,13 +92,10 @@ class AnnotationService:
         """Mark all pending annotations for a stage as viewed."""
         from datetime import datetime
 
-        stmt = (
-            select(Annotation)
-            .where(
-                Annotation.stage_id == stage_id,
-                Annotation.status == "REVIEW_PENDING",
-                Annotation.viewed_at.is_(None),
-            )
+        stmt = select(Annotation).where(
+            Annotation.stage_id == stage_id,
+            Annotation.status == "REVIEW_PENDING",
+            Annotation.viewed_at.is_(None),
         )
         result = await self._session.execute(stmt)
         for ann in result.scalars().all():

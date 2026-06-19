@@ -54,9 +54,7 @@ class OpenUIPageService:
             raise NotFoundError(detail=f"OpenUIPage '{page_id}' not found")
         return page
 
-    async def list_pages(
-        self, project_id: str, spec_id: str | None = None
-    ) -> list[OpenUIPage]:
+    async def list_pages(self, project_id: str, spec_id: str | None = None) -> list[OpenUIPage]:
         """List OpenUI pages for a project."""
         stmt = (
             select(OpenUIPage)
@@ -68,9 +66,7 @@ class OpenUIPageService:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def update_page(
-        self, page_id: str, updates: dict[str, Any]
-    ) -> OpenUIPage:
+    async def update_page(self, page_id: str, updates: dict[str, Any]) -> OpenUIPage:
         """Update an existing page."""
         page = await self.get_page(page_id)
         for key, value in updates.items():

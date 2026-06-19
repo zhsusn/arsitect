@@ -86,9 +86,7 @@ class PermissionManager:
         """Initialize with database session."""
         self._session = session
 
-    async def get_user_role(
-        self, user_id: str, project_id: str
-    ) -> Role | None:
+    async def get_user_role(self, user_id: str, project_id: str) -> Role | None:
         """Fetch user's role in a project."""
         result = await self._session.execute(
             select(ProjectMember)
@@ -103,26 +101,18 @@ class PermissionManager:
         except ValueError:
             return None
 
-    async def has_permission(
-        self, user_id: str, project_id: str, permission: Permission
-    ) -> bool:
+    async def has_permission(self, user_id: str, project_id: str, permission: Permission) -> bool:
         """Check whether user has a permission in a project."""
         role = await self.get_user_role(user_id, project_id)
         if role is None:
             return False
         return permission in ROLE_PERMISSIONS.get(role, set())
 
-    async def can_bypass_gate(
-        self, user_id: str, project_id: str
-    ) -> bool:
+    async def can_bypass_gate(self, user_id: str, project_id: str) -> bool:
         """Check whether user can bypass a gate."""
-        return await self.has_permission(
-            user_id, project_id, Permission.GATE_BYPASS
-        )
+        return await self.has_permission(user_id, project_id, Permission.GATE_BYPASS)
 
-    async def assign_role(
-        self, project_id: str, user_id: str, role: Role
-    ) -> ProjectMember:
+    async def assign_role(self, project_id: str, user_id: str, role: Role) -> ProjectMember:
         """Assign or update a user's role in a project."""
         result = await self._session.execute(
             select(ProjectMember)
@@ -167,8 +157,6 @@ class PermissionManager:
         )
         member = result.scalar_one_or_none()
         if member is None:
-            raise NotFoundError(
-                detail=f"Member '{user_id}' not found in project '{project_id}'"
-            )
+            raise NotFoundError(detail=f"Member '{user_id}' not found in project '{project_id}'")
         await self._session.delete(member)
         await self._session.flush()

@@ -7,12 +7,14 @@ instead of sparse user_story text.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class PageField:
@@ -54,13 +56,11 @@ class ParsedPage:
 # SVG Renderers (upgraded for real field data)
 # ---------------------------------------------------------------------------
 
+
 def _esc(text: str) -> str:
     """Escape XML special chars."""
     return (
-        text.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
+        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
     )
 
 
@@ -105,7 +105,7 @@ def _render_svg_form(page: ParsedPage) -> str:
     if page.url_route:
         lines.append(
             f'<text x="{w - padding}" y="36" font-size="10" text-anchor="end" fill="#868e96">'
-            f'{_esc(page.url_route)}</text>'
+            f"{_esc(page.url_route)}</text>"
         )
 
     y = header_h + padding
@@ -123,7 +123,7 @@ def _render_svg_form(page: ParsedPage) -> str:
         )
         lines.append(
             f'<text x="{padding + 84}" y="{y + 13}" font-size="9" fill="{badge_color}">'
-            f'{_esc(f.field_type[:6])}</text>'
+            f"{_esc(f.field_type[:6])}</text>"
         )
         # Input box
         lines.append(
@@ -135,7 +135,7 @@ def _render_svg_form(page: ParsedPage) -> str:
             hint = f.validation[:30] + "..." if len(f.validation) > 30 else f.validation
             lines.append(
                 f'<text x="{padding + 4}" y="{y + 36}" font-size="9" fill="#dc3545">'
-                f'{_esc(hint)}</text>'
+                f"{_esc(hint)}</text>"
             )
         y += field_h
 
@@ -153,7 +153,7 @@ def _render_svg_form(page: ParsedPage) -> str:
         if b.target:
             lines.append(
                 f'<text x="{padding + bw + 8}" y="{y + 24}" font-size="10" fill="#0d6efd">'
-                f'→ {_esc(b.target[:15])}</text>'
+                f"→ {_esc(b.target[:15])}</text>"
             )
         y += btn_h
 
@@ -261,9 +261,19 @@ def _render_svg_dashboard(page: ParsedPage) -> str:
 
     cards = [
         (padding, header_h + padding, (w - padding * 3) // 2, 110),
-        (padding + (w - padding * 3) // 2 + padding, header_h + padding, (w - padding * 3) // 2, 110),
+        (
+            padding + (w - padding * 3) // 2 + padding,
+            header_h + padding,
+            (w - padding * 3) // 2,
+            110,
+        ),
         (padding, header_h + padding + 130, (w - padding * 3) // 2, 110),
-        (padding + (w - padding * 3) // 2 + padding, header_h + padding + 130, (w - padding * 3) // 2, 110),
+        (
+            padding + (w - padding * 3) // 2 + padding,
+            header_h + padding + 130,
+            (w - padding * 3) // 2,
+            110,
+        ),
     ]
 
     for i, (cx, cy, cw, ch) in enumerate(cards):
@@ -275,9 +285,7 @@ def _render_svg_dashboard(page: ParsedPage) -> str:
         lines.append(
             f'<text x="{cx + 12}" y="{cy + 26}" font-size="13" fill="#6c757d">{_esc(label)}</text>'
         )
-        lines.append(
-            f'<text x="{cx + 12}" y="{cy + 66}" font-size="28" fill="#495057">--</text>'
-        )
+        lines.append(f'<text x="{cx + 12}" y="{cy + 66}" font-size="28" fill="#495057">--</text>')
         # Mini chart placeholder
         lines.append(
             f'<rect x="{cx + cw - 80}" y="{cy + 30}" width="60" height="40" '
@@ -331,7 +339,7 @@ def _render_svg_detail(page: ParsedPage) -> str:
             badge_color = _field_type_badge_color(f.field_type)
             lines.append(
                 f'<text x="{w - padding - 40}" y="{y + 20}" font-size="9" fill="{badge_color}">'
-                f'{_esc(f.field_type[:6])}</text>'
+                f"{_esc(f.field_type[:6])}</text>"
             )
         y += field_h
 
@@ -409,7 +417,7 @@ def _render_svg_modal(page: ParsedPage) -> str:
     for f in page.fields[:3]:
         lines.append(
             f'<text x="{cx + padding}" y="{y + 14}" font-size="11" fill="#6c757d">'
-            f'{_esc(f.name)}{" *" if f.required else ""}</text>'
+            f"{_esc(f.name)}{' *' if f.required else ''}</text>"
         )
         lines.append(
             f'<rect x="{cx + padding}" y="{y + 18}" width="{w - cx * 2 - padding * 2}" height="24" '
@@ -480,7 +488,7 @@ def _render_svg_wizard(page: ParsedPage) -> str:
     for f in page.fields[:2]:
         lines.append(
             f'<text x="{padding}" y="{y + 16}" font-size="12" fill="#6c757d">'
-            f'{_esc(f.name)}{" *" if f.required else ""}</text>'
+            f"{_esc(f.name)}{' *' if f.required else ''}</text>"
         )
         lines.append(
             f'<rect x="{padding}" y="{y + 20}" width="{w - padding * 2}" height="28" '
@@ -492,7 +500,7 @@ def _render_svg_wizard(page: ParsedPage) -> str:
     return "\n".join(lines)
 
 
-_RENDERERS: dict[str, callable] = {  # type: ignore[type-arg]
+_RENDERERS: dict[str, Callable[..., str]] = {
     "FORM": _render_svg_form,
     "LIST": _render_svg_list,
     "DASHBOARD": _render_svg_dashboard,
@@ -506,6 +514,7 @@ _RENDERERS: dict[str, callable] = {  # type: ignore[type-arg]
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def render_page_svg(page: ParsedPage) -> str:
     """根据解析结果渲染对应类型的 SVG 草图."""
@@ -603,6 +612,7 @@ def generate_sketch_from_module_specs(
 # existing tests that don't touch module specs continue to work.
 # They are intentionally NOT updated; new code should use module-spec paths.
 
+
 def _detect_page_type(title: str, desc: str | None) -> str:
     """Legacy page-type detection (kept for old API)."""
     import re as _re
@@ -614,7 +624,20 @@ def _detect_page_type(title: str, desc: str | None) -> str:
     page_type_keywords: dict[str, list[str]] = {
         "LIST": ["列表", "查询", "搜索", "筛选", "分页", "批量", "table", "list"],
         "DETAIL": ["详情", "查看", "明细", "信息展示", "面板", "profile", "detail"],
-        "DASHBOARD": ["仪表盘", "统计", "指标", "图表", "概览", "工作台", "看板", "总览页", "首页", "dashboard", "chart", "homepage"],
+        "DASHBOARD": [
+            "仪表盘",
+            "统计",
+            "指标",
+            "图表",
+            "概览",
+            "工作台",
+            "看板",
+            "总览页",
+            "首页",
+            "dashboard",
+            "chart",
+            "homepage",
+        ],
         "FORM": ["表单", "填写", "提交", "编辑", "创建", "form", "input"],
         "MODAL": ["弹窗", "弹层", "对话框", "modal", "dialog"],
         "SEARCH": ["搜索", "检索", "查找", "search", "filter"],
@@ -638,7 +661,7 @@ def _detect_page_type(title: str, desc: str | None) -> str:
 
     if not scores:
         return "FORM"
-    return max(scores, key=scores.get)  # type: ignore[return-value]
+    return max(scores, key=lambda k: scores[k])
 
 
 def _extract_fields(text: str) -> list[PageField]:
@@ -753,11 +776,17 @@ def generate_sketch_from_stories(
                 "page_type": parsed.page_type,
                 "svg_content": svg,
                 "fields_json": json.dumps(
-                    [{"name": f.name, "type": f.field_type, "required": f.required} for f in parsed.fields],
+                    [
+                        {"name": f.name, "type": f.field_type, "required": f.required}
+                        for f in parsed.fields
+                    ],
                     ensure_ascii=False,
                 ),
                 "buttons_json": json.dumps(
-                    [{"label": b.label, "action": b.action, "target": b.target} for b in parsed.buttons],
+                    [
+                        {"label": b.label, "action": b.action, "target": b.target}
+                        for b in parsed.buttons
+                    ],
                     ensure_ascii=False,
                 ),
                 "nav_targets_json": json.dumps(parsed.nav_targets, ensure_ascii=False),

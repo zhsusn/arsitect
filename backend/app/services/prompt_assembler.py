@@ -17,8 +17,8 @@ from app.services.file_backup_service import FileBackupService
 class PromptAssembler:
     """Assemble a complete fix prompt for an LLM.
 
-    The prompt contains enough context for the model to produce a precise,
-minimal change while preserving existing interfaces and project conventions.
+        The prompt contains enough context for the model to produce a precise,
+    minimal change while preserving existing interfaces and project conventions.
     """
 
     _MAX_FILE_BYTES = 128_000
@@ -143,10 +143,7 @@ minimal change while preserving existing interfaces and project conventions.
             return f"【当前代码】\n（无法读取目标文件：{target_path}）"
 
         if not absolute_path.exists():
-            return (
-                f"【当前代码】\n"
-                f"目标文件 {target_path} 不存在，将按创建新文件处理。"
-            )
+            return f"【当前代码】\n目标文件 {target_path} 不存在，将按创建新文件处理。"
 
         try:
             content = absolute_path.read_text(encoding="utf-8", errors="replace")

@@ -39,9 +39,7 @@ class ExecutionLogRepository:
         anchor: str | None = None,
         limit: int = 100,
     ) -> list[ExecutionLog]:
-        stmt = select(ExecutionLog).where(
-            ExecutionLog.execution_id == execution_id
-        )
+        stmt = select(ExecutionLog).where(ExecutionLog.execution_id == execution_id)
         if level and level != "ALL":
             stmt = stmt.where(ExecutionLog.level == level)
         if keyword:
@@ -64,9 +62,7 @@ class ExecutionLogRepository:
         return count
 
     async def delete_by_execution(self, execution_id: str) -> None:
-        stmt = select(ExecutionLog).where(
-            ExecutionLog.execution_id == execution_id
-        )
+        stmt = select(ExecutionLog).where(ExecutionLog.execution_id == execution_id)
         result = await self._session.execute(stmt)
         for log in result.scalars().all():
             await self._session.delete(log)

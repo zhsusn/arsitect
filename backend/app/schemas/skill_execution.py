@@ -34,7 +34,9 @@ class ExecutionStatusDTO(BaseModel):
     execution_id: str = Field(description="执行 ID")
     current_phase: str = Field(description="当前阶段: PREP | EXEC | POST | NONE")
     phase_status: str = Field(description="阶段状态: RUNNING | COMPLETED | FAILED | STOPPED")
-    overall_status: str = Field(description="整体状态: NOT_STARTED | RUNNING | SUCCESS | FAILED | STOPPED | UNKNOWN")
+    overall_status: str = Field(
+        description="整体状态: NOT_STARTED | RUNNING | SUCCESS | FAILED | STOPPED | UNKNOWN"
+    )
     stage_progress_percent: int = Field(ge=0, le=100, description="Stage 进度百分比")
     status_timestamp: datetime = Field(description="状态时间戳")
     artifact_paths: list[str] = Field(default_factory=list, description="产物路径列表")

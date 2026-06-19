@@ -91,7 +91,9 @@ class ConfigResolveResponse(BaseModel):
 class PermissionCheckRequest(BaseModel):
     """DTO for checking a permission decision."""
 
-    category: Literal["file_read", "file_write", "terminal", "web_fetch", "external_api"] = Field(...)
+    category: Literal["file_read", "file_write", "terminal", "web_fetch", "external_api"] = Field(
+        ...
+    )
     path: str | None = Field(None, description="文件路径，用于 file 类权限")
     command: str | None = Field(None, description="命令，用于 terminal 权限")
     domain: str | None = Field(None, description="域名，用于 web/external 权限")

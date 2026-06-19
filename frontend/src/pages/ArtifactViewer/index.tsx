@@ -1,6 +1,10 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useArtifactViewerStore } from '../../stores/artifactViewerStore'
+import {
+  fetchStageProgress,
+  type StageProgressItem,
+} from '../../services/stage'
 import ArtifactTree from './components/ArtifactTree'
 import ArtifactPreview from './components/ArtifactPreview'
 import VersionHistoryDrawer from './components/VersionHistoryDrawer'
@@ -8,6 +12,9 @@ import VersionHistoryDrawer from './components/VersionHistoryDrawer'
 export default function ArtifactViewer() {
   const [searchParams] = useSearchParams()
   const projectId = searchParams.get('project_id') || 'demo-project-001'
+  const initialArtifactId = searchParams.get('artifact_id')
+
+  const [stageMap, setStageMap] = useState<Record<string, StageProgressItem>>({})
 
   const {
     tree,
@@ -18,8 +25,11 @@ export default function ArtifactViewer() {
     loading,
     searchQuery,
     filterType,
+    filterStage,
+    filterSkill,
     fetchTree,
     selectArtifact,
+    findArtifactById,
     fetchContent,
     saveContent,
     rollback,
@@ -27,11 +37,34 @@ export default function ArtifactViewer() {
     updateArtifactStatus,
     setSearchQuery,
     setFilterType,
+    setFilterStage,
+    setFilterSkill,
   } = useArtifactViewerStore()
 
+  // Load tree and stage metadata
   useEffect(() => {
     void fetchTree(projectId)
+    fetchStageProgress(projectId)
+      .then((progress) => {
+        const map: Record<string, StageProgressItem> = {}
+        progress.stages.forEach((s) => {
+          map[s.project_stage_id] = s
+        })
+        setStageMap(map)
+      })
+      .catch((err) => {
+        console.error('Failed to load stage progress:', err)
+      })
   }, [fetchTree, projectId])
+
+  // Auto-select artifact from URL query
+  useEffect(() => {
+    if (!initialArtifactId || loading || !tree?.files?.length) return
+    const artifact = findArtifactById(initialArtifactId)
+    if (artifact) {
+      selectArtifact(artifact)
+    }
+  }, [initialArtifactId, loading, tree?.files?.length, findArtifactById, selectArtifact])
 
   // External deletion detection: poll every 5s for selected artifact
   const selectedArtifactId = selectedArtifact?.artifact_id
@@ -75,17 +108,33 @@ export default function ArtifactViewer() {
     [selectedArtifact, content, saveContent, rollback]
   )
 
+  const stageOptions = useMemo(() => {
+    const ids = Array.from(new Set((tree?.files || []).map((f) => f.stage_id).filter(Boolean)))
+    return ids.map((id) => ({
+      value: id as string,
+      label: stageMap[id as string]?.business_stage_key || id,
+    }))
+  }, [tree?.files, stageMap])
+
+  const skillOptions = useMemo(() => {
+    return Array.from(new Set((tree?.files || []).map((f) => f.skill_id).filter(Boolean))) as string[]
+  }, [tree?.files])
+
+  const handleRefresh = useCallback(() => {
+    void fetchTree(projectId)
+  }, [fetchTree, projectId])
+
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white">
         <h1 className="text-lg font-semibold text-gray-800 mr-4">产物浏览器</h1>
         <input
           type="text"
           placeholder="搜索文件名..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 min-w-[120px] max-w-xs px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
           value={filterType}
@@ -100,6 +149,43 @@ export default function ArtifactViewer() {
           <option value="openapi">OpenAPI</option>
           <option value="txt">Text</option>
         </select>
+        <select
+          value={filterStage}
+          onChange={(e) => {
+            setFilterStage(e.target.value)
+            void fetchTree(projectId, { stageId: e.target.value })
+          }}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">全部阶段</option>
+          {stageOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterSkill}
+          onChange={(e) => {
+            setFilterSkill(e.target.value)
+            void fetchTree(projectId, { skillId: e.target.value })
+          }}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">全部 Skill</option>
+          {skillOptions.map((id) => (
+            <option key={id} value={id}>
+              {id}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="px-3 py-1.5 text-sm rounded border border-gray-300 hover:bg-gray-100"
+        >
+          刷新
+        </button>
         {selectedArtifact && (
           <VersionHistoryDrawer
             versions={versions}
@@ -117,8 +203,8 @@ export default function ArtifactViewer() {
           <>
             <div className="w-1/3 border-r border-gray-200 overflow-hidden bg-white">
               <ArtifactTree
-                directories={tree.directories}
-                files={tree.files}
+                directories={tree?.directories || []}
+                files={tree?.files || []}
                 searchQuery={searchQuery}
                 filterType={filterType}
                 selectedArtifact={selectedArtifact}

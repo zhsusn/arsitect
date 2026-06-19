@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -17,7 +17,14 @@ from app.core.config import settings
 
 
 def _registry_path(project_id: str) -> Path:
-    return settings.project_root / "openspec" / "changes" / project_id / "baseline" / "_c4-registry.yaml"
+    return (
+        settings.project_root
+        / "openspec"
+        / "changes"
+        / project_id
+        / "baseline"
+        / "_c4-registry.yaml"
+    )
 
 
 def _snapshot_dir(project_id: str) -> Path:
@@ -37,12 +44,14 @@ def _set_extractor_paths(project_id: str) -> None:
 def _load_yaml(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    return cast(dict[str, Any] | None, yaml.safe_load(path.read_text(encoding="utf-8")))
 
 
 def _write_yaml(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(yaml.dump(data, allow_unicode=True, sort_keys=False, width=120), encoding="utf-8")
+    path.write_text(
+        yaml.dump(data, allow_unicode=True, sort_keys=False, width=120), encoding="utf-8"
+    )
 
 
 def _snapshot_path(project_id: str, timestamp: datetime) -> Path:
@@ -138,7 +147,13 @@ def compute_registry_diff(
 ) -> dict[str, Any]:
     """Compare two registry dictionaries and return a structured delta."""
     if previous is None:
-        previous = {"components": {}, "relationships": [], "systems": {}, "actors": {}, "containers": {}}
+        previous = {
+            "components": {},
+            "relationships": [],
+            "systems": {},
+            "actors": {},
+            "containers": {},
+        }
 
     cur_components = current.get("components", {})
     prev_components = previous.get("components", {})
@@ -152,11 +167,18 @@ def compute_registry_diff(
             "after": _component_key(cur_components[cid]),
         }
         for cid in cur_components
-        if cid in prev_components and _component_key(cur_components[cid]) != _component_key(prev_components[cid])
+        if cid in prev_components
+        and _component_key(cur_components[cid]) != _component_key(prev_components[cid])
     ]
 
-    cur_rels = {(r.get("source"), r.get("target"), r.get("description")) for r in current.get("relationships", [])}
-    prev_rels = {(r.get("source"), r.get("target"), r.get("description")) for r in previous.get("relationships", [])}
+    cur_rels = {
+        (r.get("source"), r.get("target"), r.get("description"))
+        for r in current.get("relationships", [])
+    }
+    prev_rels = {
+        (r.get("source"), r.get("target"), r.get("description"))
+        for r in previous.get("relationships", [])
+    }
 
     orphan_delta = {
         "before": previous.get("stats", {}).get("effective_orphan_count", 0),

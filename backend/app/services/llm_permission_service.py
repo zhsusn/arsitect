@@ -186,9 +186,7 @@ class LLMPermissionService:
                 )
         return matches
 
-    def _has_managed_override(
-        self, ctx: PermissionCheckContext, source_nodes: list[Any]
-    ) -> bool:
+    def _has_managed_override(self, ctx: PermissionCheckContext, source_nodes: list[Any]) -> bool:
         """Check if a managed node explicitly overrides builtin for this context."""
         for node in source_nodes:
             if node.scope != ConfigNodeScope.MANAGED.value or not node.is_enabled:
@@ -200,9 +198,7 @@ class LLMPermissionService:
                     return True
         return False
 
-    def _extract_pattern(
-        self, ctx: PermissionCheckContext, rule: dict[str, Any]
-    ) -> str | None:
+    def _extract_pattern(self, ctx: PermissionCheckContext, rule: dict[str, Any]) -> str | None:
         """Extract pattern field from rule based on category."""
         if ctx.category in {"file_read", "file_write"}:
             return rule.get("path")
@@ -212,9 +208,7 @@ class LLMPermissionService:
             return rule.get("domain")
         return None
 
-    def _matches(
-        self, ctx: PermissionCheckContext, rule: dict[str, Any], pattern: str
-    ) -> bool:
+    def _matches(self, ctx: PermissionCheckContext, rule: dict[str, Any], pattern: str) -> bool:
         """Check if context matches a rule pattern."""
         value = None
         if ctx.category in {"file_read", "file_write"}:

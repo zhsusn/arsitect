@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from sqlalchemy import select
+
 from app.core.exceptions import NotFoundError
 from app.infrastructure.database.repositories.skill_execution_repo import (
     SkillExecutionRepository,
 )
+from app.models.artifact import ArtifactFile
+from app.models.execution_log import ExecutionLog
 from app.schemas.skill_execution import (
     ExecutionStatusDTO,
     StageProgressDTO,
@@ -28,7 +32,7 @@ class StatusAggregator:
     ) -> ExecutionStatusDTO:
         """获取执行状态。
 
-        MVP 简化：直接从数据库读取 SkillExecution 记录并映射为 DTO。
+        聚合 SkillExecution、关联产物与最近错误日志，返回真实状态。
 
         Args:
             execution_id: 执行 ID。
@@ -45,6 +49,8 @@ class StatusAggregator:
             raise NotFoundError(detail=f"Execution '{execution_id}' not found")
 
         progress = self._phase_to_percent(execution.current_phase)
+        artifact_paths = await self._load_artifact_paths(execution.execution_id)
+        error_summary = await self._load_error_summary(execution.execution_id)
 
         return ExecutionStatusDTO(
             execution_id=execution.execution_id,
@@ -53,9 +59,29 @@ class StatusAggregator:
             overall_status=execution.overall_status,
             stage_progress_percent=progress,
             status_timestamp=datetime.utcnow(),
-            artifact_paths=[],
-            error_summary=None,
+            artifact_paths=artifact_paths,
+            error_summary=error_summary,
         )
+
+    async def _load_artifact_paths(self, execution_id: str) -> list[str]:
+        """Load artifact file paths produced by the execution."""
+        session = self._exec_repo._session
+        stmt = select(ArtifactFile.file_path).where(ArtifactFile.execution_id == execution_id)
+        result = await session.execute(stmt)
+        return [row[0] for row in result.all() if row[0]]
+
+    async def _load_error_summary(self, execution_id: str) -> str | None:
+        """Load the most recent ERROR log content for the execution."""
+        session = self._exec_repo._session
+        stmt = (
+            select(ExecutionLog.content)
+            .where(ExecutionLog.execution_id == execution_id, ExecutionLog.level == "ERROR")
+            .order_by(ExecutionLog.timestamp.desc())
+            .limit(1)
+        )
+        result = await session.execute(stmt)
+        row = result.scalar_one_or_none()
+        return row if row else None
 
     async def calculate_stage_progress(
         self,

@@ -149,7 +149,9 @@ async def test_generate_json_invalid_raises(gateway: KimiCLIGateway) -> None:
 @pytest.mark.asyncio
 async def test_generate_uses_settings_default_path(monkeypatch: Any) -> None:
     """TEST-1723: Gateway falls back to settings.KIMI_CLI_PATH when no path is given."""
-    monkeypatch.setattr("app.c4.governance_fix.llm_gateway.settings.KIMI_CLI_PATH", "kimi-from-settings")
+    monkeypatch.setattr(
+        "app.c4.governance_fix.llm_gateway.settings.KIMI_CLI_PATH", "kimi-from-settings"
+    )
     default_gateway = KimiCLIGateway()
 
     with patch("app.c4.governance_fix.llm_gateway.subprocess.run") as mock_run:

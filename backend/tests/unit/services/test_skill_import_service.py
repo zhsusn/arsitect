@@ -95,9 +95,7 @@ class TestSkillImportService:
                 result = await svc.scan_directory(tmpdir)
                 # If previous test inserted a skill with same name+version,
                 # it will be in conflicts instead of parsed_skills.
-                assert (
-                    len(result.parsed_skills) == 1 or len(result.conflicts) == 1
-                )
+                assert len(result.parsed_skills) == 1 or len(result.conflicts) == 1
                 skill = (
                     result.parsed_skills[0]
                     if result.parsed_skills
@@ -135,10 +133,12 @@ class TestSkillImportService:
         """TEST-1105: Serialize non-empty list returns JSON string."""
         result = SkillImportService._serialize_list(["a", "b"])
         import json
+
         assert json.loads(result) == ["a", "b"]
 
     def test_generate_skill_id(self) -> None:
         """TEST-1106: Generate skill id returns valid UUID."""
         import uuid
+
         skill_id = SkillImportService._generate_skill_id()
         assert uuid.UUID(skill_id)  # valid UUID format

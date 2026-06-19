@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
+import { SSEClient, type ProjectSSEEvent } from '../services/sse'
 
-export interface ProjectSSEEvent {
-  type: string
-  data: Record<string, unknown>
-}
+export type { ProjectSSEEvent }
+export { SSEClient }
 
 export function useProjectSSE(
   projectId: string | undefined,
@@ -16,25 +15,12 @@ export function useProjectSSE(
   }, [onEvent])
 
   useEffect(() => {
-    if (!projectId) return
-
-    const source = new EventSource(`/api/v1/events/${projectId}`)
-
-    source.onmessage = (message) => {
-      try {
-        const event = JSON.parse(message.data) as ProjectSSEEvent
-        onEventRef.current(event)
-      } catch (err) {
-        console.error('Failed to parse SSE message:', err)
-      }
-    }
-
-    source.onerror = (err) => {
-      console.error('SSE error:', err)
-    }
-
+    if (!projectId) return undefined
+    const client = new SSEClient(projectId, (event) => {
+      onEventRef.current(event)
+    })
     return () => {
-      source.close()
+      client.close()
     }
   }, [projectId])
 }

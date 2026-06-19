@@ -1,24 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import ProjectSelector from '../../components/ProjectSelector'
-import {
-  listWireframes,
-  generateWireframe,
-  deleteWireframe,
-  listWireframePages,
-  listWireframeNavLinks,
-  type Wireframe,
-  type WireframePage,
-  type WireframeNavLink,
-} from '../../services/wireframe'
+import { useProjectContext } from '../../App'
+import { listWireframes, generateWireframe, deleteWireframe, listWireframePages, listWireframeNavLinks, type Wireframe, type WireframePage, type WireframeNavLink } from '../../services/wireframe'
 import { WireframeViewer } from '../../components/WireframeViewer'
 import NavRelationGraph from './components/NavRelationGraph'
 
-const LS_PROJECT_KEY = 'arsitect:lastProjectId'
-
 export default function WireframeCanvas() {
-  const [projectId, setProjectId] = useState(() => {
-    try { return localStorage.getItem(LS_PROJECT_KEY) || '' } catch { return '' }
-  })
+  const { currentProjectId } = useProjectContext()
+  const projectId = currentProjectId
   const [wireframes, setWireframes] = useState<Wireframe[]>([])
   const [pages, setPages] = useState<WireframePage[]>([])
   const [links, setLinks] = useState<WireframeNavLink[]>([])
@@ -76,12 +64,42 @@ export default function WireframeCanvas() {
     return links.filter(l => l.source_page_id === selectedPage.page_id || l.target_page_id === selectedPage.page_id)
   }, [links, selectedPage])
 
+  // 树形层级结构
+  const { rootPages, childrenMap } = useMemo(() => {
+    const pageByName = new Map(pages.map((p) => [p.page_name, p]))
+    const childMap = new Map<string, WireframePage[]>()
+    const hasParent = new Set<string>()
+    for (const p of pages) {
+      let targets: string[] = []
+      try {
+        targets = p.nav_targets_json ? JSON.parse(p.nav_targets_json) : []
+      } catch { targets = [] }
+      const children: WireframePage[] = []
+      for (const name of targets) {
+        const child = pageByName.get(name)
+        if (child && child.page_id !== p.page_id) {
+          children.push(child)
+          hasParent.add(child.page_id)
+        }
+      }
+      if (children.length > 0) childMap.set(p.page_id, children)
+    }
+    let roots = pages.filter((p) => !hasParent.has(p.page_id))
+    if (roots.length === 0 && pages.length > 0) roots = pages
+    return { rootPages: roots, childrenMap: childMap }
+  }, [pages])
+
+  const [expandedRoots, setExpandedRoots] = useState<Set<string>>(new Set())
+
+  if (!projectId) {
+    return <div className="h-screen flex items-center justify-center text-gray-400">请先在顶部选择项目</div>
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-bold text-gray-800">WireframeEngine</h1>
-          <ProjectSelector value={projectId} onChange={(id) => { setProjectId(id); localStorage.setItem(LS_PROJECT_KEY, id) }} />
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => { setShowNewWireframe(false); setShowNavGraph((s) => !s); }}
@@ -105,25 +123,55 @@ export default function WireframeCanvas() {
         </div>
       )}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left sidebar */}
+        {/* Left sidebar — 树形页面列表 */}
         <div className="w-72 bg-white border-r flex flex-col">
           <div className="px-3 py-2 border-b text-xs font-semibold text-gray-500">页面列表 ({pages.length})</div>
           <div className="flex-1 overflow-auto p-2 space-y-1">
             {pages.length === 0 && <div className="text-center text-gray-400 text-sm py-8">暂无页面，请先生成</div>}
-            {pages.map(p => (
-              <button key={p.page_id} onClick={() => setSelectedPageId(p.page_id)}
-                className={`w-full text-left px-3 py-2 rounded text-sm border transition ${selectedPageId === p.page_id ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-transparent text-gray-700 hover:bg-gray-50'}`}>
-                <div className="font-medium truncate">{p.page_name}</div>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">{p.page_type}</span>
-                  {p.confidence !== null && (
-                    <span className={`text-[10px] ${p.confidence >= 80 ? 'text-green-600' : p.confidence >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
-                      {p.confidence}%
+            {rootPages.map((root) => {
+              const children = childrenMap.get(root.page_id) || []
+              const isExpanded = expandedRoots.has(root.page_id)
+              const isSelected = selectedPageId === root.page_id
+              return (
+                <div key={root.page_id}>
+                  <button onClick={() => setSelectedPageId(root.page_id)}
+                    className={`w-full text-left px-3 py-2 rounded text-sm border transition flex items-center gap-1 ${isSelected ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-transparent text-gray-700 hover:bg-gray-50'}`}>
+                    <span className="text-xs text-gray-400 w-4 text-center select-none"
+                      onClick={(e) => { e.stopPropagation(); if (children.length > 0) { setExpandedRoots((prev) => { const next = new Set(prev); if (next.has(root.page_id)) next.delete(root.page_id); else next.add(root.page_id); return next }) } }}>
+                      {children.length > 0 ? (isExpanded ? '▼' : '▶') : ''}
                     </span>
-                  )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{root.page_name}</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">{root.page_type}</span>
+                        {root.confidence !== null && (
+                          <span className={`text-[10px] ${root.confidence >= 80 ? 'text-green-600' : root.confidence >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {root.confidence}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                  {isExpanded && children.map((child) => (
+                    <button key={child.page_id} onClick={() => setSelectedPageId(child.page_id)}
+                      className={`w-full text-left pl-9 pr-3 py-2 rounded text-sm border transition mt-1 flex items-center gap-1 ${selectedPageId === child.page_id ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50'}`}>
+                      <span className="text-xs text-gray-300 select-none">└</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{child.page_name}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">{child.page_type}</span>
+                          {child.confidence !== null && (
+                            <span className={`text-[10px] ${child.confidence >= 80 ? 'text-green-600' : child.confidence >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                              {child.confidence}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
+              )
+            })}
           </div>
           {wireframes.length > 0 && (
             <div className="border-t p-2">
@@ -158,6 +206,15 @@ export default function WireframeCanvas() {
                 {selectedPage.svg_content ? (
                   <div className="bg-white shadow rounded-lg p-4" dangerouslySetInnerHTML={{ __html: selectedPage.svg_content }} />
                 ) : <div className="text-gray-400 text-sm">无 SVG 内容</div>}
+              </div>
+              {/* 页面元数据面板 */}
+              <div className="bg-white border-t px-4 py-2 shrink-0">
+                <div className="text-xs text-gray-500 flex gap-4 flex-wrap">
+                  <span>字段: {selectedPage.fields_json ? JSON.parse(selectedPage.fields_json).length : 0}</span>
+                  <span>按钮: {selectedPage.buttons_json ? JSON.parse(selectedPage.buttons_json).length : 0}</span>
+                  <span>跳转: {selectedPage.nav_targets_json ? JSON.parse(selectedPage.nav_targets_json).join(', ') || '无' : '无'}</span>
+                  {selectedPage.source_module_id && <span className="text-indigo-500">来源: {selectedPage.source_module_id}</span>}
+                </div>
               </div>
               {pageLinks.length > 0 && (
                 <div className="bg-white border-t px-4 py-2 shrink-0">

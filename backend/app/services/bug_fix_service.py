@@ -117,15 +117,11 @@ class BugFixService:
             Analysis result containing root cause and affected files.
         """
         parsed = self.parse_error(error_input)
-        response = await self._ai.generate_non_stream(
-            "bug_analysis", {"error_input": error_input}
-        )
+        response = await self._ai.generate_non_stream("bug_analysis", {"error_input": error_input})
         root_cause = response.strip() or "Mock root cause: see analysis above."
 
         # Extract file paths from the stack trace.
-        affected_files = re.findall(
-            r'File "([^"]+)"', parsed.get("error_stack") or ""
-        )
+        affected_files = re.findall(r'File "([^"]+)"', parsed.get("error_stack") or "")
         if not affected_files:
             affected_files = ["src/main.py"]
 
@@ -193,9 +189,7 @@ class BugFixService:
             raise ConflictError(detail="Bug fix has been ignored")
 
         if bug.fix_risk == BugFixRisk.HIGH:
-            raise ForbiddenError(
-                detail="High risk fix should be submitted as a PR"
-            )
+            raise ForbiddenError(detail="High risk fix should be submitted as a PR")
 
         diff = edited_diff if edited_diff is not None else (bug.fix_diff or "")
         bug.status = BugRecordStatus.EXECUTED

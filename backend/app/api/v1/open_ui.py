@@ -28,6 +28,7 @@ router = APIRouter(tags=["open-ui"])
 # OpenUI spec endpoints
 # ------------------------------------------------------------------
 
+
 @router.post(
     "/projects/{project_id}/open-ui-specs",
     response_model=OpenUIResponseDTO,
@@ -206,6 +207,7 @@ async def delete_spec(
 # ------------------------------------------------------------------
 # OpenUI page endpoints
 # ------------------------------------------------------------------
+
 
 @router.post(
     "/projects/{project_id}/open-ui-pages",

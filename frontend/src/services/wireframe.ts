@@ -29,6 +29,11 @@ export interface WireframePage {
   sort_order: number
   created_at: string | null
   updated_at: string | null
+  // 扩展字段（页面元数据）
+  fields_json?: string | null
+  buttons_json?: string | null
+  nav_targets_json?: string | null
+  source_module_id?: string | null
 }
 
 export interface WireframeNavLink {

@@ -53,9 +53,7 @@ class C4ReverseLocator:
     # ============================================================
     # Forward: C4 node → code file
     # ============================================================
-    async def locate_code(
-        self, project_id: str, c4_node_id: str
-    ) -> CodeLocation | None:
+    async def locate_code(self, project_id: str, c4_node_id: str) -> CodeLocation | None:
         """Locate local code file from C4 node ID.
 
         Strategy:
@@ -74,9 +72,7 @@ class C4ReverseLocator:
     # ============================================================
     # Reverse: code file → C4 node
     # ============================================================
-    async def locate_node(
-        self, project_id: str, file_path: str
-    ) -> NodeLocation | None:
+    async def locate_node(self, project_id: str, file_path: str) -> NodeLocation | None:
         """Find C4 node from code file path."""
         records = await self.bindings.query_by_artifact(project_id, file_path)
         for binding in records:
@@ -114,9 +110,7 @@ class C4ReverseLocator:
     # ============================================================
     # Internal helpers
     # ============================================================
-    def _infer_code_path(
-        self, project_id: str, c4_node_id: str
-    ) -> CodeLocation | None:
+    def _infer_code_path(self, project_id: str, c4_node_id: str) -> CodeLocation | None:
         """Infer code path by convention."""
         project_dir = self.code_base_dir / project_id
         if not project_dir.exists():
@@ -136,9 +130,7 @@ class C4ReverseLocator:
 
         return None
 
-    async def _match_by_filename(
-        self, project_id: str, file_path: str
-    ) -> NodeLocation | None:
+    async def _match_by_filename(self, project_id: str, file_path: str) -> NodeLocation | None:
         """Match C4 node by filename."""
         filename = Path(file_path).stem
 
@@ -148,11 +140,7 @@ class C4ReverseLocator:
 
         try:
             data = yaml.safe_load(baseline.dsl_content)
-            components = (
-                data.get("workspace", {})
-                .get("model", {})
-                .get("components", [])
-            )
+            components = data.get("workspace", {}).get("model", {}).get("components", [])
             for comp in components:
                 comp_name = comp.get("name", "")
                 if filename.lower() in comp["id"].lower() or filename.lower() in comp_name.lower():

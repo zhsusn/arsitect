@@ -28,10 +28,7 @@ class TestAIGateway:
         """TEST-1528: generate yields multiple mock chunks."""
         gateway = AIGateway(api_key="test-key")
         chunks = [
-            chunk
-            async for chunk in gateway.generate(
-                "fix_plan", {"root_cause": "bad config"}
-            )
+            chunk async for chunk in gateway.generate("fix_plan", {"root_cause": "bad config"})
         ]
 
         assert len(chunks) == 4

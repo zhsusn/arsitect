@@ -96,9 +96,7 @@ async def scan_skills(
             SkillConflictItemDTO(
                 new_skill=_to_scan_item_dto(c.parsed_skill),
                 existing_skill=(
-                    SkillResponseDTO.model_validate(c.existing_skill)
-                    if c.existing_skill
-                    else None
+                    SkillResponseDTO.model_validate(c.existing_skill) if c.existing_skill else None
                 ),
             )
             for c in result.conflicts

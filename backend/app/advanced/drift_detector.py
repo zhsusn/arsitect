@@ -36,9 +36,7 @@ class DriftDetector:
         """Initialize with baseline store."""
         self.baseline = baseline_store
 
-    async def detect(
-        self, project_id: str, code_dir: str
-    ) -> DriftReport:
+    async def detect(self, project_id: str, code_dir: str) -> DriftReport:
         """Detect drift between design DSL and code directory."""
         baseline = await self.baseline.read_current(project_id)
         design_components = self._extract_design_components(

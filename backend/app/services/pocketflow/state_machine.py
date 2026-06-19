@@ -77,10 +77,7 @@ class SkillExecutionStateMachine:
         allowed = _TRANSITIONS.get(self._status, set())
         if new_status not in allowed:
             raise ValidationError(
-                detail=(
-                    f"Invalid transition from {self._status.value} "
-                    f"to {new_status.value}"
-                )
+                detail=(f"Invalid transition from {self._status.value} to {new_status.value}")
             )
         self._status = new_status
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -70,4 +70,4 @@ class FixContextBuilder:
 
         assembler = C4Assembler()
         dsl_text = assembler.serialize_to_yaml(workspace)
-        return yaml.safe_load(dsl_text)
+        return cast(dict[str, Any], yaml.safe_load(dsl_text))

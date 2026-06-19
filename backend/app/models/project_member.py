@@ -25,10 +25,6 @@ class ProjectMember(Base):
     )
     user_id: Mapped[str] = mapped_column(String(36), nullable=False)
     role: Mapped[str] = mapped_column(String(32), nullable=False, default="member")
-    joined_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), nullable=False
-    )
+    joined_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), nullable=False)
 
-    __table_args__ = (
-        UniqueConstraint("project_id", "user_id", name="uq_project_user"),
-    )
+    __table_args__ = (UniqueConstraint("project_id", "user_id", name="uq_project_user"),)

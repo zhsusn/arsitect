@@ -77,7 +77,10 @@ class TestHandlers:
         # Minimal mock request
         response = app_error_handler(None, exc)  # type: ignore[arg-type]
         assert response.status_code == 404
-        assert response.body == b'{"type":"https://api.arsitect.local/errors/not-found","title":"Resource Not Found","status":404,"detail":"user 99 missing"}'
+        assert (
+            response.body
+            == b'{"type":"https://api.arsitect.local/errors/not-found","title":"Resource Not Found","status":404,"detail":"user 99 missing"}'
+        )
 
     @pytest.mark.asyncio
     async def test_generic_handler_returns_500(self) -> None:

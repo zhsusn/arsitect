@@ -26,9 +26,7 @@ class TemplateRepository:
         """Fetch a template by its primary key."""
         return await self._session.get(Template, template_id)
 
-    async def get_stages_for_template(
-        self, template_id: str
-    ) -> list[TemplateStage]:
+    async def get_stages_for_template(self, template_id: str) -> list[TemplateStage]:
         """Fetch ordered stages for a given template."""
         stmt = (
             select(TemplateStage)

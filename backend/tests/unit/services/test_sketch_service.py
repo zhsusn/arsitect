@@ -60,9 +60,7 @@ class TestSketchService:
     async def test_get_sketch(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="get")
         svc = SketchService(db_session)
-        created = await svc.create_sketch(
-            proj.project_id, "A", None, "GENERATED"
-        )
+        created = await svc.create_sketch(proj.project_id, "A", None, "GENERATED")
         fetched = await svc.get_sketch(created.sketch_id)
         assert fetched.sketch_id == created.sketch_id
 
@@ -85,9 +83,7 @@ class TestSketchService:
     async def test_update_sketch(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="upd")
         svc = SketchService(db_session)
-        sketch = await svc.create_sketch(
-            proj.project_id, "Old", None, "DRAFT"
-        )
+        sketch = await svc.create_sketch(proj.project_id, "Old", None, "DRAFT")
         updated = await svc.update_sketch(
             sketch.sketch_id,
             {"name": "New", "status": "GENERATED"},
@@ -99,9 +95,7 @@ class TestSketchService:
     async def test_delete_sketch(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="del")
         svc = SketchService(db_session)
-        sketch = await svc.create_sketch(
-            proj.project_id, "ToDel", None, "DRAFT"
-        )
+        sketch = await svc.create_sketch(proj.project_id, "ToDel", None, "DRAFT")
         await svc.delete_sketch(sketch.sketch_id)
         with pytest.raises(NotFoundError):
             await svc.get_sketch(sketch.sketch_id)

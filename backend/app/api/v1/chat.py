@@ -184,7 +184,9 @@ async def chat_websocket(
 
     if not await _safe_send(
         websocket,
-        _text_response(session_id, f"已连接会话 {session_id}，当前模式：{session.task_mode}").model_dump(),
+        _text_response(
+            session_id, f"已连接会话 {session_id}，当前模式：{session.task_mode}"
+        ).model_dump(),
     ):
         return
 
@@ -224,7 +226,11 @@ async def chat_websocket(
                 await arch_svc.handle_change_action(
                     session_id=session_id,
                     project_id=project_id,
-                    command=command if command not in {"Y", "N"} else "fix" if command == "Y" else "skip",
+                    command=command
+                    if command not in {"Y", "N"}
+                    else "fix"
+                    if command == "Y"
+                    else "skip",
                     metadata=metadata,
                     sender=sender,
                 )
@@ -274,7 +280,9 @@ async def chat_websocket(
 
         await _safe_send(
             websocket,
-            _error_response(session_id, "UNSUPPORTED_TYPE", f"Unsupported type: {request.type}").model_dump(),
+            _error_response(
+                session_id, "UNSUPPORTED_TYPE", f"Unsupported type: {request.type}"
+            ).model_dump(),
         )
 
     try:
@@ -285,7 +293,9 @@ async def chat_websocket(
             except Exception as exc:
                 await _safe_send(
                     websocket,
-                    _error_response(session_id, "INVALID_MESSAGE", f"Invalid message: {exc}").model_dump(),
+                    _error_response(
+                        session_id, "INVALID_MESSAGE", f"Invalid message: {exc}"
+                    ).model_dump(),
                 )
                 continue
 

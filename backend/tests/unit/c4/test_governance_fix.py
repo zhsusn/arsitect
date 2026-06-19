@@ -20,7 +20,11 @@ def workspace_model() -> dict:
                     {"id": "backend-api", "name": "Backend API"},
                 ],
                 "components": [
-                    {"id": "dashboard", "name": "Dashboard", "properties": {"container_id": "frontend-spa"}}
+                    {
+                        "id": "dashboard",
+                        "name": "Dashboard",
+                        "properties": {"container_id": "frontend-spa"},
+                    }
                 ],
                 "relationships": [],
             }

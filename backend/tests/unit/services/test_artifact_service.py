@@ -66,6 +66,37 @@ class TestArtifactService:
             assert versions[0].content == "Initial content"
 
     @pytest.mark.asyncio
+    async def test_create_artifact_with_execution_id(self, tmp_path) -> None:
+        """Can create an artifact linked to a skill execution."""
+        from app.models.skill_execution import SkillExecution
+
+        async with AsyncSessionLocal() as session:
+            _, proj = await self._seed_app_and_project(session)
+            execution = SkillExecution(
+                execution_id="exec-123",
+                project_id=proj.project_id,
+                stage_id="stage-svc",
+                skill_id="skill-svc",
+                skill_name="test-skill",
+                trigger_action="SINGLE_EXECUTE",
+            )
+            session.add(execution)
+            await session.commit()
+
+            svc = ArtifactService(session)
+            file_path = str(tmp_path / "exec.md")
+            art = await svc.create_artifact(
+                artifact_id="art-svc-exec",
+                project_id=proj.project_id,
+                execution_id=execution.execution_id,
+                file_name="exec.md",
+                file_path=file_path,
+                file_type="md",
+                content="Execution output",
+            )
+            assert art.execution_id == execution.execution_id
+
+    @pytest.mark.asyncio
     async def test_get_tree(self, tmp_path) -> None:
         """Tree groups artifacts by directory."""
         async with AsyncSessionLocal() as session:

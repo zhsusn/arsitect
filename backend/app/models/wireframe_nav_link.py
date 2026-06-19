@@ -38,18 +38,12 @@ class WireframeNavLink(Base):
     interface_refs_json: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="关联 C4 接口列表 JSON"
     )
-    relation_strength: Mapped[str] = mapped_column(
-        String(8), nullable=False, default="weak"
-    )
-    interface_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1
-    )
+    relation_strength: Mapped[str] = mapped_column(String(8), nullable=False, default="weak")
+    interface_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     is_marked_missing: Mapped[bool] = mapped_column(
         default=False, comment="是否被用户标记为缺失接口"
     )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

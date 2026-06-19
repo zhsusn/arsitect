@@ -43,9 +43,12 @@ class TestArchGovernanceService:
     async def _ensure_session(self, cli_service, session_id: str, project_id: str) -> None:
         """Create a CLI session so arch_issues FK constraint is satisfied."""
         from app.models.cli_session import CliMode
+
         await cli_service.create_session(project_id, "user-1", CliMode.ARCH)
 
-    async def test_optimize_change_returns_updated_change(self, arch_service: ArchGovernanceService) -> None:
+    async def test_optimize_change_returns_updated_change(
+        self, arch_service: ArchGovernanceService
+    ) -> None:
         """TEST-1612: optimize_change calls AI gateway and returns updated change."""
         change = {
             "action": "UPDATE_CODE",
@@ -63,7 +66,9 @@ class TestArchGovernanceService:
 
         assert optimized["after"] == "[optimized] mock ai response"
 
-    async def test_apply_fix_plan_sends_progress_and_cards(self, arch_service: ArchGovernanceService) -> None:
+    async def test_apply_fix_plan_sends_progress_and_cards(
+        self, arch_service: ArchGovernanceService
+    ) -> None:
         """TEST-1613: apply_fix_plan streams progress and decision cards."""
         sent: list[dict[str, Any]] = []
 

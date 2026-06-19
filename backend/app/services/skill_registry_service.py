@@ -97,9 +97,7 @@ class SkillRegistryService:
         stages: list[dict[str, Any]] = []
 
         # Primary binding
-        primary_stmt = select(TemplateStage).where(
-            TemplateStage.primary_skill_id == skill_id
-        )
+        primary_stmt = select(TemplateStage).where(TemplateStage.primary_skill_id == skill_id)
         primary_result = await self._session.execute(primary_stmt)
         for stage in primary_result.scalars().all():
             stages.append(

@@ -8,11 +8,14 @@ export interface Template {
   estimated_skill_count: number
   applicable_complexity: string
   config_json?: Record<string, unknown> | null
+  default_execution_strategy: string
+  merge_policy_json?: { groups?: Array<{ group_id: string; label: string; business_stage_keys: string[]; gate_at_end?: boolean; auto_advance?: boolean }> } | null
 }
 
 export interface TemplateStage {
   stage_id: string
   stage_name: string
+  business_stage_key: string | null
   order_index: number
   template_id: string
   primary_skill_id: string | null
@@ -195,6 +198,21 @@ export async function updateTemplateStage(
 ): Promise<TemplateStage> {
   const res = await api.put<TemplateStage>(
     `/v1/templates/${level}/stages/${stageId}`,
+    payload,
+  )
+  return res.data
+}
+
+export interface TemplateExecutionStrategyUpdatePayload {
+  default_execution_strategy: string
+}
+
+export async function updateTemplateExecutionStrategy(
+  level: string,
+  payload: TemplateExecutionStrategyUpdatePayload,
+): Promise<Template> {
+  const res = await api.put<Template>(
+    `/v1/templates/${level}/execution-strategy`,
     payload,
   )
   return res.data

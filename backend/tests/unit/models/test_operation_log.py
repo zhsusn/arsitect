@@ -16,7 +16,9 @@ class TestOperationLog:
     @pytest.mark.asyncio
     async def test_create_operation_log(self, db_session) -> None:
         """Should persist operation log with all fields."""
-        app = Application(application_id="app-log-1", application_name="LogApp", local_path="/tmp/log")
+        app = Application(
+            application_id="app-log-1", application_name="LogApp", local_path="/tmp/log"
+        )
         db_session.add(app)
         await db_session.flush()
         proj = Project(

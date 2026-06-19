@@ -317,13 +317,15 @@ class StateMachineManager:
             "STOPPED": SkillState.SKIPPED.value,
             "UNKNOWN": None,
         }
-        return reverse_map.get(status, status.lower() if status else None)
+        if status is None:
+            return None
+        return reverse_map.get(status, status.lower())
 
     async def _publish_transition(self, transition: StateTransition) -> None:
         """Publish a transition event to the event bus."""
         from app.common.event_bus import DomainEvent
 
-        if hasattr(self.event_bus, "publish"):
+        if self.event_bus is not None:
             self.event_bus.publish(
                 DomainEvent(
                     event_type=f"{transition.entity_type}.state_changed",

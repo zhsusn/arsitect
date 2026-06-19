@@ -69,9 +69,7 @@ class CLIAdapter:
         """Execute skill and return result."""
         raise NotImplementedError
 
-    def build_command(
-        self, skill_path: str, inputs: dict[str, str]
-    ) -> list[str]:
+    def build_command(self, skill_path: str, inputs: dict[str, str]) -> list[str]:
         """Build command line arguments."""
         raise NotImplementedError
 
@@ -112,17 +110,13 @@ class KimiCLIAdapter(CLIAdapter):
 
         start_time = time.time()
         try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=timeout
-            )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
             duration_ms = int((time.time() - start_time) * 1000)
 
             return ExecutionResult(
                 skill_id=skill_id,
                 status=(
-                    ExecutionStatus.SUCCESS
-                    if process.returncode == 0
-                    else ExecutionStatus.ERROR
+                    ExecutionStatus.SUCCESS if process.returncode == 0 else ExecutionStatus.ERROR
                 ),
                 exit_code=process.returncode or 0,
                 stdout=stdout.decode("utf-8", errors="replace"),
@@ -191,9 +185,7 @@ class HTTPAdapter(CLIAdapter):
                 return ExecutionResult(
                     skill_id=skill_id,
                     status=(
-                        ExecutionStatus.SUCCESS
-                        if resp.status_code < 500
-                        else ExecutionStatus.ERROR
+                        ExecutionStatus.SUCCESS if resp.status_code < 500 else ExecutionStatus.ERROR
                     ),
                     exit_code=resp.status_code,
                     stdout=resp.text,
@@ -282,8 +274,7 @@ class PocketFlowEngine:
             full_path = artifacts_dir / input_path
             if not full_path.exists():
                 raise FileNotFoundError(
-                    f"Input artifact not found: {input_path} "
-                    f"(project={self.ctx.project_id})"
+                    f"Input artifact not found: {input_path} (project={self.ctx.project_id})"
                 )
             content = full_path.read_text("utf-8")
             input_hashes[input_path] = hashlib.sha256(content.encode()).hexdigest()
@@ -298,9 +289,7 @@ class PocketFlowEngine:
     # ============================================================
     # EXEC phase
     # ============================================================
-    async def _exec_phase(
-        self, skill: SkillConfig, prep_result: dict[str, Any]
-    ) -> ExecutionResult:
+    async def _exec_phase(self, skill: SkillConfig, prep_result: dict[str, Any]) -> ExecutionResult:
         """Execute via CLI adapter.
 
         1. Build command.

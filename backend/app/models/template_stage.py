@@ -15,6 +15,9 @@ class TemplateStage(Base):
 
     stage_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     stage_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    business_stage_key: Mapped[str] = mapped_column(
+        String(32), nullable=False, default=""
+    )
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
     template_id: Mapped[str] = mapped_column(
         String(16),
@@ -32,6 +35,8 @@ class TemplateStage(Base):
         String(16),
         default="Standard",
     )
+    is_gate_required: Mapped[bool] = mapped_column(Boolean, default=True)
+    auto_advance: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
         CheckConstraint(

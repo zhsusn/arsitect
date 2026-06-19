@@ -63,9 +63,7 @@ class FileBackupService:
         try:
             absolute.relative_to(self._project_root)
         except ValueError as exc:
-            raise ValueError(
-                f"Target path escapes project root: {target_path}"
-            ) from exc
+            raise ValueError(f"Target path escapes project root: {target_path}") from exc
         return absolute
 
     def backup(
@@ -88,7 +86,7 @@ class FileBackupService:
         try:
             rel = target_path.relative_to(self._project_root)
         except ValueError:
-            rel = target_path.name
+            rel = Path(target_path.name)
 
         backup_path = backup_dir / rel
         backup_path.parent.mkdir(parents=True, exist_ok=True)

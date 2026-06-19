@@ -20,10 +20,6 @@ class Annotation(Base):
     )
     author: Mapped[str] = mapped_column(String(64), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    annotation_type: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="comment"
-    )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="REVIEW_PENDING"
-    )
+    annotation_type: Mapped[str] = mapped_column(String(16), nullable=False, default="comment")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="REVIEW_PENDING")
     viewed_at: Mapped[str | None] = mapped_column(String(64), nullable=True)

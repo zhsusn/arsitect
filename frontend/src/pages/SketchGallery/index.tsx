@@ -20,8 +20,12 @@ import {
 import {
   listSketchPages,
   deleteSketchPage,
+  updateSketchPage,
   type SketchPage,
 } from '../../services/sketchPage'
+import {
+  createProjectReview,
+} from '../../services/projectReview'
 import { SketchViewer } from '../../components/SketchViewer'
 import SketchReviewPanel from './components/SketchReviewPanel'
 
@@ -612,15 +616,44 @@ export default function SketchGallery() {
           <div className="h-full">
             <SketchReviewPanel
               pages={pages}
-              onApprove={(pageId) => {
-                setPages((prev) => prev.map((p) => (p.page_id === pageId ? { ...p, status: 'APPROVED' } : p)))
+              onApprove={async (pageId) => {
+                try {
+                  await updateSketchPage(pageId, { status: 'APPROVED' })
+                  setPages((prev) => prev.map((p) => (p.page_id === pageId ? { ...p, status: 'APPROVED' } : p)))
+                } catch (err) {
+                  setError(`审批通过失败: ${err instanceof Error ? err.message : '未知错误'}`)
+                }
               }}
-              onReject={(pageId, reason) => {
-                setPages((prev) => prev.map((p) => (p.page_id === pageId ? { ...p, status: 'REJECTED' } : p)))
-                console.log('驳回原因:', reason)
+              onReject={async (pageId, reason) => {
+                try {
+                  await updateSketchPage(pageId, { status: 'REJECTED' })
+                  if (projectId) {
+                    await createProjectReview(projectId, {
+                      review_type: 'code_review',
+                      item_id: pageId,
+                      item_type: 'sketch_page',
+                      status: 'rejected',
+                      notes: reason,
+                    })
+                  }
+                  setPages((prev) => prev.map((p) => (p.page_id === pageId ? { ...p, status: 'REJECTED' } : p)))
+                } catch (err) {
+                  setError(`驳回失败: ${err instanceof Error ? err.message : '未知错误'}`)
+                }
               }}
-              onAddAnnotation={(pageId, content) => {
-                console.log('批注', pageId, content)
+              onAddAnnotation={async (pageId, content) => {
+                if (!projectId) return
+                try {
+                  await createProjectReview(projectId, {
+                    review_type: 'code_review',
+                    item_id: pageId,
+                    item_type: 'sketch_annotation',
+                    status: 'pending',
+                    notes: content,
+                  })
+                } catch (err) {
+                  setError(`保存批注失败: ${err instanceof Error ? err.message : '未知错误'}`)
+                }
               }}
             />
           </div>

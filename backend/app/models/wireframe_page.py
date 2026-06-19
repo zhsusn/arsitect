@@ -34,30 +34,20 @@ class WireframePage(Base):
         String(128), nullable=True, comment="领域实体名称"
     )
     page_name: Mapped[str] = mapped_column(String(128), nullable=False)
-    page_type: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="UNKNOWN"
-    )
+    page_type: Mapped[str] = mapped_column(String(16), nullable=False, default="UNKNOWN")
     confidence: Mapped[int | None] = mapped_column(
         Integer, nullable=True, comment="DomainMapper 置信度 0-100"
     )
-    mapping_source: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="auto"
-    )
+    mapping_source: Mapped[str] = mapped_column(String(16), nullable=False, default="auto")
     svg_content: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="生成的 SVG 线框图内容"
     )
     layout_json: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="布局坐标与元素占位 JSON"
     )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="PENDING_MAPPING"
-    )
-    sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING_MAPPING")
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

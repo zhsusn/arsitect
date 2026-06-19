@@ -32,12 +32,19 @@ class PostStage:
 
     MAX_SIZE_MB = 10
 
+    VALID_SUFFIXES = {".md", ".yaml", ".yml", ".json", ".txt"}
+
     async def finalize(
         self,
         expected_artifacts: list[str],
         work_dir: str,
     ) -> PostResult:
         """Finalize execution by validating artifacts.
+
+        When ``expected_artifacts`` is empty, the work directory is scanned
+        recursively for produced artifact files. This allows real CLI skills
+        that write files directly into the workspace to be tracked without
+        pre-declaring every output path.
 
         Args:
             expected_artifacts: List of expected artifact paths.
@@ -48,9 +55,12 @@ class PostStage:
         """
         artifacts: list[str] = []
         report = ArtifactReport()
+        work_path = Path(work_dir)
 
-        for artifact_path in expected_artifacts:
-            full_path = Path(work_dir) / artifact_path
+        candidate_paths = expected_artifacts if expected_artifacts else self._scan_work_dir(work_path)
+
+        for artifact_path in candidate_paths:
+            full_path = work_path / artifact_path
             if not full_path.exists():
                 report.missing_count += 1
                 report.warnings.append(
@@ -73,7 +83,7 @@ class PostStage:
                 )
 
             suffix = full_path.suffix.lower()
-            if suffix not in {".md", ".yaml", ".yml", ".json"}:
+            if suffix not in self.VALID_SUFFIXES:
                 report.invalid_count += 1
                 report.warnings.append(
                     {
@@ -93,3 +103,14 @@ class PostStage:
             report=report,
             error=None if success else f"{report.missing_count} artifacts missing",
         )
+
+    def _scan_work_dir(self, work_path: Path) -> list[str]:
+        """Recursively scan the work directory for candidate artifact files."""
+        if not work_path.exists():
+            return []
+        files = []
+        for full_path in work_path.rglob("*"):
+            if full_path.is_file() and full_path.suffix.lower() in self.VALID_SUFFIXES:
+                rel_path = full_path.relative_to(work_path).as_posix()
+                files.append(rel_path)
+        return sorted(files)

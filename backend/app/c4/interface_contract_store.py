@@ -97,9 +97,7 @@ class InterfaceContractStore:
             select(ContractModel)
             .where(ContractModel.project_id == project_id)
             .where(
-                ContractModel.status.in_(
-                    [ContractStatus.DRAFT.value, ContractStatus.FROZEN.value]
-                )
+                ContractModel.status.in_([ContractStatus.DRAFT.value, ContractStatus.FROZEN.value])
             )
         )
         return [self._to_dto(r) for r in result.scalars().all()]
@@ -172,9 +170,7 @@ class InterfaceContractStore:
                 resp_fields = ", ".join(fields.keys())
                 resp_fields = f" → {resp_fields}"
 
-            lines.append(
-                f"- {c.method} {c.endpoint_path}{req_fields}{resp_fields}"
-            )
+            lines.append(f"- {c.method} {c.endpoint_path}{req_fields}{resp_fields}")
 
         return "\n".join(lines)
 

@@ -330,6 +330,13 @@ pytest
 # 配置见 pyproject.toml [tool.pytest.ini_options]
 ```
 
+前端单元测试使用 Vitest + React Testing Library：
+```bash
+cd frontend
+npm run test        # 单次运行
+npm run test:watch  # 监听模式
+```
+
 ### 5.2 前端构建与运行
 
 **安装依赖**（在 `frontend/` 目录下）：
@@ -358,6 +365,7 @@ npm run build
 cd frontend
 npm run lint       # ESLint 检查 ts/tsx
 npm run typecheck  # TypeScript 无 emit 编译检查
+npm run test       # Vitest 单元测试
 ```
 
 ### 5.3 Skill 框架校验

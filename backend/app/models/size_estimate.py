@@ -22,30 +22,16 @@ class SizeEstimate(Base):
     project_id: Mapped[str] = mapped_column(
         ForeignKey("projects.project_id", ondelete="CASCADE"), nullable=False
     )
-    module_count: Mapped[int] = mapped_column(
-        Integer, nullable=False
-    )
-    interface_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    page_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    tech_complexity: Mapped[str] = mapped_column(
-        String(16), nullable=False
-    )
-    risk_level: Mapped[str] = mapped_column(
-        String(16), nullable=False
-    )
+    module_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    interface_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    page_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    tech_complexity: Mapped[str] = mapped_column(String(16), nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(16), nullable=False)
     optimistic_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     expected_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     conservative_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    complexity_level: Mapped[str | None] = mapped_column(
-        String(16), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    complexity_level: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
 
     __table_args__ = (
         CheckConstraint(

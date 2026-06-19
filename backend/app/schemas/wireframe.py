@@ -23,9 +23,7 @@ class WireframeUpdateDTO(BaseModel):
     pipeline_stage: str | None = Field(default=None)
     page_count: int | None = Field(default=None, ge=0)
     avg_confidence: int | None = Field(default=None, ge=0, le=100)
-    status: str | None = Field(
-        default=None, pattern=r"^(DRAFT|ACTIVE|ARCHIVED)$"
-    )
+    status: str | None = Field(default=None, pattern=r"^(DRAFT|ACTIVE|ARCHIVED)$")
 
 
 class WireframeResponseDTO(BaseModel):

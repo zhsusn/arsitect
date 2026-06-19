@@ -22,17 +22,17 @@ SAMPLE_DR001 = (
     "| 页面名称 | URL/入口 | 职责 |\n"
     "|:---------|:---------|:-----|\n"
     "| 项目工作台主页 | `/projects` | 项目列表、健康度卡片 |\n"
-    "| 新建项目弹窗 | 工作台主页 → 点击\"+ 新建项目\" | 分步向导 |\n"
+    '| 新建项目弹窗 | 工作台主页 → 点击"+ 新建项目" | 分步向导 |\n'
     "| 项目详情侧滑面板 | 工作台主页 → 点击项目卡片 | 展示项目元数据 |\n\n"
     "### 2.4 页面跳转图\n\n"
     "```mermaid\n"
     "flowchart LR\n"
-    "    subgraph SDLC_Visualizer[\"项目工作台域\"]\n"
-    "        Pg_Dashboard[\"项目工作台主页<br>/app/{appId}/dashboard\"]\n"
-    "        Pg_NewProjectModal[\"新建项目弹窗\"]\n"
-    "        Pg_ProjectDetailDrawer[\"项目详情侧滑面板\"]\n"
+    '    subgraph SDLC_Visualizer["项目工作台域"]\n'
+    '        Pg_Dashboard["项目工作台主页<br>/app/{appId}/dashboard"]\n'
+    '        Pg_NewProjectModal["新建项目弹窗"]\n'
+    '        Pg_ProjectDetailDrawer["项目详情侧滑面板"]\n'
     "    end\n\n"
-    "    Pg_Dashboard -->|点击\"新建项目\"| Pg_NewProjectModal\n"
+    '    Pg_Dashboard -->|点击"新建项目"| Pg_NewProjectModal\n'
     "    Pg_Dashboard -->|点击项目卡片| Pg_ProjectDetailDrawer\n"
     "    Pg_NewProjectModal -.->|点击关闭/取消| Pg_Dashboard\n"
     "```\n\n"
@@ -87,9 +87,7 @@ class TestParseMermaidFlowchart:
 
     def test_basic_parsing(self) -> None:
         mermaid = (
-            'flowchart LR\n'
-            '    Pg_A["主页"] -->|点击| Pg_B["详情"]\n'
-            '    Pg_B -.->|返回| Pg_A\n'
+            'flowchart LR\n    Pg_A["主页"] -->|点击| Pg_B["详情"]\n    Pg_B -.->|返回| Pg_A\n'
         )
         nodes, edges = _parse_mermaid_flowchart(mermaid)
         assert "主页" in nodes

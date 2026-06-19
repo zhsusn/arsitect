@@ -28,9 +28,11 @@ from app.schemas.skill_execution import (
     LogQueryResultDTO,
     SkillExecutionResponseDTO,
 )
+from app.schemas.stage_execution_status import StageExecutionStatusDTO
 from app.services.annotation_service import AnnotationService
 from app.services.artifact_service import ArtifactService
 from app.services.stage_detail_service import StageDetailService
+from app.services.stage_execution_status_service import StageExecutionStatusService
 
 router = APIRouter(prefix="/stages", tags=["stages"])
 
@@ -112,9 +114,7 @@ async def get_stage_skills(
 
     # Also include skills from execution history
     exec_stmt = (
-        select(SkillExecution.skill_id)
-        .where(SkillExecution.stage_id == stage_id)
-        .distinct()
+        select(SkillExecution.skill_id).where(SkillExecution.stage_id == stage_id).distinct()
     )
     exec_result = await db.execute(exec_stmt)
     for row in exec_result.scalars().all():
@@ -145,6 +145,19 @@ async def get_stage_executions(
     repo = SkillExecutionRepository(db)
     executions = await repo.list_by_stage(stage_id)
     return [SkillExecutionResponseDTO.model_validate(e) for e in executions]
+
+
+@router.get("/{stage_id}/execution-status", response_model=StageExecutionStatusDTO)
+async def get_stage_execution_status(
+    stage_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> StageExecutionStatusDTO:
+    """Get aggregated real-time execution status for a stage."""
+    svc = StageExecutionStatusService(db)
+    status = await svc.get_status(stage_id)
+    if status is None:
+        raise NotFoundError(detail=f"Stage '{stage_id}' not found")
+    return status
 
 
 # ------------------------------------------------------------------
@@ -186,10 +199,7 @@ async def get_stage_logs(
         raise NotFoundError(detail=f"Stage '{stage_id}' not found")
 
     # Find all execution IDs for this stage
-    exec_stmt = (
-        select(SkillExecution.execution_id)
-        .where(SkillExecution.stage_id == stage_id)
-    )
+    exec_stmt = select(SkillExecution.execution_id).where(SkillExecution.stage_id == stage_id)
     exec_result = await db.execute(exec_stmt)
     execution_ids = list(exec_result.scalars().all())
 

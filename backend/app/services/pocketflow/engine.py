@@ -6,6 +6,8 @@ import time
 import uuid
 from dataclasses import dataclass, field
 
+from app.core.config import settings
+from app.services.pocketflow.cli_adapter import CLIAdapter, KimiCLIAdapter
 from app.services.pocketflow.exec_stage import ExecStage
 from app.services.pocketflow.lock_manager import LockManager
 from app.services.pocketflow.log_collector import LogCollector, LogLevel
@@ -32,10 +34,18 @@ class PocketFlowResult:
     final_status: str
     phase_results: dict[str, PhaseResult] = field(default_factory=dict)
     missing_artifacts: list[str] = field(default_factory=list)
+    stdout: str = ""
+    stderr: str = ""
+    exit_code: int = 0
 
 
 class PocketFlowEngine:
-    """Orchestrate Prep → Exec → Post pipeline."""
+    """Orchestrate Prep → Exec → Post pipeline.
+
+    By default uses the real Kimi CLI adapter so that stages invoke actual
+    skills. Inject a :class:`MockCLIAdapter` or custom :class:`ExecStage` for
+    tests.
+    """
 
     def __init__(
         self,
@@ -43,10 +53,24 @@ class PocketFlowEngine:
         exec_: ExecStage | None = None,
         post: PostStage | None = None,
         lock_manager: LockManager | None = None,
+        cli_adapter: CLIAdapter | None = None,
     ) -> None:
-        """Initialize with stage services."""
+        """Initialize with stage services.
+
+        Args:
+            prep: Prep stage service.
+            exec_: Exec stage service. If omitted, an ExecStage backed by the
+                Kimi CLI adapter is created.
+            post: Post stage service.
+            lock_manager: Project-level async lock manager.
+            cli_adapter: Optional CLI adapter used when ``exec_`` is not provided.
+        """
         self._prep = prep or PrepStage()
-        self._exec = exec_ or ExecStage()
+        if exec_ is not None:
+            self._exec = exec_
+        else:
+            adapter = cli_adapter or KimiCLIAdapter(settings.KIMI_CLI_PATH)
+            self._exec = ExecStage(cli_adapter=adapter)
         self._post = post or PostStage()
         self._lock_manager = lock_manager or LockManager()
 
@@ -65,7 +89,7 @@ class PocketFlowEngine:
             project_id: Project ID.
             work_dir: Working directory.
             expected_artifacts: Expected output artifacts.
-            endpoint: Mock endpoint for exec stage.
+            endpoint: Legacy mock endpoint used only when no CLI adapter is set.
 
         Returns:
             PocketFlowResult with all phase results.
@@ -106,10 +130,16 @@ class PocketFlowEngine:
             logs.log("exec", LogLevel.INFO, "Starting exec stage")
             exec_start = time.time()
             exec_result = await self._exec.execute(
-                endpoint,
+                # When a CLI adapter is configured, ``endpoint`` is ignored and
+                # the actual skill_path is used for subprocess invocation.
+                skill_path if self._exec._cli_adapter is not None else endpoint,
                 {"skill_path": skill_path, "project_id": project_id},
             )
             exec_duration = int((time.time() - exec_start) * 1000)
+
+            result.stdout = exec_result.output
+            result.stderr = exec_result.stderr
+            result.exit_code = getattr(exec_result, "exit_code", 0)
 
             if not exec_result.success:
                 sm.transition(ExecutionStatus.EXEC_FAILED)

@@ -55,7 +55,9 @@ class TestSync8Wireframe:
             return proj
 
     @pytest.mark.asyncio
-    async def test_wireframe_full_crud_flow(self, seeded_project: Project, client: TestClient) -> None:
+    async def test_wireframe_full_crud_flow(
+        self, seeded_project: Project, client: TestClient
+    ) -> None:
         """TEST-1514: Wireframe 完整 CRUD 端到端链路.
 
         Covers US-016: 线框图查看与管理.
@@ -113,7 +115,9 @@ class TestSync8Wireframe:
         assert res.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_wireframe_create_invalid_status(self, seeded_project: Project, client: TestClient) -> None:
+    async def test_wireframe_create_invalid_status(
+        self, seeded_project: Project, client: TestClient
+    ) -> None:
         """TEST-1515: 非法 status 返回 400.
 
         Covers AC-V-001: 字段校验.

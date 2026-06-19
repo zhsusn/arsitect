@@ -115,9 +115,7 @@ class TestDAGEdgeDTO:
 
     def test_defaults(self) -> None:
         """TEST-1408: confidence defaults to 100, is_auto_parsed to False."""
-        dto = DAGEdgeDTO(
-            edge_id="e1", source_node_id="n1", target_node_id="n2"
-        )
+        dto = DAGEdgeDTO(edge_id="e1", source_node_id="n1", target_node_id="n2")
         assert dto.confidence == 100
         assert dto.is_auto_parsed is False
 

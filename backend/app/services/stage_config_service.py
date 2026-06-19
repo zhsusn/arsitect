@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import NotFoundError, ValidationError
 from app.governance.template_engine import Deviation, TemplateEngine
 from app.infrastructure.database.repositories.template_repo import TemplateRepository
 from app.models.template import Template
@@ -25,6 +25,23 @@ class StageConfigService:
     async def list_templates(self) -> list[Template]:
         """List all predefined templates."""
         return await self._repo.list_templates()
+
+    async def update_execution_strategy(
+        self, template_id: str, execution_strategy: str
+    ) -> Template:
+        """Update a template's default execution strategy."""
+        valid_strategies = {"full_auto", "semi_auto", "full_manual"}
+        if execution_strategy not in valid_strategies:
+            raise ValidationError(
+                detail=f"Invalid execution_strategy '{execution_strategy}'"
+            )
+        tpl = await self._repo.get_template(template_id)
+        if tpl is None:
+            raise NotFoundError(detail=f"Template '{template_id}' not found")
+        tpl.default_execution_strategy = execution_strategy
+        await self._session.commit()
+        await self._session.refresh(tpl)
+        return tpl
 
     async def get_template_detail(self, template_id: str) -> dict[str, Any]:
         """Get a template with its ordered stage sequence."""
@@ -49,12 +66,17 @@ class StageConfigService:
         return {
             "route": template.route,
             "description": template.description,
+            "execution_strategy": template.execution_strategy,
+            "merge_policy": template.get_merge_policy(),
             "stages": [
                 {
-                    "name": s.name,
-                    "required_skills": s.required_skills,
-                    "optional_skills": s.optional_skills,
+                    "business_stage_key": s.business_stage_key,
+                    "stage_name": s.stage_name,
+                    "primary_skill_id": s.primary_skill_id,
+                    "auxiliary_skill_ids": s.auxiliary_skill_ids,
                     "order": s.order,
+                    "is_gate_required": s.is_gate_required,
+                    "auto_advance": s.auto_advance,
                 }
                 for s in template.stages
             ],
@@ -68,9 +90,7 @@ class StageConfigService:
     ) -> list[Deviation]:
         """Compute stage deviations against the default template."""
         deviations: list[Deviation] = []
-        self._engine.record_deviation(
-            deviations, project_id, template_route, actual_stages
-        )
+        self._engine.record_deviation(deviations, project_id, template_route, actual_stages)
         return deviations
 
     async def update_stage(

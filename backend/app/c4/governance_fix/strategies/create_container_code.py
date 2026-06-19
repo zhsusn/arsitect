@@ -48,18 +48,18 @@ class CreateContainerCodeStrategy(FixStrategy):
             rel = f"frontend/src/containers/{container_id}/index.tsx"
             content = f"""import React from 'react'
 
-export interface {container_id.title().replace('-', '')}Props {{
+export interface {container_id.title().replace("-", "")}Props {{
   // TODO: define props
 }}
 
 /**
  * TODO: implement {container_id} container
  */
-export const {container_id.title().replace('-', '')}: React.FC<{container_id.title().replace('-', '')}Props> = () => {{
+export const {container_id.title().replace("-", "")}: React.FC<{container_id.title().replace("-", "")}Props> = () => {{
   return <div>{container_id}</div>
 }}
 
-export default {container_id.title().replace('-', '')}
+export default {container_id.title().replace("-", "")}
 """
         else:
             rel = f"backend/app/{cid}/__init__.py"

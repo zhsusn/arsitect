@@ -10,6 +10,7 @@ import ProjectDetailDrawer from './components/ProjectDetailDrawer'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog'
 import SizeEstimateWizard from './components/SizeEstimateWizard'
 import ScaleMismatchBanner from './components/ScaleMismatchBanner'
+import StageAdjustmentModal from './components/StageAdjustmentModal'
 
 export default function ProjectDashboard() {
   const {
@@ -41,6 +42,7 @@ export default function ProjectDashboard() {
   const [deleteProject, setDeleteProject] = useState<Project | null>(null)
   const [sizeEstimateProject, setSizeEstimateProject] = useState<Project | null>(null)
   const [dismissMismatchId, setDismissMismatchId] = useState<string | null>(null)
+  const [adjustProject, setAdjustProject] = useState<Project | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -249,6 +251,10 @@ export default function ProjectDashboard() {
               const p = filtered.find((x) => x.project_id === id)
               if (p) setSizeEstimateProject(p)
             }}
+            onAdjustStage={(id) => {
+              const p = filtered.find((x) => x.project_id === id)
+              if (p) setAdjustProject(p)
+            }}
           />
         ))
       ) : (
@@ -295,6 +301,18 @@ export default function ProjectDashboard() {
           projectId={sizeEstimateProject.project_id}
           onClose={() => setSizeEstimateProject(null)}
           onApplied={() => {
+            if (selectedAppId) fetchProjects(selectedAppId)
+          }}
+        />
+      )}
+
+      {/* Stage Adjustment Modal */}
+      {adjustProject && (
+        <StageAdjustmentModal
+          open
+          projectId={adjustProject.project_id}
+          onClose={() => setAdjustProject(null)}
+          onAction={() => {
             if (selectedAppId) fetchProjects(selectedAppId)
           }}
         />

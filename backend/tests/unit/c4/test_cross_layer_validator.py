@@ -21,9 +21,7 @@ class TestCrossLayerValidator:
             "workspace": {
                 "model": {
                     "containers": [{"id": "WebApp"}],
-                    "components": [
-                        {"id": "Ctrl", "properties": {"container_id": "NonExistent"}}
-                    ],
+                    "components": [{"id": "Ctrl", "properties": {"container_id": "NonExistent"}}],
                 }
             }
         }
@@ -41,9 +39,7 @@ class TestCrossLayerValidator:
             "workspace": {
                 "model": {
                     "containers": [{"id": "WebApp"}],
-                    "components": [
-                        {"id": "Ctrl", "properties": {"container_id": "WebApp"}}
-                    ],
+                    "components": [{"id": "Ctrl", "properties": {"container_id": "WebApp"}}],
                 }
             }
         }
@@ -78,9 +74,7 @@ class TestCrossLayerValidator:
             "workspace": {
                 "model": {
                     "containers": [{"id": "API"}],
-                    "components": [
-                        {"id": "Ctrl", "properties": {"container_id": "Missing"}}
-                    ],
+                    "components": [{"id": "Ctrl", "properties": {"container_id": "Missing"}}],
                 }
             }
         }
@@ -98,9 +92,7 @@ class TestCrossLayerValidator:
             "workspace": {
                 "model": {
                     "containers": [{"id": "API"}],
-                    "components": [
-                        {"id": "Ctrl", "properties": {"container_id": "API"}}
-                    ],
+                    "components": [{"id": "Ctrl", "properties": {"container_id": "API"}}],
                 }
             }
         }
@@ -179,9 +171,7 @@ class TestCrossLayerValidator:
             "workspace": {
                 "model": {
                     "entities": [{"id": "User"}],
-                    "tables": [
-                        {"id": "users", "properties": {"mapped_entity": "User"}}
-                    ],
+                    "tables": [{"id": "users", "properties": {"mapped_entity": "User"}}],
                 }
             }
         }

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -48,9 +48,7 @@ class DocumentTemplateEngine:
         missing_fields: list[str] = []
 
         if doc_type not in self._templates:
-            return ValidationResult(
-                passed=False, errors=[f"未知的文档类型: {doc_type}"]
-            )
+            return ValidationResult(passed=False, errors=[f"未知的文档类型: {doc_type}"])
 
         template = self._templates[doc_type]
         frontmatter = self._extract_frontmatter(content)
@@ -74,8 +72,7 @@ class DocumentTemplateEngine:
             actual_level = c4_binding.get("level")
             if actual_level != expected_level:
                 errors.append(
-                    f"c4_binding.level 不匹配: 期望 {expected_level}, 实际 "
-                    f"{actual_level}"
+                    f"c4_binding.level 不匹配: 期望 {expected_level}, 实际 {actual_level}"
                 )
             for field in template.required_binding_fields:
                 if field not in c4_binding:
@@ -103,6 +100,6 @@ class DocumentTemplateEngine:
         if not match:
             return None
         try:
-            return yaml.safe_load(match.group(1))
+            return cast(dict[str, Any] | None, yaml.safe_load(match.group(1)))
         except yaml.YAMLError:
             return None

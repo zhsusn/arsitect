@@ -56,9 +56,11 @@ class CreateCodeSkeletonStrategy(FixStrategy):
     @staticmethod
     def _backend_skeleton(name: str) -> tuple[str, str]:
         """Return (relative_path, python_skeleton)."""
-        snake = "".join(
-            ["_" + c.lower() if c.isupper() else c for c in name]
-        ).lstrip("_").replace("__", "_")
+        snake = (
+            "".join(["_" + c.lower() if c.isupper() else c for c in name])
+            .lstrip("_")
+            .replace("__", "_")
+        )
         rel = f"backend/app/services/{snake}.py"
         content = f'"""{name} service skeleton."""\n\n\nclass {name}:\n    """TODO: implement {name}."""\n\n    def __init__(self) -> None:\n        pass\n\n    def process(self) -> None:\n        """TODO: add business logic."""\n        raise NotImplementedError\n'
         return rel, content

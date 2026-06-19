@@ -32,9 +32,7 @@ class PlanNodeRepository:
 
     async def list_by_plan(self, plan_id: str) -> list[PlanNode]:
         stmt = (
-            select(PlanNode)
-            .where(PlanNode.plan_id == plan_id)
-            .order_by(PlanNode.order_index.asc())
+            select(PlanNode).where(PlanNode.plan_id == plan_id).order_by(PlanNode.order_index.asc())
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

@@ -26,6 +26,9 @@ class NodeDataDTO(BaseModel):
     skill_type: str | None = None
     gate_type: str | None = None
     decision_status: str | None = None
+    merge_group_label: str | None = None
+    merged_stage_keys: list[str] | None = None
+    is_merged: bool = False
 
 
 class CanvasNodeDTO(BaseModel):

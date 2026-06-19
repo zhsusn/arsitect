@@ -136,18 +136,10 @@ class FragmentRegistry:
         """Return all PageSpecs from PRD fragment metadata."""
         fragments = await self.list_by_project(project_id, doc_type="PRD")
         pagespecs: list[dict[str, Any]] = []
-        import json
 
         for frag in fragments:
             if frag.metadata and "pagespecs" in frag.metadata:
                 pagespecs.extend(frag.metadata["pagespecs"])
-            elif frag.metadata_json:
-                try:
-                    meta = json.loads(frag.metadata_json)
-                    if "pagespecs" in meta:
-                        pagespecs.extend(meta["pagespecs"])
-                except json.JSONDecodeError:
-                    pass
         return pagespecs
 
     # ------------------------------------------------------------------

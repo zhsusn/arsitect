@@ -1,5 +1,7 @@
 """ORM models package."""
 
+from app.models.execution_issue import ExecutionIssue
+from app.models.execution_task import ExecutionTask
 from app.models.annotation import Annotation
 from app.models.application import Application
 from app.models.arch_validation_session import ArchValidationSession
@@ -17,13 +19,18 @@ from app.models.execution_plan import ExecutionPlan
 from app.models.fragment import Fragment
 from app.models.gate_decision import GateDecision
 from app.models.interface_contract import InterfaceContract
+from app.models.llm_policy import LlmPolicy
+from app.models.llm_policy_rule import LlmPolicyRule
+from app.models.llm_provider import LlmProvider
 from app.models.open_ui_page import OpenUIPage
 from app.models.open_ui_spec import OpenUISpec
 from app.models.operation_log import OperationLog
 from app.models.parallel_group import ParallelGroup
 from app.models.plan_node import PlanNode
+from app.models.policy_template import PolicyTemplate
 from app.models.project import Project
 from app.models.project_member import ProjectMember
+from app.models.project_path_config import ProjectPathConfig
 from app.models.project_stage import ProjectStage
 from app.models.rework_event import ReworkEvent
 from app.models.size_estimate import SizeEstimate
@@ -33,6 +40,8 @@ from app.models.skill import Skill
 from app.models.skill_changelog import SkillChangeLog
 from app.models.skill_dag import SkillDAGEdge, SkillDAGNode
 from app.models.skill_execution import SkillExecution
+from app.models.stage_rollback_log import StageRollbackLog
+from app.models.stage_skill_binding import StageSkillBinding
 from app.models.template import Template
 from app.models.template_deviation_log import TemplateDeviationLog
 from app.models.template_stage import TemplateStage
@@ -42,6 +51,8 @@ from app.models.wireframe_nav_link import WireframeNavLink
 from app.models.wireframe_page import WireframePage
 
 __all__ = [
+    "ExecutionIssue",
+    "ExecutionTask",
     "Annotation",
     "Application",
     "ArchIssue",
@@ -52,6 +63,10 @@ __all__ = [
     "CliMessage",
     "CliSession",
     "ConfigNode",
+    "LlmPolicy",
+    "LlmPolicyRule",
+    "LlmProvider",
+    "PolicyTemplate",
     "ArtifactFile",
     "ArtifactVersion",
     "BindingRecord",
@@ -69,8 +84,11 @@ __all__ = [
     "PlanNode",
     "ProjectMember",
     "Project",
+    "ProjectPathConfig",
     "ProjectStage",
     "ReworkEvent",
+    "StageRollbackLog",
+    "StageSkillBinding",
     "SizeEstimate",
     "Sketch",
     "SketchPage",

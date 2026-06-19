@@ -70,9 +70,7 @@ class TestSkillDAGModel:
             session.add(edge)
             await session.commit()
 
-            result = await session.execute(
-                select(SkillDAGEdge).where(SkillDAGEdge.edge_id == "e1")
-            )
+            result = await session.execute(select(SkillDAGEdge).where(SkillDAGEdge.edge_id == "e1"))
             fetched = result.scalar_one()
             assert fetched.confidence == 85
             assert fetched.is_auto_parsed is True
@@ -81,9 +79,7 @@ class TestSkillDAGModel:
     async def test_cascade_delete_skill(self, sample_skill: Skill) -> None:
         """Deleting a skill cascades to its DAG nodes."""
         async with AsyncSessionLocal() as session:
-            node = SkillDAGNode(
-                node_id="n-cascade", skill_id=sample_skill.skill_id
-            )
+            node = SkillDAGNode(node_id="n-cascade", skill_id=sample_skill.skill_id)
             session.add(node)
             await session.commit()
 

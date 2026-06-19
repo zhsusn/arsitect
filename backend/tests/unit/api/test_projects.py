@@ -9,6 +9,8 @@ from sqlalchemy import text
 from app.infrastructure.database.session import AsyncSessionLocal
 from app.models.application import Application
 from app.models.project import Project
+from app.models.project_stage import ProjectStage
+from app.models.stage_skill_binding import StageSkillBinding
 from main import app
 
 client = TestClient(app)
@@ -216,3 +218,78 @@ class TestProjectRouter:
         assert res.status_code == 200
         data = res.json()
         assert data["project_status"] == "Cancelled"
+
+    @pytest.fixture
+    async def seeded_project_with_stages(
+        self, seeded_app: Application
+    ) -> str:
+        """Seed a project with three stages and bindings."""
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("DELETE FROM stage_rollback_logs"))
+            await session.execute(text("DELETE FROM stage_skill_bindings"))
+            await session.execute(text("DELETE FROM project_stages"))
+            await session.execute(text("DELETE FROM project_path_config"))
+            await session.execute(text("DELETE FROM projects"))
+            await session.execute(text("DELETE FROM applications"))
+            await session.commit()
+
+            app = Application(
+                application_id="app-rollback-router",
+                application_name="Rollback Router App",
+                local_path="/tmp/rollback-router",
+            )
+            session.add(app)
+            await session.flush()
+
+            proj = Project(
+                project_id="proj-rollback-router",
+                project_name="Rollback Router Project",
+                application_id=app.application_id,
+                template_level="Standard",
+            )
+            session.add(proj)
+            await session.flush()
+
+            for idx, (ps_id, sk_id) in enumerate(
+                [("ps-rr-1", "skill-rr-1"), ("ps-rr-2", "skill-rr-2")],
+                start=1,
+            ):
+                stage = ProjectStage(
+                    project_stage_id=ps_id,
+                    project_id=proj.project_id,
+                    stage_id=f"ts-rr-{idx}",
+                    order_index=idx,
+                    status="DEFINED",
+                    primary_skill_id=sk_id,
+                    runtime_status="not_started",
+                    is_gate_required=False,
+                )
+                session.add(stage)
+                await session.flush()
+                session.add(
+                    StageSkillBinding(
+                        binding_id=f"b-rr-{idx}",
+                        project_stage_id=ps_id,
+                        skill_id=sk_id,
+                        role="primary",
+                        execution_order=0,
+                    )
+                )
+            await session.commit()
+            return proj.project_id
+
+    @pytest.mark.asyncio
+    async def test_rollback_project_stage_endpoint(
+        self, seeded_project_with_stages: str
+    ) -> None:
+        """POST rollback resets downstream stage and returns summary."""
+        res = client.post(
+            f"/api/v1/projects/{seeded_project_with_stages}/stages/ps-rr-2/rollback",
+            json={"target_stage_id": "ps-rr-1", "reason": "回退测试"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["project_id"] == seeded_project_with_stages
+        assert data["target_stage_id"] == "ps-rr-1"
+        assert "ps-rr-2" in data["reset_stage_ids"]
+        assert data["stale_artifact_ids"] == []

@@ -22,7 +22,11 @@ class TestCreateSizeEstimate:
     async def seeded_proj(self) -> Project:
         async with AsyncSessionLocal() as session:
             unique = str(uuid.uuid4())[:8]
-            app_obj = Application(application_id="app-cx-api-1", application_name=f"Test App CX1 {unique}", local_path="/tmp")
+            app_obj = Application(
+                application_id="app-cx-api-1",
+                application_name=f"Test App CX1 {unique}",
+                local_path="/tmp",
+            )
             session.add(app_obj)
             await session.flush()
             proj = Project(
@@ -87,7 +91,11 @@ class TestListSizeEstimates:
     async def seeded_proj2(self) -> Project:
         async with AsyncSessionLocal() as session:
             unique = str(uuid.uuid4())[:8]
-            app_obj = Application(application_id="app-cx-api-2", application_name=f"Test App CX2 {unique}", local_path="/tmp")
+            app_obj = Application(
+                application_id="app-cx-api-2",
+                application_name=f"Test App CX2 {unique}",
+                local_path="/tmp",
+            )
             session.add(app_obj)
             await session.flush()
             proj = Project(

@@ -79,13 +79,17 @@ class TestSkillRegistryService:
 
             nodes = [
                 SkillDAGNode(node_id="node-001", skill_id="skill-001", position_x=0, position_y=0),
-                SkillDAGNode(node_id="node-002", skill_id="skill-002", position_x=100, position_y=0),
+                SkillDAGNode(
+                    node_id="node-002", skill_id="skill-002", position_x=100, position_y=0
+                ),
             ]
             for n in nodes:
                 session.add(n)
             await session.flush()
             edges = [
-                SkillDAGEdge(edge_id="edge-001", source_node_id="node-001", target_node_id="node-002"),
+                SkillDAGEdge(
+                    edge_id="edge-001", source_node_id="node-001", target_node_id="node-002"
+                ),
             ]
             for e in edges:
                 session.add(e)
@@ -99,9 +103,24 @@ class TestSkillRegistryService:
             await session.commit()
 
             logs = [
-                SkillChangeLog(log_id="log-001", session_id="sess-1", operation_type="ADD_NODE", target_id="node-001"),
-                SkillChangeLog(log_id="log-002", session_id="sess-1", operation_type="ADD_EDGE", target_id="edge-001"),
-                SkillChangeLog(log_id="log-003", session_id="sess-2", operation_type="DELETE_NODE", target_id="node-002"),
+                SkillChangeLog(
+                    log_id="log-001",
+                    session_id="sess-1",
+                    operation_type="ADD_NODE",
+                    target_id="node-001",
+                ),
+                SkillChangeLog(
+                    log_id="log-002",
+                    session_id="sess-1",
+                    operation_type="ADD_EDGE",
+                    target_id="edge-001",
+                ),
+                SkillChangeLog(
+                    log_id="log-003",
+                    session_id="sess-2",
+                    operation_type="DELETE_NODE",
+                    target_id="node-002",
+                ),
             ]
             for log in logs:
                 session.add(log)

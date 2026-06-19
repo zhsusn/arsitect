@@ -62,8 +62,12 @@ class DeleteOrphanStrategy(FixStrategy):
                             ChangeSet(
                                 action="EDIT_DSL",
                                 target_path=f"dsl://{project_id}",
-                                before=yaml.dump(workspace_model, allow_unicode=True, sort_keys=False, width=120),
-                                after=yaml.dump(new_model, allow_unicode=True, sort_keys=False, width=120),
+                                before=yaml.dump(
+                                    workspace_model, allow_unicode=True, sort_keys=False, width=120
+                                ),
+                                after=yaml.dump(
+                                    new_model, allow_unicode=True, sort_keys=False, width=120
+                                ),
                                 rationale=f"C4 节点 '{node_id}' 在代码与 DSL 中均无关联，建议从 DSL 中移除",
                                 risk_level=RiskLevel.HIGH,
                                 auto_applicable=False,

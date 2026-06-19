@@ -33,9 +33,7 @@ async def execute_skill(
         adapter: "http" or "kimi".
         endpoint: HTTP endpoint when adapter is "http".
     """
-    cli_adapter = (
-        KimiCLIAdapter() if adapter == "kimi" else HTTPAdapter(endpoint=endpoint)
-    )
+    cli_adapter = KimiCLIAdapter() if adapter == "kimi" else HTTPAdapter(endpoint=endpoint)
 
     with ProjectContext(project_id) as ctx:
         engine = PocketFlowEngine(cli_adapter, ctx)
@@ -51,9 +49,7 @@ async def get_skill_logs(
 ) -> dict[str, list[str]]:
     """Get recent skill execution logs."""
     with ProjectContext(project_id) as ctx:
-        engine = PocketFlowEngine(
-            KimiCLIAdapter(), ctx, logs_dir=str(ctx.logs_dir)
-        )
+        engine = PocketFlowEngine(KimiCLIAdapter(), ctx, logs_dir=str(ctx.logs_dir))
         logs = await engine.get_logs(skill_id, limit=limit)
         return {"logs": logs}
 

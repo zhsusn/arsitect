@@ -25,9 +25,7 @@ class StructuredExtractor:
             r"^(#{1,6})\s+(.+?)\s*\{ #([a-zA-Z0-9_-]+)\}\s*$", re.MULTILINE
         ),
         "c4_tag": re.compile(r"@C4-([A-Za-z0-9-]+):([^\s\n,;]+)"),
-        "interface_def": re.compile(
-            r"@C4-Interface:(GET|POST|PUT|PATCH|DELETE)\s+(\S+)"
-        ),
+        "interface_def": re.compile(r"@C4-Interface:(GET|POST|PUT|PATCH|DELETE)\s+(\S+)"),
     }
 
     TAG_TO_ELEMENT: dict[str, str] = {
@@ -85,7 +83,7 @@ class StructuredExtractor:
                 C4Snippet(
                     element_type="binding_reference",
                     element_id=binding["system_id"],
-                    name=binding.get("system_name", binding["system_id"]),
+                    name=str(binding.get("system_name", binding["system_id"])),
                     properties=dict(binding),
                     source_location="frontmatter.c4_binding",
                 )
@@ -136,9 +134,7 @@ class StructuredExtractor:
             anchors[anchor_id] = title
         return anchors
 
-    def _extract_description(
-        self, content: str, position: int, max_chars: int = 200
-    ) -> str:
+    def _extract_description(self, content: str, position: int, max_chars: int = 200) -> str:
         after = content[position : position + max_chars]
         lines = [line.strip() for line in after.split("\n") if line.strip()]
         if len(lines) > 1:

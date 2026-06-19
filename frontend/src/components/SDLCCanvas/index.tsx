@@ -14,6 +14,8 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import { useCanvasStore } from '../../stores/canvasStore'
+import { useProjectSSE } from '../../services/sse'
+import type { CanvasState } from '../../services/canvas'
 import StageNode from './components/StageNode'
 import GateNode from './components/GateNode'
 import SkillNode from '../../pages/Canvas/components/SkillNode'
@@ -30,24 +32,18 @@ interface SDLCCanvasProps {
   onNodeContextMenu?: (event: React.MouseEvent, node: Node) => void
   onNodeClick?: (event: React.MouseEvent, node: Node) => void
   onStageExecute?: (stageId: string, stageLabel: string) => void
-  pollInterval?: number
 }
 
-export default function SDLCCanvas({ projectId, onNodeContextMenu, onNodeClick, onStageExecute, pollInterval = 3000 }: SDLCCanvasProps) {
+export default function SDLCCanvas({ projectId, onNodeContextMenu, onNodeClick, onStageExecute }: SDLCCanvasProps) {
   const { loadCanvas, saveCanvas, loading, saving } = useCanvasStore()
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [viewport, setViewport] = useState<RFViewport>({ x: 0, y: 0, zoom: 1 })
   const flowRef = useRef<ReactFlowInstance<Node, Edge> | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const serverDataRef = useRef<Map<string, Record<string, unknown>>>(new Map())
 
-  // Load canvas state on mount
-  useEffect(() => {
-    let mounted = true
-    loadCanvas(projectId).then((data) => {
-      if (!mounted || !data) return
-
+  const applyCanvasData = useCallback(
+    (data: CanvasState) => {
       // Build gate status map: stageId -> gate decisionStatus
       const gateMap = new Map<string, string>()
       for (const edge of data.edges || []) {
@@ -68,6 +64,10 @@ export default function SDLCCanvas({ projectId, onNodeContextMenu, onNodeClick, 
         data: {
           ...(n.data || {}),
           gateStatus: n.type === 'stage' ? gateMap.get(n.id) : (n.data?.gateStatus as string),
+          onExecute:
+            n.type === 'stage' && onStageExecute
+              ? () => onStageExecute(n.id, (n.data?.label as string) || n.id)
+              : undefined,
         },
         style: n.style,
         width: n.width,
@@ -82,7 +82,6 @@ export default function SDLCCanvas({ projectId, onNodeContextMenu, onNodeClick, 
         style: e.style,
         label: e.label,
       }))
-      serverDataRef.current = new Map((data.nodes || []).map((n) => [n.id, { ...(n.data || {}) }]))
       setNodes(ns)
       setEdges(es)
       if (data.viewport) {
@@ -93,62 +92,28 @@ export default function SDLCCanvas({ projectId, onNodeContextMenu, onNodeClick, 
         })
         flowRef.current?.setViewport(data.viewport)
       }
+    },
+    [onStageExecute, setNodes, setEdges],
+  )
+
+  // Load canvas state on mount
+  useEffect(() => {
+    let mounted = true
+    loadCanvas(projectId).then((data) => {
+      if (!mounted || !data) return
+      applyCanvasData(data)
     })
     return () => {
       mounted = false
     }
-  }, [projectId, loadCanvas, setNodes, setEdges])
+  }, [projectId, loadCanvas, applyCanvasData])
 
-  // Inject onStageExecute into stage nodes
-  useEffect(() => {
-    if (!onStageExecute) return
-    setNodes((prev) =>
-      prev.map((n) => {
-        if (n.type !== 'stage') return n
-        return {
-          ...n,
-          data: {
-            ...n.data,
-            onExecute: () => onStageExecute(n.id, (n.data?.label as string) || n.id),
-          },
-        }
-      }),
-    )
-  }, [onStageExecute, setNodes])
-
-  // Poll canvas state for real-time status updates
-  useEffect(() => {
-    if (!pollInterval || !projectId) return
-    const timer = setInterval(() => {
-      loadCanvas(projectId).then((data) => {
-        if (!data) return
-        const newMap = new Map((data.nodes || []).map((n) => [n.id, { ...(n.data || {}) }]))
-        setNodes((prev) =>
-          prev.map((n) => {
-            const newData = newMap.get(n.id)
-            const oldData = serverDataRef.current.get(n.id)
-            if (
-              newData &&
-              (newData.status !== oldData?.status || newData.progress !== oldData?.progress || newData.gateStatus !== oldData?.gateStatus)
-            ) {
-              serverDataRef.current.set(n.id, newData)
-              return {
-                ...n,
-                data: {
-                  ...n.data,
-                  status: newData.status,
-                  progress: newData.progress,
-                  gateStatus: newData.gateStatus,
-                },
-              }
-            }
-            return n
-          }),
-        )
-      })
-    }, pollInterval)
-    return () => clearInterval(timer)
-  }, [projectId, loadCanvas, pollInterval, setNodes])
+  // Real-time canvas updates via SSE
+  useProjectSSE(projectId, {
+    'stage.status_changed': () => loadCanvas(projectId).then((data) => data && applyCanvasData(data)),
+    'stage.rollback_complete': () => loadCanvas(projectId).then((data) => data && applyCanvasData(data)),
+    'skill.execution_updated': () => loadCanvas(projectId).then((data) => data && applyCanvasData(data)),
+  })
 
   // Debounced save (3 seconds)
   const triggerSave = useCallback(() => {

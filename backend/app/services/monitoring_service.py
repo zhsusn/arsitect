@@ -41,7 +41,9 @@ class MonitoringService:
         active_projects = active_projects_result.scalar() or 0
 
         risk_projects_result = await self._session.execute(
-            select(func.count()).select_from(Project).where(Project.risk_level.in_(["Medium", "High"]))
+            select(func.count())
+            .select_from(Project)
+            .where(Project.risk_level.in_(["Medium", "High"]))
         )
         risk_projects = risk_projects_result.scalar() or 0
 
@@ -127,7 +129,11 @@ class MonitoringService:
             Tuple of (logs, total_count).
         """
         base_stmt = select(OperationLog).where(OperationLog.project_id == project_id)
-        count_stmt = select(func.count()).select_from(OperationLog).where(OperationLog.project_id == project_id)
+        count_stmt = (
+            select(func.count())
+            .select_from(OperationLog)
+            .where(OperationLog.project_id == project_id)
+        )
 
         if action:
             base_stmt = base_stmt.where(OperationLog.action == action)

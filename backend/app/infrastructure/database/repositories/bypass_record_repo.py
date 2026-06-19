@@ -35,12 +35,9 @@ class BypassRecordRepository:
         return list(result.scalars().all())
 
     async def list_pending_overdue(self, now: datetime) -> list[BypassRecord]:
-        stmt = (
-            select(BypassRecord)
-            .where(
-                BypassRecord.status == "PENDING_POST_APPROVAL",
-                BypassRecord.deadline_at < now,
-            )
+        stmt = select(BypassRecord).where(
+            BypassRecord.status == "PENDING_POST_APPROVAL",
+            BypassRecord.deadline_at < now,
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

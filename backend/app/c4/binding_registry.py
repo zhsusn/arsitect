@@ -20,9 +20,7 @@ class C4BindingRegistry:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    async def query_by_c4_node(
-        self, project_id: str, c4_node_id: str
-    ) -> list[BindingRecord]:
+    async def query_by_c4_node(self, project_id: str, c4_node_id: str) -> list[BindingRecord]:
         """Return all bindings for a given C4 node."""
         result = await self.db.execute(
             select(BindingRecord)
@@ -31,9 +29,7 @@ class C4BindingRegistry:
         )
         return list(result.scalars().all())
 
-    async def query_by_artifact(
-        self, project_id: str, artifact_path: str
-    ) -> list[BindingRecord]:
+    async def query_by_artifact(self, project_id: str, artifact_path: str) -> list[BindingRecord]:
         """Return all bindings for a given artifact path.
 
         Args:
@@ -72,9 +68,7 @@ class C4BindingRegistry:
         await self.db.flush()
         return record
 
-    async def delete_bindings_by_node(
-        self, project_id: str, c4_node_id: str
-    ) -> int:
+    async def delete_bindings_by_node(self, project_id: str, c4_node_id: str) -> int:
         """Delete all bindings for a C4 node. Returns deleted count."""
         result = await self.db.execute(
             select(BindingRecord)
@@ -87,9 +81,7 @@ class C4BindingRegistry:
         await self.db.flush()
         return len(records)
 
-    async def list_locates_at(
-        self, project_id: str, c4_node_id: str
-    ) -> list[BindingRecord]:
+    async def list_locates_at(self, project_id: str, c4_node_id: str) -> list[BindingRecord]:
         """Return LOCATES_AT bindings for a node."""
         result = await self.db.execute(
             select(BindingRecord)
@@ -103,9 +95,7 @@ class C4BindingRegistry:
         self, project_id: str, relation_type: str | None = None
     ) -> list[BindingRecord]:
         """List all bindings for a project, optionally filtered by relation."""
-        stmt = select(BindingRecord).where(
-            BindingRecord.project_id == project_id
-        )
+        stmt = select(BindingRecord).where(BindingRecord.project_id == project_id)
         if relation_type:
             stmt = stmt.where(BindingRecord.relation_type == relation_type)
         result = await self.db.execute(stmt)

@@ -21,16 +21,10 @@ class Skill(Base, TimestampMixin):
     platforms: Mapped[str | None] = mapped_column(Text, nullable=True)
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
     directory_path: Mapped[str] = mapped_column(String(4096), nullable=False)
-    parse_status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="PARSED"
-    )
-    parse_error_reason: Mapped[str | None] = mapped_column(
-        String(256), nullable=True
-    )
+    parse_status: Mapped[str] = mapped_column(String(32), nullable=False, default="PARSED")
+    parse_error_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     __table_args__ = (
-        UniqueConstraint(
-            "skill_name", "version", name="uq_skill_name_version"
-        ),
+        UniqueConstraint("skill_name", "version", name="uq_skill_name_version"),
         {"sqlite_autoincrement": False},
     )

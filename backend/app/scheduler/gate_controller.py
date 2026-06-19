@@ -301,7 +301,7 @@ class GateController:
 
     def get_pending_gates(self, project_id: str | None = None) -> list[GateItem]:
         """Return pending gates, optionally filtered by project."""
-        gates = self._pending_gates.values()
+        gates: list[GateItem] = list(self._pending_gates.values())
         if project_id is not None:
             gates = [g for g in gates if g.project_id == project_id]
         return [g for g in gates if g.decision is None]

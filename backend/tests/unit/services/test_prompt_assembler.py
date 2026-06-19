@@ -79,9 +79,7 @@ def test_assemble_includes_user_hint(assembler: PromptAssembler) -> None:
         "rationale": "",
         "risk_level": "LOW",
     }
-    prompt = assembler.assemble_arch_fix_prompt(
-        change, "proj-1", user_hint="不要改动接口签名"
-    )
+    prompt = assembler.assemble_arch_fix_prompt(change, "proj-1", user_hint="不要改动接口签名")
 
     assert "【用户补充要求】" in prompt
     assert "不要改动接口签名" in prompt

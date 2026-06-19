@@ -64,9 +64,7 @@ class TestBindingService:
     async def test_get_rule(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="get")
         svc = BindingService(db_session)
-        created = await svc.create_rule(
-            proj.project_id, "a", "b", "MAP", '{"k":"v"}', "ACTIVE"
-        )
+        created = await svc.create_rule(proj.project_id, "a", "b", "MAP", '{"k":"v"}', "ACTIVE")
         fetched = await svc.get_rule(created.rule_id)
         assert fetched.rule_id == created.rule_id
 
@@ -89,9 +87,7 @@ class TestBindingService:
     async def test_update_rule(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="upd")
         svc = BindingService(db_session)
-        rule = await svc.create_rule(
-            proj.project_id, "old", "old", "DIRECT", None, "ACTIVE"
-        )
+        rule = await svc.create_rule(proj.project_id, "old", "old", "DIRECT", None, "ACTIVE")
         updated = await svc.update_rule(
             rule.rule_id,
             {"source_field": "new", "status": "INACTIVE"},
@@ -103,9 +99,7 @@ class TestBindingService:
     async def test_delete_rule(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="del")
         svc = BindingService(db_session)
-        rule = await svc.create_rule(
-            proj.project_id, "x", "y", "DIRECT", None, "ACTIVE"
-        )
+        rule = await svc.create_rule(proj.project_id, "x", "y", "DIRECT", None, "ACTIVE")
         await svc.delete_rule(rule.rule_id)
         with pytest.raises(NotFoundError):
             await svc.get_rule(rule.rule_id)

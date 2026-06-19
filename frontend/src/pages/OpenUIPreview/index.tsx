@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import ProjectSelector from '../../components/ProjectSelector'
+import { useProjectContext } from '../../App'
 import {
   listOpenUISpecs,
   generateOpenUISpec,
@@ -11,8 +11,6 @@ import {
 } from '../../services/openUi'
 import ServiceSetupGuide from './components/ServiceSetupGuide'
 
-const LS_PROJECT_KEY = 'arsitect:lastProjectId'
-
 type Viewport = 'desktop' | 'tablet' | 'mobile'
 
 const VIEWPORT_WIDTHS: Record<Viewport, number> = {
@@ -22,9 +20,8 @@ const VIEWPORT_WIDTHS: Record<Viewport, number> = {
 }
 
 export default function OpenUIPreview() {
-  const [projectId, setProjectId] = useState(() => {
-    try { return localStorage.getItem(LS_PROJECT_KEY) || '' } catch { return '' }
-  })
+  const { currentProjectId } = useProjectContext()
+  const projectId = currentProjectId
   const [specs, setSpecs] = useState<OpenUISpec[]>([])
   const [pages, setPages] = useState<OpenUIPage[]>([])
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null)
@@ -97,13 +94,16 @@ export default function OpenUIPreview() {
   const statusColor = serviceStatus === 'AVAILABLE' ? 'bg-green-500' : serviceStatus === 'STARTING' ? 'bg-yellow-500' : serviceStatus === 'UNAVAILABLE' ? 'bg-red-500' : 'bg-gray-400'
   const statusText = serviceStatus === 'AVAILABLE' ? '服务可用' : serviceStatus === 'STARTING' ? '启动中' : serviceStatus === 'UNAVAILABLE' ? '不可用' : '未检测'
 
+  if (!projectId) {
+    return <div className="h-screen flex items-center justify-center text-gray-400">请先在顶部选择项目</div>
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-bold text-gray-800">OpenUI 原型预览</h1>
-          <ProjectSelector value={projectId} onChange={(id) => { setProjectId(id); localStorage.setItem(LS_PROJECT_KEY, id) }} />
         </div>
         <div className="flex items-center gap-3">
           {/* Service status */}

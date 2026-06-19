@@ -12,11 +12,40 @@ class RootCauseClassifier:
 
     # Frontend / backend primitive suffixes that are legitimately standalone.
     _PRIMITIVE_SUFFIXES = (
-        "button", "input", "badge", "popover", "mask", "handle", "layer",
-        "view", "panel", "overlay", "card", "item", "state", "directions",
-        "header", "steps", "menu", "menuitem", "tab", "row", "btn", "block",
-        "path", "tag", "chip", "icon", "avatar", "divider", "spacer",
-        "adapter", "manager", "handler", "controller", "validator",
+        "button",
+        "input",
+        "badge",
+        "popover",
+        "mask",
+        "handle",
+        "layer",
+        "view",
+        "panel",
+        "overlay",
+        "card",
+        "item",
+        "state",
+        "directions",
+        "header",
+        "steps",
+        "menu",
+        "menuitem",
+        "tab",
+        "row",
+        "btn",
+        "block",
+        "path",
+        "tag",
+        "chip",
+        "icon",
+        "avatar",
+        "divider",
+        "spacer",
+        "adapter",
+        "manager",
+        "handler",
+        "controller",
+        "validator",
     )
 
     def __init__(self, context: dict[str, Any]) -> None:
@@ -25,7 +54,9 @@ class RootCauseClassifier:
         self.components = self.registry.get("components", {})
         self.code_entities = context.get("code_entities", [])
         self.workspace_model = context.get("workspace_model") or {}
-        model = self.workspace_model.get("workspace", {}).get("model", self.workspace_model.get("model", {}))
+        model = self.workspace_model.get("workspace", {}).get(
+            "model", self.workspace_model.get("model", {})
+        )
         self.containers = {c.get("id", "") for c in model.get("containers", [])}
 
     def classify(self, issue: GovernanceIssue) -> GovernanceIssue:
@@ -132,8 +163,7 @@ class RootCauseClassifier:
         """Heuristic for P1 / placeholder names."""
         lower = text.lower()
         return any(
-            frag in lower
-            for frag in ("p1", "future", "todo", "placeholder", "concept", "draft")
+            frag in lower for frag in ("p1", "future", "todo", "placeholder", "concept", "draft")
         )
 
     def _has_code_entity(self, name: str) -> bool:

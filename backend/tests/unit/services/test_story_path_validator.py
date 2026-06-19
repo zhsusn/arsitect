@@ -69,7 +69,9 @@ class TestStoryPathValidator:
         ]
         report = validator.validate(stories)
         # 主页 -> 详情页 is NOT in nav_edges, so it's a missing edge
-        missing = [e for e in report.missing_edges if e.from_page == "主页" and e.to_page == "详情页"]
+        missing = [
+            e for e in report.missing_edges if e.from_page == "主页" and e.to_page == "详情页"
+        ]
         assert len(missing) == 1
 
     def test_missing_page_in_story(self) -> None:

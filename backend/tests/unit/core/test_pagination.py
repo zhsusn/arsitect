@@ -57,34 +57,26 @@ class TestPageResponse:
 
     def test_from_items_calculates_total_pages(self) -> None:
         """total_pages = ceil(total_count / page_size)."""
-        resp = PageResponse.from_items(
-            [1, 2, 3], total_count=25, page=1, page_size=10
-        )
+        resp = PageResponse.from_items([1, 2, 3], total_count=25, page=1, page_size=10)
         assert resp.total_pages == 3
         assert resp.has_next is True
         assert resp.has_previous is False
 
     def test_has_next_false_on_last_page(self) -> None:
         """Last page has no next."""
-        resp = PageResponse.from_items(
-            [21, 22, 23, 24, 25], total_count=25, page=3, page_size=10
-        )
+        resp = PageResponse.from_items([21, 22, 23, 24, 25], total_count=25, page=3, page_size=10)
         assert resp.has_next is False
         assert resp.has_previous is True
 
     def test_has_previous_false_on_first_page(self) -> None:
         """First page has no previous."""
-        resp = PageResponse.from_items(
-            [1, 2], total_count=2, page=1, page_size=10
-        )
+        resp = PageResponse.from_items([1, 2], total_count=2, page=1, page_size=10)
         assert resp.has_previous is False
         assert resp.has_next is False
 
     def test_empty_result(self) -> None:
         """Empty data set yields total_pages=0."""
-        resp = PageResponse.from_items(
-            [], total_count=0, page=1, page_size=50
-        )
+        resp = PageResponse.from_items([], total_count=0, page=1, page_size=50)
         assert resp.total_pages == 0
         assert resp.has_next is False
         assert resp.has_previous is False

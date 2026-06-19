@@ -249,9 +249,7 @@ class DAGScheduler:
 
             semaphore = asyncio.Semaphore(self.max_parallel)
 
-            async def run_with_limit(
-                skill_id: str, sem: asyncio.Semaphore
-            ) -> ExecutionResult:
+            async def run_with_limit(skill_id: str, sem: asyncio.Semaphore) -> ExecutionResult:
                 async with sem:
                     return await self._execute_node(dag, skill_id)
 
@@ -273,6 +271,7 @@ class DAGScheduler:
                         "error": str(result),
                     }
                 else:
+                    assert isinstance(result, ExecutionResult)
                     all_results[skill_id] = {
                         "status": result.status.value,
                         "duration_ms": result.duration_ms,

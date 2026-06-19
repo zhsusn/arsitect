@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from watchdog.events import (
-    FileCreatedEvent,
-    FileModifiedEvent,
+    FileSystemEvent,
     FileSystemEventHandler,
 )
 from watchdog.observers import Observer
@@ -36,12 +35,12 @@ class ArtifactEventHandler(FileSystemEventHandler):
         self._debounce_timers: dict[str, asyncio.TimerHandle] = {}
         self._loop: asyncio.AbstractEventLoop | None = None
 
-    def on_modified(self, event: FileModifiedEvent) -> None:
+    def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory:
             return
         self._handle_change(event.src_path)
 
-    def on_created(self, event: FileCreatedEvent) -> None:
+    def on_created(self, event: FileSystemEvent) -> None:
         if event.is_directory:
             return
         self._handle_change(event.src_path)
@@ -65,31 +64,27 @@ class ArtifactEventHandler(FileSystemEventHandler):
 
         self._debounce_timers[relative_path] = self._loop.call_later(
             0.5,
-            lambda: asyncio.create_task(
-                self._process_change(file_path, relative_path)
-            ),
+            lambda: asyncio.create_task(self._process_change(file_path, relative_path)),
         )
 
-    async def _process_change(
-        self, file_path: str, relative_path: str
-    ) -> None:
+    async def _process_change(self, file_path: str, relative_path: str) -> None:
         """Process a debounced change and publish STALE event if external."""
         self._debounce_timers.pop(relative_path, None)
 
         changed, current_hash = self.store.check_external_change(relative_path)
         if changed and self.event_bus is not None:
             self.event_bus.publish(
-                    DomainEvent(
-                        event_type="artifact.external_change",
-                        aggregate_id=self.project_id,
-                        payload={
-                            "project_id": self.project_id,
-                            "file_path": relative_path,
-                            "new_hash": current_hash,
-                        },
-                        source="file_system_watcher",
-                    )
+                DomainEvent(
+                    event_type="artifact.external_change",
+                    aggregate_id=self.project_id,
+                    payload={
+                        "project_id": self.project_id,
+                        "file_path": relative_path,
+                        "new_hash": current_hash,
+                    },
+                    source="file_system_watcher",
                 )
+            )
 
     def _relative_path(self, file_path: str) -> str | None:
         """Return path relative to watch root, or None if outside."""
@@ -110,7 +105,7 @@ class FileSystemWatcher:
 
     def __init__(self, event_bus: EventBus | None = None) -> None:
         self.event_bus = event_bus
-        self._observers: dict[str, Observer] = {}
+        self._observers: dict[str, Any] = {}
         self._handlers: dict[str, ArtifactEventHandler] = {}
 
     def watch_project(
@@ -137,8 +132,8 @@ class FileSystemWatcher:
             self.event_bus,
         )
         observer = Observer()
-        observer.schedule(handler, str(watch_root), recursive=True)
-        observer.start()
+        observer.schedule(handler, str(watch_root), recursive=True)  # type: ignore[no-untyped-call]
+        observer.start()  # type: ignore[no-untyped-call]
 
         self._observers[project_id] = observer
         self._handlers[project_id] = handler

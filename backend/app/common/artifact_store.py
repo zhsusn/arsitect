@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import cast
 
 import aiofiles
 
@@ -11,6 +12,7 @@ from app.common.project_context import ProjectContext
 from app.governance.artifact_version_manager import (
     ArtifactVersionManager,
     GitAdapter,
+    VersionRecord,
 )
 
 
@@ -31,9 +33,7 @@ class ArtifactStore:
         # Wire filesystem watcher for external change detection.
         from app.common.file_system_watcher import get_file_system_watcher
 
-        get_file_system_watcher().watch_project(
-            ctx.project_id, str(ctx.artifacts_dir), self
-        )
+        get_file_system_watcher().watch_project(ctx.project_id, str(ctx.artifacts_dir), self)
 
     async def read(self, relative_path: str) -> str:
         """Read artifact asynchronously."""
@@ -43,7 +43,7 @@ class ArtifactStore:
                 f"Artifact not found: {relative_path} (project={self.ctx.project_id})"
             )
         async with aiofiles.open(full_path, encoding="utf-8") as f:
-            return await f.read()
+            return cast(str, await f.read())
 
     def read_sync(self, relative_path: str) -> str:
         """Read artifact synchronously."""
@@ -112,22 +112,16 @@ class ArtifactStore:
     def _compute_hash(content: str) -> str:
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
-    async def commit_artifact(
-        self, relative_path: str, message: str | None = None
-    ) -> str:
+    async def commit_artifact(self, relative_path: str, message: str | None = None) -> str:
         """Explicitly commit an artifact via ArtifactVersionManager."""
         return await self._version_manager.commit_artifact(
             relative_path, message or f"Update {relative_path}"
         )
 
-    async def get_artifact_history(
-        self, relative_path: str, limit: int = 20
-    ) -> list:
+    async def get_artifact_history(self, relative_path: str, limit: int = 20) -> list[VersionRecord]:
         """Return Git history for an artifact."""
         return await self._version_manager.get_history(relative_path, limit=limit)
 
-    async def rollback_artifact(
-        self, relative_path: str, commit_hash: str
-    ) -> bool:
+    async def rollback_artifact(self, relative_path: str, commit_hash: str) -> bool:
         """Rollback an artifact to a specific Git commit."""
         return await self._version_manager.rollback(relative_path, commit_hash)

@@ -68,9 +68,7 @@ class ProjectRepository:
         await self._session.commit()
         return True
 
-    async def exists_by_name(
-        self, application_id: str, project_name: str
-    ) -> bool:
+    async def exists_by_name(self, application_id: str, project_name: str) -> bool:
         """Check if a project with the given name exists in the application."""
         stmt = (
             select(func.count())

@@ -53,9 +53,7 @@ class ApplicationService:
         workspace_id: str | None = None,
     ) -> tuple[list[Application], int]:
         """List all applications."""
-        return await self._repo.list_all(
-            page=page, page_size=page_size, workspace_id=workspace_id
-        )
+        return await self._repo.list_all(page=page, page_size=page_size, workspace_id=workspace_id)
 
     async def update_application(
         self,

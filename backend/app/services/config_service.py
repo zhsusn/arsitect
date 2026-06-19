@@ -79,9 +79,7 @@ class ConfigService:
 
     async def get_node(self, node_id: str) -> ConfigNode:
         """Get a single config node by ID."""
-        result = await self._session.execute(
-            select(ConfigNode).where(ConfigNode.id == node_id)
-        )
+        result = await self._session.execute(select(ConfigNode).where(ConfigNode.id == node_id))
         node = result.scalar_one_or_none()
         if node is None:
             raise NotFoundError(f"Config node not found: {node_id}")
@@ -107,13 +105,9 @@ class ConfigService:
         )
         return result.scalar_one_or_none()
 
-    async def create_node(
-        self, dto: ConfigNodeCreate, *, user_id: str | None = None
-    ) -> ConfigNode:
+    async def create_node(self, dto: ConfigNodeCreate, *, user_id: str | None = None) -> ConfigNode:
         """Create a new config node."""
-        existing = await self.get_node_by_key(
-            dto.node_type, dto.scope, dto.scope_target, dto.key
-        )
+        existing = await self.get_node_by_key(dto.node_type, dto.scope, dto.scope_target, dto.key)
         if existing:
             raise ValueError(
                 f"Config node already exists: {dto.node_type}/{dto.scope}/"
@@ -168,9 +162,7 @@ class ConfigService:
         await self._session.delete(node)
         await self._session.flush()
 
-    async def clone_node(
-        self, node_id: str, *, user_id: str | None = None
-    ) -> ConfigNode:
+    async def clone_node(self, node_id: str, *, user_id: str | None = None) -> ConfigNode:
         """Clone a config node with a new key."""
         source = await self.get_node(node_id)
         new_key = f"{source.key}-copy"

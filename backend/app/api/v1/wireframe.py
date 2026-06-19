@@ -29,6 +29,7 @@ router = APIRouter(tags=["wireframes"])
 # Wireframe session endpoints
 # ------------------------------------------------------------------
 
+
 @router.post(
     "/projects/{project_id}/wireframes",
     response_model=WireframeResponseDTO,
@@ -183,6 +184,7 @@ async def delete_wireframe(
 # ------------------------------------------------------------------
 # Wireframe page endpoints
 # ------------------------------------------------------------------
+
 
 @router.post(
     "/projects/{project_id}/wireframe-pages",
@@ -341,6 +343,7 @@ async def delete_wireframe_page(
 # ------------------------------------------------------------------
 # Wireframe nav link endpoints
 # ------------------------------------------------------------------
+
 
 @router.get(
     "/projects/{project_id}/wireframe-nav-links",

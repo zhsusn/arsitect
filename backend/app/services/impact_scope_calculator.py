@@ -30,8 +30,10 @@ class ImpactScopeCalculator:
         current_stages = await self._get_project_stages(project_id)
         new_stages = await self._get_template_stages(new_template_id)
 
-        current_stage_ids = {s.stage_id for s in current_stages}
-        new_stage_ids = {s.stage_id for s in new_stages}
+        # ProjectStage.stage_id now stores the business_stage_key, while
+        # TemplateStage.stage_id is a UUID. Compare using business_stage_key.
+        current_stage_keys = {s.stage_id for s in current_stages}
+        new_stage_keys = {ts.business_stage_key for ts in new_stages}
 
         frozen = []
         removed = []
@@ -40,12 +42,12 @@ class ImpactScopeCalculator:
         for stage in current_stages:
             if stage.status in ("EXECUTED", "FROZEN", "ARCHIVED"):
                 frozen.append(stage)
-            elif stage.stage_id not in new_stage_ids:
+            elif stage.stage_id not in new_stage_keys:
                 removed.append(stage)
             else:
                 retained.append(stage)
 
-        added = [s for s in new_stages if s.stage_id not in current_stage_ids]
+        added = [ts for ts in new_stages if ts.business_stage_key not in current_stage_keys]
 
         return {
             "frozen_count": len(frozen),
@@ -67,9 +69,7 @@ class ImpactScopeCalculator:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def _get_template_stages(
-        self, template_id: str
-    ) -> list[TemplateStage]:
+    async def _get_template_stages(self, template_id: str) -> list[TemplateStage]:
         stmt = (
             select(TemplateStage)
             .where(TemplateStage.template_id == template_id)

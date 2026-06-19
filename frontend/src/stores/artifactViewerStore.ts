@@ -6,6 +6,7 @@ export interface ArtifactFile {
   project_id: string
   stage_id: string | null
   skill_id: string | null
+  execution_id: string | null
   file_name: string
   file_path: string
   file_type: 'md' | 'yaml' | 'json' | 'mermaid' | 'openapi' | 'txt' | 'other'
@@ -13,6 +14,8 @@ export interface ArtifactFile {
   current_version: number
   external_status: 'normal' | 'modified' | 'deleted'
   stale_flag: boolean
+  created_at: string | null
+  updated_at: string | null
 }
 
 export interface ArtifactVersion {
@@ -46,6 +49,11 @@ interface ArtifactTreeResponse {
   files: ArtifactFile[]
 }
 
+export interface TreeFilters {
+  stageId: string
+  skillId: string
+}
+
 interface ArtifactViewerState {
   tree: ArtifactTreeResponse
   selectedArtifact: ArtifactFile | null
@@ -55,9 +63,12 @@ interface ArtifactViewerState {
   loading: boolean
   searchQuery: string
   filterType: string
+  filterStage: string
+  filterSkill: string
 
-  fetchTree: (projectId: string) => Promise<void>
+  fetchTree: (projectId: string, filters?: Partial<TreeFilters>) => Promise<void>
   selectArtifact: (artifact: ArtifactFile | null) => void
+  findArtifactById: (artifactId: string) => ArtifactFile | null
   fetchContent: (artifactId: string, offset?: number, limit?: number, append?: boolean) => Promise<void>
   saveContent: (artifactId: string, content: string, expectedHash?: string) => Promise<void>
   fetchVersions: (artifactId: string) => Promise<void>
@@ -66,6 +77,8 @@ interface ArtifactViewerState {
   updateArtifactStatus: (artifactId: string, patch: Partial<ArtifactFile>) => void
   setSearchQuery: (q: string) => void
   setFilterType: (type: string) => void
+  setFilterStage: (stageId: string) => void
+  setFilterSkill: (skillId: string) => void
 }
 
 export const useArtifactViewerStore = create<ArtifactViewerState>((set, get) => ({
@@ -77,13 +90,19 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set, get) => 
   loading: false,
   searchQuery: '',
   filterType: '',
+  filterStage: '',
+  filterSkill: '',
 
-  fetchTree: async (projectId) => {
+  fetchTree: async (projectId, filters) => {
+    const { filterStage, filterSkill } = get()
+    const stageId = filters?.stageId !== undefined ? filters.stageId : filterStage
+    const skillId = filters?.skillId !== undefined ? filters.skillId : filterSkill
     set({ loading: true })
     try {
-      const res = await api.get<ArtifactTreeResponse>('/v1/artifacts/tree', {
-        params: { project_id: projectId },
-      })
+      const params: Record<string, unknown> = { project_id: projectId }
+      if (stageId) params.filter_stage = stageId
+      if (skillId) params.filter_skill = skillId
+      const res = await api.get<ArtifactTreeResponse>('/v1/artifacts/tree', { params })
       set({ tree: res.data, loading: false })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '加载文件树失败'
@@ -100,6 +119,10 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set, get) => 
     } else {
       set({ content: '', versions: [] })
     }
+  },
+
+  findArtifactById: (artifactId) => {
+    return get().tree.files.find((f) => f.artifact_id === artifactId) || null
   },
 
   fetchContent: async (artifactId, offset = 0, limit, append = false) => {
@@ -202,4 +225,6 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set, get) => 
 
   setSearchQuery: (q) => set({ searchQuery: q }),
   setFilterType: (type) => set({ filterType: type }),
+  setFilterStage: (stageId) => set({ filterStage: stageId }),
+  setFilterSkill: (skillId) => set({ filterSkill: skillId }),
 }))

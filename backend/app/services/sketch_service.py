@@ -51,7 +51,15 @@ class SketchService:
         status: str,
     ) -> Sketch:
         """Create a new sketch session."""
-        if status not in {"DRAFT", "GENERATING", "GENERATED", "REVIEW_PENDING", "APPROVED", "REJECTED", "ARCHIVED"}:
+        if status not in {
+            "DRAFT",
+            "GENERATING",
+            "GENERATED",
+            "REVIEW_PENDING",
+            "APPROVED",
+            "REJECTED",
+            "ARCHIVED",
+        }:
             raise BadRequestError(detail="Invalid status value")
 
         sketch = Sketch(
@@ -68,9 +76,7 @@ class SketchService:
 
     async def get_sketch(self, sketch_id: str) -> Sketch:
         """Fetch a sketch by ID."""
-        result = await self._session.execute(
-            select(Sketch).where(Sketch.sketch_id == sketch_id)
-        )
+        result = await self._session.execute(select(Sketch).where(Sketch.sketch_id == sketch_id))
         sketch = result.scalar_one_or_none()
         if sketch is None:
             raise NotFoundError(detail=f"Sketch '{sketch_id}' not found")
@@ -79,15 +85,11 @@ class SketchService:
     async def list_sketches(self, project_id: str) -> list[Sketch]:
         """List sketches for a project."""
         result = await self._session.execute(
-            select(Sketch)
-            .where(Sketch.project_id == project_id)
-            .order_by(Sketch.updated_at.desc())
+            select(Sketch).where(Sketch.project_id == project_id).order_by(Sketch.updated_at.desc())
         )
         return list(result.scalars().all())
 
-    async def update_sketch(
-        self, sketch_id: str, updates: dict[str, Any]
-    ) -> Sketch:
+    async def update_sketch(self, sketch_id: str, updates: dict[str, Any]) -> Sketch:
         """Update an existing sketch."""
         sketch = await self.get_sketch(sketch_id)
         for key, value in updates.items():
@@ -130,7 +132,11 @@ class SketchService:
             raise BadRequestError(detail=f"Project '{project_id}' not found")
 
         app = await self._session.get(Application, project.application_id)
-        base_path = pathlib.Path(app.local_path) if app and app.local_path else pathlib.Path(__file__).resolve().parents[3]
+        base_path = (
+            pathlib.Path(app.local_path)
+            if app and app.local_path
+            else pathlib.Path(__file__).resolve().parents[3]
+        )
 
         # 1. Parse all module-requirements.md
         module_specs = resolve_project_specs(base_path)
@@ -253,9 +259,7 @@ class SketchService:
         stories = result.scalars().all()
 
         if not stories:
-            raise BadRequestError(
-                detail="No user stories with page_desc found for generation"
-            )
+            raise BadRequestError(detail="No user stories with page_desc found for generation")
 
         # Create sketch session
         sketch = await self.create_sketch(
@@ -267,8 +271,7 @@ class SketchService:
 
         # Generate pages
         story_dicts = [
-            {"title": s.title, "description": s.page_desc or s.description}
-            for s in stories
+            {"title": s.title, "description": s.page_desc or s.description} for s in stories
         ]
         generated = generate_sketch_from_stories(story_dicts)
 

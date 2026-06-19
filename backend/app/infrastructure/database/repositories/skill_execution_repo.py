@@ -41,16 +41,11 @@ class SkillExecutionRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def list_running_by_skill(
-        self, skill_id: str, stage_id: str
-    ) -> list[SkillExecution]:
-        stmt = (
-            select(SkillExecution)
-            .where(
-                SkillExecution.skill_id == skill_id,
-                SkillExecution.stage_id == stage_id,
-                SkillExecution.overall_status == "RUNNING",
-            )
+    async def list_running_by_skill(self, skill_id: str, stage_id: str) -> list[SkillExecution]:
+        stmt = select(SkillExecution).where(
+            SkillExecution.skill_id == skill_id,
+            SkillExecution.stage_id == stage_id,
+            SkillExecution.overall_status == "RUNNING",
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

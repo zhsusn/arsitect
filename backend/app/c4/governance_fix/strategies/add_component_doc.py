@@ -42,7 +42,9 @@ class AddComponentDocStrategy(FixStrategy):
         if code_entity:
             container_id = code_entity.get("container_hint", "")
         if not container_id or container_id not in containers:
-            container_id = "backend-api" if "backend-api" in containers else next(iter(containers), "")
+            container_id = (
+                "backend-api" if "backend-api" in containers else next(iter(containers), "")
+            )
 
         if issue.root_cause == RootCause.DOC_INCOMPLETE:
             if name in component_ids:
@@ -87,7 +89,9 @@ class AddComponentDocStrategy(FixStrategy):
         return None
 
     @staticmethod
-    def _add_component(workspace_model: dict[str, Any], component: dict[str, Any]) -> dict[str, Any] | None:
+    def _add_component(
+        workspace_model: dict[str, Any], component: dict[str, Any]
+    ) -> dict[str, Any] | None:
         import copy
 
         new_model: dict[str, Any] = copy.deepcopy(workspace_model)

@@ -29,9 +29,7 @@ async def locate_code(
     """C4 node → code file."""
     location = await locator.locate_code(project_id, node_id)
     if not location:
-        raise HTTPException(
-            status_code=404, detail=f"Code location not found for node {node_id}"
-        )
+        raise HTTPException(status_code=404, detail=f"Code location not found for node {node_id}")
     return {
         "file_path": location.file_path,
         "exists": os.path.exists(location.file_path),
@@ -47,9 +45,7 @@ async def locate_node(
     """Code file → C4 node."""
     node = await locator.locate_node(project_id, file_path)
     if not node:
-        raise HTTPException(
-            status_code=404, detail=f"C4 node not found for file {file_path}"
-        )
+        raise HTTPException(status_code=404, detail=f"C4 node not found for file {file_path}")
     return {
         "node_id": node.node_id,
         "type": node.node_type,

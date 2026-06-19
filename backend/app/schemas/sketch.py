@@ -25,7 +25,8 @@ class SketchUpdateDTO(BaseModel):
     coverage_percent: int | None = Field(default=None, ge=0, le=100)
     validation_report: str | None = Field(default=None)
     status: str | None = Field(
-        default=None, pattern=r"^(DRAFT|GENERATING|GENERATED|REVIEW_PENDING|APPROVED|REJECTED|ARCHIVED)$"
+        default=None,
+        pattern=r"^(DRAFT|GENERATING|GENERATED|REVIEW_PENDING|APPROVED|REJECTED|ARCHIVED)$",
     )
 
 

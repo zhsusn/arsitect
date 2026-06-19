@@ -32,6 +32,4 @@ class CanvasState(Base):
         nullable=False,
     )
 
-    __table_args__ = (
-        Index("ix_canvas_states_project_id", "project_id"),
-    )
+    __table_args__ = (Index("ix_canvas_states_project_id", "project_id"),)

@@ -22,10 +22,8 @@ from app.services.bug_fix_service import BugFixService
 from app.services.chat_service import ChatService
 from app.services.cli_service import CliService
 from app.services.llm import get_llm_provider_async
-from app.services.llm_permission_service import (
-    LLMPermissionService,
-    PermissionCheckContext,
-)
+from app.services.llm_policy_service import LlmPolicyService
+from app.services.llm_rule_engine import LlmRuleEngine
 
 Sender = Callable[[dict[str, Any]], Awaitable[None]]
 
@@ -126,18 +124,19 @@ class AgentRouter:
         Returns:
             (allowed, reason) tuple. ``allowed`` is True for allow/ask decisions.
         """
-        from app.services.config_service import ConfigService
-
-        perm_svc = LLMPermissionService(ConfigService(self._db))
-        result = await perm_svc.check(
-            PermissionCheckContext(
-                category=category,
-                path=path,
-                project_id=session.project_id,
-                user_id=session.user_id,
-            )
+        policy_svc = LlmPolicyService(self._db)
+        engine = LlmRuleEngine(policy_svc)
+        result = await engine.check(
+            self._db,
+            policy_key=None,
+            scope=None,
+            scope_target=None,
+            action_type=category,
+            target=path or "",
+            project_id=session.project_id,
+            user_id=session.user_id,
         )
-        if result["decision"] == "deny":
+        if result["permission"] == "deny":
             return False, f"权限策略拒绝：{category} {path or ''}"
         return True, ""
 
@@ -172,7 +171,9 @@ class AgentRouter:
                     session, "file_write", "${PROJECT_ROOT}/**"
                 )
                 if not allowed:
-                    await sender(_error_response(session.id, "PERMISSION_DENIED", reason).model_dump())
+                    await sender(
+                        _error_response(session.id, "PERMISSION_DENIED", reason).model_dump()
+                    )
                     return
                 from app.c4.governance_fix.llm_gateway import get_llm_gateway_async
 
@@ -191,7 +192,9 @@ class AgentRouter:
                 )
             else:
                 await sender(
-                    _text_response(session.id, "请先生成修复方案，或使用 /arch 进入架构治理模式。").model_dump()
+                    _text_response(
+                        session.id, "请先生成修复方案，或使用 /arch 进入架构治理模式。"
+                    ).model_dump()
                 )
         else:
             await sender(
@@ -239,9 +242,13 @@ class AgentRouter:
             await sender(_text_response(session.id, response_text).model_dump())
         except Exception as exc:  # noqa: BLE001
             logger.exception("Free-chat LLM call failed: %s", exc)
-            error_detail = f"{type(exc).__name__}: {exc}" if str(exc) else f"{type(exc).__name__} (no message)"
+            error_detail = (
+                f"{type(exc).__name__}: {exc}" if str(exc) else f"{type(exc).__name__} (no message)"
+            )
             await sender(
-                _error_response(session.id, "LLM_ERROR", f"AI 调用失败：{error_detail}").model_dump()
+                _error_response(
+                    session.id, "LLM_ERROR", f"AI 调用失败：{error_detail}"
+                ).model_dump()
             )
 
     async def _run_bug_mode(
@@ -285,9 +292,7 @@ class AgentRouter:
                 ).model_dump()
             )
         except Exception as exc:  # noqa: BLE001
-            await sender(
-                _error_response(session.id, "BUG_ANALYSIS_FAILED", str(exc)).model_dump()
-            )
+            await sender(_error_response(session.id, "BUG_ANALYSIS_FAILED", str(exc)).model_dump())
 
     async def _run_arch_fix_mode(
         self,

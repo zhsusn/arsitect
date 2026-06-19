@@ -80,9 +80,7 @@ class BindingService:
         )
         rule = result.scalar_one_or_none()
         if rule is None:
-            raise NotFoundError(
-                detail=f"Binding rule '{rule_id}' not found"
-            )
+            raise NotFoundError(detail=f"Binding rule '{rule_id}' not found")
         return rule
 
     async def list_rules(self, project_id: str) -> list[BindingRule]:
@@ -101,9 +99,7 @@ class BindingService:
         )
         return list(result.scalars().all())
 
-    async def update_rule(
-        self, rule_id: str, updates: dict[str, Any]
-    ) -> BindingRule:
+    async def update_rule(self, rule_id: str, updates: dict[str, Any]) -> BindingRule:
         """Update an existing rule.
 
         Args:

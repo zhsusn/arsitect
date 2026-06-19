@@ -57,7 +57,9 @@ class TestSync4Binding:
     # client fixture is provided by conftest.py with shared session override
 
     @pytest.mark.asyncio
-    async def test_binding_full_crud_flow(self, seeded_project: Project, client: TestClient) -> None:
+    async def test_binding_full_crud_flow(
+        self, seeded_project: Project, client: TestClient
+    ) -> None:
         """TEST-1501: BindingRule 完整 CRUD 端到端链路.
 
         Covers AC-F-001 / AC-F-002 / AC-F-003 / AC-F-004 / AC-F-005.
@@ -116,7 +118,9 @@ class TestSync4Binding:
         assert res.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_binding_create_invalid_transform_type(self, seeded_project: Project, client: TestClient) -> None:
+    async def test_binding_create_invalid_transform_type(
+        self, seeded_project: Project, client: TestClient
+    ) -> None:
         """TEST-1502: 非法 transform_type 返回 400.
 
         Covers AC-V-001: 字段校验.
@@ -134,7 +138,9 @@ class TestSync4Binding:
         assert res.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_binding_list_empty_project(self, seeded_project: Project, client: TestClient) -> None:
+    async def test_binding_list_empty_project(
+        self, seeded_project: Project, client: TestClient
+    ) -> None:
         """TEST-1503: 空项目列表返回空数组.
 
         Covers edge case: 无绑定规则的项目.

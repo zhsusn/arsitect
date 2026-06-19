@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -177,9 +177,7 @@ class CrossLayerValidator:
     # ============================================================
     # VAL-001: 外部系统引用一致性
     # ============================================================
-    def _check_val001_external_systems(
-        self, workspace: dict[str, Any]
-    ) -> list[ValidationIssue]:
+    def _check_val001_external_systems(self, workspace: dict[str, Any]) -> list[ValidationIssue]:
         """PRD-defined external systems must have corresponding containers in ARCH."""
         issues = []
         model = self._extract_model(workspace)
@@ -188,8 +186,7 @@ class CrossLayerValidator:
         for ext in external_systems:
             ext_id = ext["id"]
             found = any(
-                ext_id in str(rel.get("target", ""))
-                or ext_id in str(rel.get("description", ""))
+                ext_id in str(rel.get("target", "")) or ext_id in str(rel.get("description", ""))
                 for rel in model.get("relationships", [])
             )
             if not found:
@@ -208,9 +205,7 @@ class CrossLayerValidator:
     # ============================================================
     # VAL-002: 实体定义一致性
     # ============================================================
-    def _check_val002_entity_definition(
-        self, workspace: dict[str, Any]
-    ) -> list[ValidationIssue]:
+    def _check_val002_entity_definition(self, workspace: dict[str, Any]) -> list[ValidationIssue]:
         """DTO fields in API should map to entity attributes in DOMAIN_MODEL."""
         issues = []
         model = self._extract_model(workspace)
@@ -249,9 +244,7 @@ class CrossLayerValidator:
     # ============================================================
     # VAL-003: 容器归属一致性
     # ============================================================
-    def _check_val003_container_refs(
-        self, workspace: dict[str, Any]
-    ) -> list[ValidationIssue]:
+    def _check_val003_container_refs(self, workspace: dict[str, Any]) -> list[ValidationIssue]:
         """container_id referenced by downstream docs must exist in ARCH."""
         issues = []
         model = self._extract_model(workspace)
@@ -310,14 +303,11 @@ class CrossLayerValidator:
                         rule_id=RuleId.VAL_004,
                         severity=Severity.ERROR,
                         message=(
-                            f"Component '{comp_id}' belongs to undefined "
-                            f"container '{container_id}'"
+                            f"Component '{comp_id}' belongs to undefined container '{container_id}'"
                         ),
                         c4_node_id=comp_id,
                         c4_level="L3",
-                        suggestion=(
-                            f"Define container '{container_id}' or fix the container_id"
-                        ),
+                        suggestion=(f"Define container '{container_id}' or fix the container_id"),
                     )
                 )
         return issues
@@ -325,9 +315,7 @@ class CrossLayerValidator:
     # ============================================================
     # VAL-005: 接口归属一致性
     # ============================================================
-    def _check_val005_interface_contract(
-        self, workspace: dict[str, Any]
-    ) -> list[ValidationIssue]:
+    def _check_val005_interface_contract(self, workspace: dict[str, Any]) -> list[ValidationIssue]:
         """Interfaces declared by components must have detailed contracts in API_DESIGN."""
         issues = []
         model = self._extract_model(workspace)
@@ -372,8 +360,7 @@ class CrossLayerValidator:
                         rule_id=RuleId.VAL_006,
                         severity=Severity.ERROR,
                         message=(
-                            f"Table '{table['id']}' maps to undefined entity "
-                            f"'{mapped_entity}'"
+                            f"Table '{table['id']}' maps to undefined entity '{mapped_entity}'"
                         ),
                         c4_node_id=table["id"],
                         c4_level="L2",
@@ -422,9 +409,7 @@ class CrossLayerValidator:
     # ============================================================
     # VAL-008: 页面类型推断一致性
     # ============================================================
-    def _check_val008_page_type_inference(
-        self, workspace: dict[str, Any]
-    ) -> list[ValidationIssue]:
+    def _check_val008_page_type_inference(self, workspace: dict[str, Any]) -> list[ValidationIssue]:
         """PageType conflicts with DomainMapper inference; human annotation wins."""
         issues = []
         model = self._extract_model(workspace)
@@ -519,15 +504,12 @@ class CrossLayerValidator:
     def _extract_model(workspace: dict[str, Any]) -> dict[str, Any]:
         """Extract model dict from workspace, handling nested workspace key."""
         if "workspace" in workspace:
-            return workspace["workspace"].get("model", {})
-        return workspace.get("model", {})
+            return cast(dict[str, Any], workspace["workspace"].get("model", {}))
+        return cast(dict[str, Any], workspace.get("model", {}))
 
     @staticmethod
-    def _generate_summary(
-        project_id: str, errors: int, warnings: int, infos: int
-    ) -> str:
+    def _generate_summary(project_id: str, errors: int, warnings: int, infos: int) -> str:
         status = "PASSED" if errors == 0 else "FAILED"
         return (
-            f"[{status}] Project {project_id}: "
-            f"{errors} errors, {warnings} warnings, {infos} infos"
+            f"[{status}] Project {project_id}: {errors} errors, {warnings} warnings, {infos} infos"
         )

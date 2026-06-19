@@ -58,17 +58,13 @@ class WireframeNavLinkService:
         self, project_id: str, wireframe_id: str | None = None
     ) -> list[WireframeNavLink]:
         """List nav links for a project."""
-        stmt = select(WireframeNavLink).where(
-            WireframeNavLink.project_id == project_id
-        )
+        stmt = select(WireframeNavLink).where(WireframeNavLink.project_id == project_id)
         if wireframe_id is not None:
             stmt = stmt.where(WireframeNavLink.wireframe_id == wireframe_id)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def update_link(
-        self, link_id: str, updates: dict[str, Any]
-    ) -> WireframeNavLink:
+    async def update_link(self, link_id: str, updates: dict[str, Any]) -> WireframeNavLink:
         """Update an existing nav link."""
         link = await self.get_link(link_id)
         for key, value in updates.items():

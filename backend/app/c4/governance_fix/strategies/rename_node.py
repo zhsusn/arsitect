@@ -72,7 +72,15 @@ class RenameNodeStrategy(FixStrategy):
     def _collect_all_ids(workspace_model: dict[str, Any]) -> list[str]:
         ids: list[str] = []
         model = workspace_model.get("workspace", {}).get("model", workspace_model.get("model", {}))
-        for key in ("system", "actors", "externalSystems", "containers", "entities", "components", "code_elements"):
+        for key in (
+            "system",
+            "actors",
+            "externalSystems",
+            "containers",
+            "entities",
+            "components",
+            "code_elements",
+        ):
             items = model.get(key, [])
             if isinstance(items, dict):
                 items = list(items.values())

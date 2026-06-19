@@ -92,9 +92,7 @@ class GitService:
         if not self.is_repo():
             return {"success": False, "error": "Not a git repository", "commit": None}
 
-        add_result = (
-            self._run(["add", *files]) if files else self._run(["add", "-A"])
-        )
+        add_result = self._run(["add", *files]) if files else self._run(["add", "-A"])
         if add_result.returncode != 0:
             return {
                 "success": False,

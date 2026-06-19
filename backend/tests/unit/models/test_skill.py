@@ -26,9 +26,7 @@ class TestSkillModel:
             session.add(skill)
             await session.commit()
 
-            result = await session.execute(
-                select(Skill).where(Skill.skill_id == "skill-001")
-            )
+            result = await session.execute(select(Skill).where(Skill.skill_id == "skill-001"))
             fetched = result.scalar_one()
             assert fetched.skill_name == "brainstorming"
             assert fetched.parse_status == "PARSED"

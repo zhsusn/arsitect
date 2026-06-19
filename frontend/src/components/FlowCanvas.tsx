@@ -11,8 +11,10 @@ import {
   type Node,
   type Edge,
   type Connection,
+  type NodeTypes,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import SkillNode from '../pages/Canvas/components/SkillNode'
 
 export type ViewMode = 'topology' | 'swimlane' | 'list'
 
@@ -21,6 +23,7 @@ export interface DAGNodeDef {
   label: string
   phase: string
   status: string
+  node_type?: 'primary' | 'auxiliary'
 }
 
 export interface DAGEdgeDef {
@@ -30,7 +33,6 @@ export interface DAGEdgeDef {
 }
 
 export interface FlowCanvasProps {
-  projectId: string
   dag: { nodes: DAGNodeDef[]; edges: DAGEdgeDef[] }
   onNodeClick?: (node: DAGNodeDef) => void
 }
@@ -48,8 +50,11 @@ const STATUS_COLORS: Record<string, string> = {
 const normalizeStatus = (status: string): string =>
   status.toLowerCase().replace(/_/, '_')
 
+const NODE_TYPES: NodeTypes = {
+  skill: SkillNode,
+}
+
 export function FlowCanvas({
-  projectId,
   dag,
   onNodeClick,
 }: FlowCanvasProps) {
@@ -61,12 +66,13 @@ export function FlowCanvas({
     () =>
       dag.nodes.map((n, i) => ({
         id: n.id,
-        type: 'default',
+        type: 'skill',
         position: { x: (i % 5) * 200, y: Math.floor(i / 5) * 100 },
-        data: { label: n.label, status: n.status, phase: n.phase },
-        style: {
-          border: `2px solid ${STATUS_COLORS[normalizeStatus(n.status)] || '#999'}`,
-          background: `${STATUS_COLORS[normalizeStatus(n.status)] || '#999'}22`,
+        data: {
+          label: n.label,
+          status: n.status,
+          phase: n.phase,
+          skillType: n.node_type,
         },
       })),
     [dag.nodes],
@@ -88,35 +94,6 @@ export function FlowCanvas({
     setNodes(initialNodes)
     setEdges(initialEdges)
   }, [initialNodes, initialEdges, setNodes, setEdges])
-
-  // SSE real-time updates
-  useEffect(() => {
-    const source = new EventSource(`/api/v1/events/${projectId}`)
-    source.onmessage = (event) => {
-      const message = JSON.parse(event.data)
-      if (message.type === 'skill_state_changed') {
-        const { entity_id, to } = message.data
-        setNodes((nds) =>
-          nds.map((n) =>
-            n.id === entity_id
-              ? {
-                  ...n,
-                  data: { ...n.data, status: to },
-                  style: {
-                    border: `2px solid ${STATUS_COLORS[normalizeStatus(to)] || '#999'}`,
-                    background: `${STATUS_COLORS[normalizeStatus(to)] || '#999'}22`,
-                  },
-                }
-              : n,
-          ),
-        )
-      }
-    }
-    source.onerror = (err) => {
-      console.error('SSE error:', err)
-    }
-    return () => source.close()
-  }, [projectId, setNodes])
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -181,6 +158,7 @@ export function FlowCanvas({
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          nodeTypes={NODE_TYPES}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}

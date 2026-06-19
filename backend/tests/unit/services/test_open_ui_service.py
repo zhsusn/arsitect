@@ -88,9 +88,7 @@ class TestOpenUIService:
         proj = await self._seed_project(db_session, suffix="upd")
         svc = OpenUIService(db_session)
         spec = await svc.create_spec(proj.project_id, "Old", "DRAFT")
-        updated = await svc.update_spec(
-            spec.spec_id, {"spec_name": "New", "status": "GENERATED"}
-        )
+        updated = await svc.update_spec(spec.spec_id, {"spec_name": "New", "status": "GENERATED"})
         assert updated.spec_name == "New"
         assert updated.status == "GENERATED"
 

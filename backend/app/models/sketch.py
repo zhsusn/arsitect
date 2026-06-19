@@ -27,21 +27,13 @@ class Sketch(Base):
     source_story_ids: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="参与生成的用户故事 ID 列表 JSON"
     )
-    page_count: Mapped[int | None] = mapped_column(
-        nullable=True, comment="生成页面数"
-    )
-    coverage_percent: Mapped[int | None] = mapped_column(
-        nullable=True, comment="字段覆盖率"
-    )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
+    page_count: Mapped[int | None] = mapped_column(nullable=True, comment="生成页面数")
+    coverage_percent: Mapped[int | None] = mapped_column(nullable=True, comment="字段覆盖率")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
     validation_report: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="路径验证报告 JSON"
     )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

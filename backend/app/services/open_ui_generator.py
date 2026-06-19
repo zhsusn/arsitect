@@ -50,15 +50,17 @@ def assemble_prompt(
         summary = ep.get("operation_summary", "")
         lines.append(f"- {method} {path}: {summary}")
 
-    lines.extend([
-        "",
-        "Requirements:",
-        "- Use semantic HTML5, embedded CSS (Tailwind-like utility classes preferred), and vanilla JS.",
-        "- Include navigation, data tables or forms based on endpoint semantics.",
-        "- Support responsive layout.",
-        "- Output a complete standalone HTML file (no external dependencies except CDN).",
-        "- Use Chinese UI labels where appropriate.",
-    ])
+    lines.extend(
+        [
+            "",
+            "Requirements:",
+            "- Use semantic HTML5, embedded CSS (Tailwind-like utility classes preferred), and vanilla JS.",
+            "- Include navigation, data tables or forms based on endpoint semantics.",
+            "- Support responsive layout.",
+            "- Output a complete standalone HTML file (no external dependencies except CDN).",
+            "- Use Chinese UI labels where appropriate.",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -145,6 +147,7 @@ def split_pages(html_content: str) -> list[dict[str, str]]:
 def _extract_title(html: str) -> str | None:
     """Extract <title> from HTML."""
     import re as _re
+
     m = _re.search(r"<title>([^<]+)</title>", html, _re.IGNORECASE)
     return m.group(1).strip() if m else None
 

@@ -14,6 +14,8 @@ from app.models.bypass_record import BypassRecord
 from app.models.execution_plan import ExecutionPlan
 from app.models.plan_node import PlanNode
 from app.models.project import Project
+from app.models.project_stage import ProjectStage
+from app.models.stage_skill_binding import StageSkillBinding
 from main import app
 
 client = TestClient(app)
@@ -242,3 +244,90 @@ class TestExecutionPlanRouter:
         data = res.json()
         assert isinstance(data, list)
         assert any(r["record_id"] == "rec-ep-1" for r in data)
+
+    @pytest.fixture
+    async def seeded_project_with_bindings(
+        self, seeded_project: Project
+    ) -> Project:
+        """Seed project stages and skill bindings."""
+        async with AsyncSessionLocal() as session:
+            stage1 = ProjectStage(
+                project_stage_id="ps-ep-1",
+                project_id=seeded_project.project_id,
+                stage_id="ts-ep-1",
+                order_index=1,
+                status="DEFINED",
+                primary_skill_id="skill-ep-1",
+                runtime_status="not_started",
+                is_gate_required=False,
+            )
+            stage2 = ProjectStage(
+                project_stage_id="ps-ep-2",
+                project_id=seeded_project.project_id,
+                stage_id="ts-ep-2",
+                order_index=2,
+                status="DEFINED",
+                primary_skill_id="skill-ep-2",
+                runtime_status="not_started",
+                is_gate_required=False,
+            )
+            session.add_all([stage1, stage2])
+            await session.flush()
+
+            session.add(
+                StageSkillBinding(
+                    binding_id="b-ep-1",
+                    project_stage_id=stage1.project_stage_id,
+                    skill_id="skill-ep-1",
+                    role="primary",
+                    execution_order=0,
+                )
+            )
+            session.add(
+                StageSkillBinding(
+                    binding_id="b-ep-2",
+                    project_stage_id=stage1.project_stage_id,
+                    skill_id="skill-ep-aux",
+                    role="auxiliary",
+                    execution_order=1,
+                )
+            )
+            session.add(
+                StageSkillBinding(
+                    binding_id="b-ep-3",
+                    project_stage_id=stage2.project_stage_id,
+                    skill_id="skill-ep-2",
+                    role="primary",
+                    execution_order=0,
+                )
+            )
+            await session.commit()
+            return seeded_project
+
+    @pytest.mark.asyncio
+    async def test_create_execution_plan_from_project_bindings(
+        self, seeded_project_with_bindings: Project
+    ) -> None:
+        """POST with empty skill_nodes generates plan from project bindings."""
+        payload = {"template_level": None, "skill_nodes": []}
+        res = client.post(
+            f"/api/v1/projects/{seeded_project_with_bindings.project_id}/execution-plans",
+            json=payload,
+        )
+        assert res.status_code == 201
+        data = res.json()
+        assert data["project_id"] == seeded_project_with_bindings.project_id
+        assert data["template_level"] == seeded_project_with_bindings.template_level
+        assert len(data["node_order"]) == 3
+        assert len(data["parallel_groups"]) == 3
+        assert len(data["dependency_matrix"]) == 3
+        # Auxiliary node depends on primary node in the same stage.
+        auxiliary_nodes = [n for n in data["nodes"] if n["node_type"] == "auxiliary"]
+        assert len(auxiliary_nodes) == 1
+        primary_nodes = [n for n in data["nodes"] if n["node_type"] == "primary"]
+        assert len(primary_nodes) == 2
+        aux_node = auxiliary_nodes[0]
+        primary_in_stage = next(
+            n for n in primary_nodes if n["stage_id"] == aux_node["stage_id"]
+        )
+        assert data["dependency_matrix"][aux_node["node_id"]] == [primary_in_stage["node_id"]]

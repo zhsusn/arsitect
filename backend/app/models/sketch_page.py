@@ -28,9 +28,7 @@ class SketchPage(Base):
         nullable=True,
     )
     page_name: Mapped[str] = mapped_column(String(128), nullable=False)
-    page_type: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="UNKNOWN"
-    )
+    page_type: Mapped[str] = mapped_column(String(16), nullable=False, default="UNKNOWN")
     svg_content: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="生成的 SVG 草图内容"
     )
@@ -49,15 +47,9 @@ class SketchPage(Base):
     source_md_path: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="来源 module-requirements.md 路径"
     )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
-    sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

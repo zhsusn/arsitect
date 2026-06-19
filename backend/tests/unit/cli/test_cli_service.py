@@ -122,6 +122,5 @@ class TestCliService:
         assert len(messages) == 3
         assert [m.content for m in messages] == ["msg-2", "msg-3", "msg-4"]
         assert all(
-            messages[i].sequence_no < messages[i + 1].sequence_no
-            for i in range(len(messages) - 1)
+            messages[i].sequence_no < messages[i + 1].sequence_no for i in range(len(messages) - 1)
         )

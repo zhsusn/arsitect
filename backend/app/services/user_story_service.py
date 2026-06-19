@@ -77,9 +77,7 @@ class UserStoryService:
         )
         return result.scalar_one_or_none()
 
-    async def update_story(
-        self, story_id: str, updates: dict[str, Any]
-    ) -> UserStory:
+    async def update_story(self, story_id: str, updates: dict[str, Any]) -> UserStory:
         """Update an existing user story."""
         story = await self.get_story(story_id)
         for key, value in updates.items():

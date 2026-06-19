@@ -47,13 +47,15 @@ class TestSkillParser:
 
     def test_validate_meta_json(self, parser: SkillParser) -> None:
         """Valid meta.json parses correctly."""
-        raw = json.dumps({
-            "name": "test",
-            "version": "1.0.0",
-            "pattern": "generator",
-            "tags": ["a"],
-            "platforms": ["kimi"],
-        })
+        raw = json.dumps(
+            {
+                "name": "test",
+                "version": "1.0.0",
+                "pattern": "generator",
+                "tags": ["a"],
+                "platforms": ["kimi"],
+            }
+        )
         meta = parser._validate_meta_json(raw)
         assert meta["name"] == "test"
 
@@ -119,9 +121,7 @@ class TestSkillParser:
         with tempfile.TemporaryDirectory() as tmpdir:
             skill_dir = Path(tmpdir) / "partial-skill"
             skill_dir.mkdir()
-            (skill_dir / "SKILL.md").write_text(
-                "---\nname: partial\n---\n", encoding="utf-8"
-            )
+            (skill_dir / "SKILL.md").write_text("---\nname: partial\n---\n", encoding="utf-8")
             with pytest.raises(ValueError):
                 parser.parse_skill_directory(str(skill_dir))
 
@@ -140,13 +140,15 @@ class TestSkillParser:
                 "---\ndescription: no name here\n---\n", encoding="utf-8"
             )
             (skill_dir / "meta.json").write_text(
-                json.dumps({
-                    "name": "fallback-name",
-                    "version": "1.0.0",
-                    "pattern": "generator",
-                    "tags": ["t1"],
-                    "platforms": ["kimi"],
-                }),
+                json.dumps(
+                    {
+                        "name": "fallback-name",
+                        "version": "1.0.0",
+                        "pattern": "generator",
+                        "tags": ["t1"],
+                        "platforms": ["kimi"],
+                    }
+                ),
                 encoding="utf-8",
             )
             result = parser.parse_skill_directory(str(skill_dir))

@@ -19,18 +19,12 @@ class SkillChangeLog(Base):
     session_id: Mapped[str] = mapped_column(String(36), nullable=False)
     operation_type: Mapped[str] = mapped_column(String(32), nullable=False)
     target_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    before_snapshot: Mapped[str | None] = mapped_column(
-        String(4096), nullable=True
-    )
-    after_snapshot: Mapped[str | None] = mapped_column(
-        String(4096), nullable=True
-    )
+    before_snapshot: Mapped[str | None] = mapped_column(String(4096), nullable=True)
+    after_snapshot: Mapped[str | None] = mapped_column(String(4096), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
-    __table_args__ = (
-        {"sqlite_autoincrement": False},
-    )
+    __table_args__ = ({"sqlite_autoincrement": False},)

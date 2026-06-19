@@ -34,9 +34,7 @@ class RiskScannerService:
 
         # Timebox overdue risk
         if project.last_activity_at is not None:
-            days_inactive = (
-                datetime.now(UTC) - project.last_activity_at
-            ).days
+            days_inactive = (datetime.now(UTC) - project.last_activity_at).days
             if days_inactive > 7:
                 alerts.append(
                     RiskAlert(
@@ -71,9 +69,7 @@ class RiskScannerService:
 
         return alerts
 
-    async def scan_application(
-        self, projects: list[Project]
-    ) -> list[RiskAlert]:
+    async def scan_application(self, projects: list[Project]) -> list[RiskAlert]:
         """Scan multiple projects and return aggregated alerts."""
         all_alerts: list[RiskAlert] = []
         for proj in projects:

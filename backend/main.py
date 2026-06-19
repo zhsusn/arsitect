@@ -42,7 +42,10 @@ async def _c4_sync_loop() -> None:
             async with AsyncSessionLocal() as db:
                 store = C4BaselineStore(db)
                 for baseline_dir in changes_dir.iterdir():
-                    if baseline_dir.is_dir() and (baseline_dir / "baseline" / "_c4-registry.yaml").exists():
+                    if (
+                        baseline_dir.is_dir()
+                        and (baseline_dir / "baseline" / "_c4-registry.yaml").exists()
+                    ):
                         await store.sync_from_filesystem(baseline_dir.name)
         except asyncio.CancelledError:
             break

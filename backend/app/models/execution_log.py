@@ -21,9 +21,7 @@ class ExecutionLog(Base):
         nullable=False,
     )
     log_anchor: Mapped[str] = mapped_column(String(32), nullable=False)
-    timestamp: Mapped[datetime] = mapped_column(
-        nullable=False, default=datetime.utcnow
-    )
+    timestamp: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
     level: Mapped[str] = mapped_column(String(8), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
 

@@ -146,7 +146,9 @@ class C4Analyzer:
 
         if effective_orphans:
             severity = "WARNING" if level in ("L2", "L4") else "INFO"
-            level_name = {"L1": "系统上下文", "L2": "容器", "L3": "组件", "L4": "代码"}.get(level, level)
+            level_name = {"L1": "系统上下文", "L2": "容器", "L3": "组件", "L4": "代码"}.get(
+                level, level
+            )
             issues.append(
                 AnalysisIssue(
                     rule_id="C4-ORPHAN-001",
@@ -291,7 +293,7 @@ class C4Analyzer:
 
         if len(components) > 1:
             comp_descs = [
-                f"子图 {i+1} ({len(c)} 节点: {', '.join(sorted(c)[:3])}{'...' if len(c) > 3 else ''})"
+                f"子图 {i + 1} ({len(c)} 节点: {', '.join(sorted(c)[:3])}{'...' if len(c) > 3 else ''})"
                 for i, c in enumerate(components)
             ]
             issues.append(

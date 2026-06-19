@@ -64,9 +64,7 @@ class TestC4BindingRegistry:
             relation_type="locates_at",
         )
 
-        bindings = await registry.query_by_artifact(
-            proj.project_id, "src/services/order.py"
-        )
+        bindings = await registry.query_by_artifact(proj.project_id, "src/services/order.py")
         assert len(bindings) == 1
         assert bindings[0].c4_node_id == "OrderService"
 
@@ -137,9 +135,7 @@ class TestC4BindingRegistry:
             relation_type="locates_at",
         )
 
-        deleted = await registry.delete_bindings_by_node(
-            proj.project_id, "ToDelete"
-        )
+        deleted = await registry.delete_bindings_by_node(proj.project_id, "ToDelete")
         assert deleted == 1
 
         remaining = await registry.query_by_c4_node(proj.project_id, "ToDelete")

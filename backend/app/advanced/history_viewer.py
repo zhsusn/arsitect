@@ -52,9 +52,7 @@ class HistoryViewer:
         """Initialize with database session."""
         self._session = session
 
-    async def get_project_timeline(
-        self, project_id: str
-    ) -> ProjectTimeline | None:
+    async def get_project_timeline(self, project_id: str) -> ProjectTimeline | None:
         """Return project timeline with stage aggregates."""
         project = await self._session.get(Project, project_id)
         if project is None:
@@ -90,9 +88,7 @@ class HistoryViewer:
             skill_records=records,
         )
 
-    async def get_rework_heatmap(
-        self, project_id: str
-    ) -> dict[str, dict[str, Any]]:
+    async def get_rework_heatmap(self, project_id: str) -> dict[str, dict[str, Any]]:
         """Return rework heatmap keyed by phase.skill_id."""
         timeline = await self.get_project_timeline(project_id)
         if timeline is None:
@@ -110,9 +106,7 @@ class HistoryViewer:
             }
         return heatmap
 
-    async def list_completed_projects(
-        self, limit: int = 20
-    ) -> list[dict[str, Any]]:
+    async def list_completed_projects(self, limit: int = 20) -> list[dict[str, Any]]:
         """List archived/completed projects."""
         result = await self._session.execute(
             select(Project)
@@ -124,16 +118,12 @@ class HistoryViewer:
             {
                 "id": p.project_id,
                 "name": p.project_name,
-                "completed_at": (
-                    p.updated_at.isoformat() if p.updated_at else None
-                ),
+                "completed_at": (p.updated_at.isoformat() if p.updated_at else None),
             }
             for p in result.scalars().all()
         ]
 
-    async def get_application_summary(
-        self, application_id: str
-    ) -> dict[str, int]:
+    async def get_application_summary(self, application_id: str) -> dict[str, int]:
         """Return summary stats for an application."""
         total_result = await self._session.execute(
             select(func.count())
@@ -186,9 +176,7 @@ class HistoryViewer:
                     "name": phase_name,
                     "skill_count": len(phase_records),
                     "total_duration_ms": total,
-                    "avg_duration_ms": (
-                        total / len(durations) if durations else 0
-                    ),
+                    "avg_duration_ms": (total / len(durations) if durations else 0),
                     "success_rate": (
                         len([r for r in phase_records if r.status == "completed"])
                         / len(phase_records)
@@ -200,11 +188,7 @@ class HistoryViewer:
                         default=None,
                     ),
                     "end": max(
-                        (
-                            r.completed_at
-                            for r in phase_records
-                            if r.completed_at
-                        ),
+                        (r.completed_at for r in phase_records if r.completed_at),
                         default=None,
                     ),
                 }

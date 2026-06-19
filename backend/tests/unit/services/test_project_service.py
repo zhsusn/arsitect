@@ -3,16 +3,28 @@
 from __future__ import annotations
 
 import pytest
+import pytest_asyncio
 from sqlalchemy import text
 
 from app.core.exceptions import ConflictError
 from app.infrastructure.database.session import AsyncSessionLocal
 from app.models.application import Application
+from app.models.project_path_config import ProjectPathConfig
+from app.models.stage_skill_binding import StageSkillBinding
 from app.services.project_service import ProjectService
 
 
 class TestProjectService:
     """ProjectService tests."""
+
+    @pytest_asyncio.fixture
+    async def seeded_templates(self) -> None:
+        """Seed built-in templates and stages."""
+        from app.core.seed import _seed_templates_and_stages
+
+        async with AsyncSessionLocal() as session:
+            await _seed_templates_and_stages(session)
+            await session.commit()
 
     @pytest.fixture
     async def seeded_app(self) -> Application:
@@ -163,3 +175,119 @@ class TestProjectService:
             await svc.activate_project(created.project_id)
             cancelled = await svc.cancel_project(created.project_id)
             assert cancelled.project_status == "Cancelled"
+
+    @pytest.mark.asyncio
+    async def test_create_project_initializes_path_config(
+        self, seeded_app: Application, seeded_templates: None
+    ) -> None:
+        """Creating a project persists project_path_config from the template."""
+        async with AsyncSessionLocal() as session:
+            svc = ProjectService(session)
+            created = await svc.create_project(
+                project_id="proj-svc-path",
+                project_name="Path Config Project",
+                application_id=seeded_app.application_id,
+                template_level="Standard",
+            )
+            assert created.execution_strategy == "semi_auto"
+            assert created.merge_policy_json is not None
+
+            from sqlalchemy import select
+
+            path_config_result = await session.execute(
+                select(ProjectPathConfig).where(
+                    ProjectPathConfig.project_id == created.project_id
+                )
+            )
+            path_config = path_config_result.scalar_one_or_none()
+            assert path_config is not None
+            assert path_config.template_level == "Standard"
+            assert path_config.execution_strategy == "semi_auto"
+
+    @pytest.mark.asyncio
+    async def test_create_project_initializes_skill_bindings(
+        self, seeded_app: Application, seeded_templates: None
+    ) -> None:
+        """Creating a project creates stage skill binding snapshots."""
+        async with AsyncSessionLocal() as session:
+            svc = ProjectService(session)
+            created = await svc.create_project(
+                project_id="proj-svc-bind",
+                project_name="Skill Binding Project",
+                application_id=seeded_app.application_id,
+                template_level="Standard",
+            )
+
+            from sqlalchemy import select
+
+            from app.models.project_stage import ProjectStage
+
+            stage_result = await session.execute(
+                select(ProjectStage).where(ProjectStage.project_id == created.project_id)
+            )
+            stages = list(stage_result.scalars().all())
+            assert len(stages) > 0
+
+            binding_result = await session.execute(
+                select(StageSkillBinding).where(
+                    StageSkillBinding.project_stage_id.in_(
+                        [s.project_stage_id for s in stages]
+                    )
+                )
+            )
+            bindings = list(binding_result.scalars().all())
+            assert len(bindings) > 0
+            primary_bindings = [b for b in bindings if b.role == "primary"]
+            assert len(primary_bindings) > 0
+            auxiliary_bindings = [b for b in bindings if b.role == "auxiliary"]
+            assert len(auxiliary_bindings) > 0
+
+    @pytest.mark.asyncio
+    async def test_update_execution_strategy(
+        self, seeded_app: Application, seeded_templates: None
+    ) -> None:
+        """Project execution strategy can be updated and cascades to pending stages."""
+        from sqlalchemy import select
+
+        from app.models.project_stage import ProjectStage
+
+        async with AsyncSessionLocal() as session:
+            svc = ProjectService(session)
+            created = await svc.create_project(
+                project_id="proj-svc-strat",
+                project_name="Strategy Project",
+                application_id=seeded_app.application_id,
+                template_level="Standard",
+            )
+            assert created.execution_strategy == "semi_auto"
+
+            result = await svc.update_execution_strategy(
+                created.project_id,
+                execution_strategy="full_auto",
+                reason=" smoke test",
+            )
+            assert result["execution_strategy"] == "full_auto"
+
+            updated = await svc.get_project(created.project_id)
+            assert updated.execution_strategy == "full_auto"
+
+            from sqlalchemy import select
+
+            path_config_result = await session.execute(
+                select(ProjectPathConfig).where(
+                    ProjectPathConfig.project_id == created.project_id
+                )
+            )
+            path_config = path_config_result.scalar_one_or_none()
+            assert path_config is not None
+            assert path_config.execution_strategy == "full_auto"
+
+            stage_result = await session.execute(
+                select(ProjectStage).where(
+                    ProjectStage.project_id == created.project_id,
+                    ProjectStage.runtime_status.in_({"not_started", "ready", "blocked"}),
+                )
+            )
+            stages = list(stage_result.scalars().all())
+            assert len(stages) > 0
+            assert all(s.execution_strategy == "full_auto" for s in stages)

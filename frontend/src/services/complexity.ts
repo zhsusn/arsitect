@@ -46,6 +46,16 @@ export interface ComplexityTemplate {
   description: string
   stage_count: number
   estimated_skill_count: number
+  default_execution_strategy?: string | null
+  merge_policy_json?: {
+    groups?: Array<{
+      group_id: string
+      label: string
+      business_stage_keys: string[]
+      gate_at_end?: boolean
+      auto_advance?: boolean
+    }>
+  } | null
 }
 
 export interface PathDecision {

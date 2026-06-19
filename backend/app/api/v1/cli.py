@@ -85,9 +85,7 @@ async def get_cli_session_history(
     """Get recent messages for a CLI session."""
     svc = CliService(db)
     messages = await svc.list_messages(session_id, limit=limit)
-    return CliMessageListResponse(
-        data=[CliMessageResponse.model_validate(m) for m in messages]
-    )
+    return CliMessageListResponse(data=[CliMessageResponse.model_validate(m) for m in messages])
 
 
 @router.post(
@@ -148,9 +146,7 @@ async def list_bug_records(
     stmt = stmt.order_by(BugRecord.created_at.desc()).limit(limit)
     result = await db.execute(stmt)
     bugs = result.scalars().all()
-    return BugRecordListResponse(
-        data=[BugRecordResponse.model_validate(b) for b in bugs]
-    )
+    return BugRecordListResponse(data=[BugRecordResponse.model_validate(b) for b in bugs])
 
 
 @router.get("/bugs/{bug_id}", response_model=BugRecordResponse)
@@ -210,9 +206,7 @@ async def list_arch_issues(
     """List architecture issues for a project."""
     svc = ArchGovernanceService(db)
     issues = await svc.list_issues(project_id, status=status, severity=severity)
-    return ArchIssueListResponse(
-        data=[ArchIssueResponse.model_validate(i) for i in issues]
-    )
+    return ArchIssueListResponse(data=[ArchIssueResponse.model_validate(i) for i in issues])
 
 
 @router.get("/arch/issues/{issue_id}", response_model=ArchIssueResponse)
@@ -290,7 +284,7 @@ async def cli_websocket(
     await websocket.accept()
     cli_svc = CliService(db)
 
-    def sender(data: dict[str, Any]) -> Awaitable[None]:
+    def sender(data: dict[str, Any]) -> Awaitable[bool]:
         return _safe_send(websocket, data)
 
     try:
@@ -352,13 +346,13 @@ async def cli_websocket(
             if request.type in {"command", "input"}:
                 text = request.payload.text or request.payload.command or ""
                 metadata = request.payload.metadata or {}
-                print(f"[CLI WS] received type={request.type} text={text!r} metadata_keys={list(metadata.keys())}")
+                print(
+                    f"[CLI WS] received type={request.type} text={text!r} metadata_keys={list(metadata.keys())}"
+                )
                 if not text:
                     await _safe_send(
                         websocket,
-                        _error_response(
-                            session_id, "EMPTY_INPUT", "请输入内容"
-                        ).model_dump(),
+                        _error_response(session_id, "EMPTY_INPUT", "请输入内容").model_dump(),
                     )
                     continue
                 await cli_svc.add_message(
@@ -382,9 +376,7 @@ async def cli_websocket(
     except Exception as exc:
         await _safe_send(
             websocket,
-            _error_response(
-                session_id, "INTERNAL_ERROR", f"Unexpected error: {exc}"
-            ).model_dump(),
+            _error_response(session_id, "INTERNAL_ERROR", f"Unexpected error: {exc}").model_dump(),
         )
         with suppress(Exception):
             await websocket.close()
@@ -408,6 +400,7 @@ async def _handle_command(
         db: SQLAlchemy async session.
         payload: Optional parsed request payload for structured commands.
     """
+
     async def safe_sender(data: dict[str, Any]) -> None:
         await _safe_send(websocket, data)
 
@@ -465,7 +458,9 @@ async def _handle_command(
             project_id = metadata.get("project_id", "project-mvp")
             plans = plan.get("plans", []) if isinstance(plan, dict) else []
             total_changes = sum(len(p.get("changes", [])) for p in plans)
-            print(f"[CLI CMD] apply_arch_fix_plan project_id={project_id} total_changes={total_changes}")
+            print(
+                f"[CLI CMD] apply_arch_fix_plan project_id={project_id} total_changes={total_changes}"
+            )
             arch_svc = ArchGovernanceService(db)
             try:
                 await arch_svc.apply_fix_plan(
@@ -478,9 +473,7 @@ async def _handle_command(
                 print(f"[CLI CMD] apply_arch_fix_plan failed: {exc}")
                 await _safe_send(
                     websocket,
-                    _error_response(
-                        session_id, "APPLY_FIX_PLAN_FAILED", str(exc)
-                    ).model_dump(),
+                    _error_response(session_id, "APPLY_FIX_PLAN_FAILED", str(exc)).model_dump(),
                 )
         else:
             await _safe_send(
@@ -560,9 +553,7 @@ def _text_response(session_id: str, text: str) -> CliResponse:
     )
 
 
-def _error_response(
-    session_id: str, code: str, message: str
-) -> CliResponse:
+def _error_response(session_id: str, code: str, message: str) -> CliResponse:
     """Build an error CLI response.
 
     Args:

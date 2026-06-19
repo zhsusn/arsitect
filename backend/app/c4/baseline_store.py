@@ -152,45 +152,55 @@ class C4BaselineStore:
                 workspace.actors.append({"id": eid, "name": info.get("name", eid)})
 
             for eid, info in registry.get("containers", {}).items():
-                workspace.containers.append({
-                    "id": eid,
-                    "name": info.get("name", eid),
-                    "technology": ", ".join(info.get("aliases", [])),
-                })
+                workspace.containers.append(
+                    {
+                        "id": eid,
+                        "name": info.get("name", eid),
+                        "technology": ", ".join(info.get("aliases", [])),
+                    }
+                )
 
             for eid, info in registry.get("components", {}).items():
-                workspace.components.append({
-                    "id": eid,
-                    "name": info.get("name", eid),
-                    "properties": {
-                        "container_id": info.get("container_id", "default"),
-                        "intentional_orphan": bool(info.get("intentional_orphan", False)),
-                    },
-                })
+                workspace.components.append(
+                    {
+                        "id": eid,
+                        "name": info.get("name", eid),
+                        "properties": {
+                            "container_id": info.get("container_id", "default"),
+                            "intentional_orphan": bool(info.get("intentional_orphan", False)),
+                        },
+                    }
+                )
 
             for iface in registry.get("interfaces", []):
-                workspace.interfaces.append({
-                    "id": iface["id"],
-                    "name": f"{iface['method']} {iface['path']}",
-                    "properties": {"method": iface["method"], "path": iface["path"]},
-                })
+                workspace.interfaces.append(
+                    {
+                        "id": iface["id"],
+                        "name": f"{iface['method']} {iface['path']}",
+                        "properties": {"method": iface["method"], "path": iface["path"]},
+                    }
+                )
 
             # System → container containment
             if workspace.system:
                 for c in workspace.containers:
-                    workspace.relationships.append({
-                        "source": workspace.system["id"],
-                        "target": c["id"],
-                        "description": "contains",
-                    })
+                    workspace.relationships.append(
+                        {
+                            "source": workspace.system["id"],
+                            "target": c["id"],
+                            "description": "contains",
+                        }
+                    )
 
             # Relationships from registry
             for rel in registry.get("relationships", []):
-                workspace.relationships.append({
-                    "source": rel.get("source", ""),
-                    "target": rel.get("target", ""),
-                    "description": rel.get("description", ""),
-                })
+                workspace.relationships.append(
+                    {
+                        "source": rel.get("source", ""),
+                        "target": rel.get("target", ""),
+                        "description": rel.get("description", ""),
+                    }
+                )
 
             assembler = C4Assembler()
             dsl_content = assembler.serialize_to_yaml(workspace)
@@ -234,9 +244,7 @@ class C4BaselineStore:
         )
         return [self._to_dto(b) for b in result.scalars().all()]
 
-    async def diff(
-        self, project_id: str, version1: str, version2: str
-    ) -> dict[str, Any]:
+    async def diff(self, project_id: str, version1: str, version2: str) -> dict[str, Any]:
         b1 = await self.read_version(project_id, version1)
         b2 = await self.read_version(project_id, version2)
         if not b1 or not b2:
@@ -253,9 +261,7 @@ class C4BaselineStore:
 
     async def rollback(self, project_id: str, version: str) -> str:
         await self.db.execute(
-            update(C4Baseline)
-            .where(C4Baseline.project_id == project_id)
-            .values(is_current=False)
+            update(C4Baseline).where(C4Baseline.project_id == project_id).values(is_current=False)
         )
         result = await self.db.execute(
             update(C4Baseline)
@@ -263,7 +269,7 @@ class C4BaselineStore:
             .where(C4Baseline.version == version)
             .values(is_current=True)
         )
-        if result.rowcount == 0:
+        if getattr(result, "rowcount", 0) == 0:
             raise ValueError(f"Version {version} not found")
         return version
 

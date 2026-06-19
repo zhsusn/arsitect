@@ -35,9 +35,7 @@ async def create_annotation(
     if stage_id is None:
         from app.core.exceptions import BadRequestError
 
-        raise BadRequestError(
-            detail=f"No project stage found for project '{dto.project_id}'"
-        )
+        raise BadRequestError(detail=f"No project stage found for project '{dto.project_id}'")
 
     svc = AnnotationService(db)
     ann = await svc.create(
@@ -55,5 +53,5 @@ async def create_annotation(
         content=ann.content,
         annotation_type=ann.annotation_type,
         status=ann.status,
-        created_at=ann.created_at,
+        created_at=None,
     )

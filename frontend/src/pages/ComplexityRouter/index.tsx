@@ -10,7 +10,7 @@ import {
   type ComplexityTemplate,
   type PathDecision,
 } from '../../services/complexity'
-import { fetchTemplateDetail, type TemplateStage } from '../../services/template'
+import { fetchTemplateDetail, type Template, type TemplateStage } from '../../services/template'
 import DowngradeModal from './components/DowngradeModal'
 import DecisionPanel from './components/DecisionPanel'
 
@@ -26,6 +26,31 @@ const LEVEL_BADGES: Record<string, { text: string; color: string; bg: string }> 
   Light: { text: 'M', color: '#0369a1', bg: '#e0f2fe' },
   Standard: { text: 'L', color: '#7c3aed', bg: '#ede9fe' },
   Deep: { text: 'XL', color: '#be123c', bg: '#ffe4e6' },
+}
+
+function strategyLabel(strategy?: string | null): string {
+  switch (strategy) {
+    case 'full_auto':
+      return '全自动'
+    case 'full_manual':
+      return '全人工'
+    case 'semi_auto':
+    default:
+      return '半自动'
+  }
+}
+
+function deriveDefaultStrategy(level: string): string {
+  switch (level) {
+    case 'Trivial':
+    case 'Light':
+      return 'full_auto'
+    case 'Deep':
+      return 'full_manual'
+    case 'Standard':
+    default:
+      return 'semi_auto'
+  }
 }
 
 export default function ComplexityRouter() {
@@ -46,10 +71,12 @@ export default function ComplexityRouter() {
 
   const [templates, setTemplates] = useState<ComplexityTemplate[]>([])
   const [templateStages, setTemplateStages] = useState<Record<string, TemplateStage[]>>({})
+  const [templateDetails, setTemplateDetails] = useState<Record<string, Template>>({})
   const [stagesLoading, setStagesLoading] = useState(false)
 
   const [selectedPathKey, setSelectedPathKey] = useState<string | null>(null)
   const [appliedPathKey, setAppliedPathKey] = useState<string | null>(null)
+  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null)
 
   const [showDowngradeModal, setShowDowngradeModal] = useState(false)
   const [pendingPathKey, setPendingPathKey] = useState<string | null>(null)
@@ -75,6 +102,7 @@ export default function ComplexityRouter() {
               seen.add(key)
               return true
             })
+            setTemplateDetails((prev) => ({ ...prev, [level]: d.template }))
             return [level, unique] as const
           })
           .catch(() => [level, []] as const),
@@ -121,6 +149,9 @@ export default function ComplexityRouter() {
       const rec = data.complexity_level
       setSelectedPathKey(rec)
       setAppliedPathKey(rec)
+      setSelectedStrategy(
+        templateDetails[rec]?.default_execution_strategy || deriveDefaultStrategy(rec),
+      )
     } catch (err: unknown) {
       setAssessError(err instanceof Error ? err.message : '评估失败')
     } finally {
@@ -141,6 +172,9 @@ export default function ComplexityRouter() {
     }
     setSelectedPathKey(pathKey)
     setAppliedPathKey(pathKey)
+    setSelectedStrategy(
+      templateDetails[pathKey]?.default_execution_strategy || deriveDefaultStrategy(pathKey),
+    )
     setMismatchDismissed(false)
   }
 
@@ -159,6 +193,10 @@ export default function ComplexityRouter() {
     }
     setSelectedPathKey(pendingPathKey)
     setAppliedPathKey(pendingPathKey)
+    setSelectedStrategy(
+      templateDetails[pendingPathKey]?.default_execution_strategy ||
+        deriveDefaultStrategy(pendingPathKey),
+    )
     setShowDowngradeModal(false)
     setPendingPathKey(null)
     setMismatchDismissed(false)
@@ -367,12 +405,21 @@ export default function ComplexityRouter() {
             {(['Deep', 'Standard', 'Light', 'Trivial'] as const).map((key) => {
               const meta = PATH_META[key]
               const tpl = templates.find((t) => t.level === key)
+              const tplDetail = templateDetails[key]
               const isRecommended = recommendedPathKey === key
               const isSelected = selectedPathKey === key
               const isApplied = appliedPathKey === key
               const stages = templateStages[key] || []
               const baselineNames = baselineStages.map((s) => s.stage_name)
               const stageNames = new Set(stages.map((s) => s.stage_name))
+              const mergeGroups = tplDetail?.merge_policy_json?.groups || []
+              const mergedStageCount = mergeGroups.reduce(
+                (sum, g) => sum + (g.business_stage_keys?.length || 0),
+                0,
+              )
+              const mergeText = mergeGroups.length
+                ? `合并策略：${mergeGroups.length} 组合并 ${mergedStageCount} 个阶段`
+                : '合并策略：无合并'
 
               return (
                 <div
@@ -404,10 +451,14 @@ export default function ComplexityRouter() {
                     {meta.name}
                   </div>
                   <div className="text-xs text-gray-500 mb-3">{meta.scenario}</div>
-                  <div className="flex gap-3 text-xs text-gray-500 mb-3">
+                  <div className="flex gap-3 text-xs text-gray-500 mb-2">
                     <span>{tpl?.stage_count ?? '-'} 个阶段</span>
                     <span>预计 {meta.hours}</span>
                   </div>
+                  <div className="text-xs text-gray-600 mb-1">
+                    执行策略：{strategyLabel(tplDetail?.default_execution_strategy)}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3">{mergeText}</div>
                   <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                     {baselineNames.length === 0 ? (
                       <div className="text-xs text-gray-400">暂无阶段数据</div>
@@ -433,6 +484,20 @@ export default function ComplexityRouter() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {selectedPathKey && (
+          <div className="mt-4 text-sm text-gray-700">
+            已选路径：
+            <strong className="text-gray-900">
+              {PATH_META[selectedPathKey]?.name || selectedPathKey}
+            </strong>
+            <span className="mx-2 text-gray-400">|</span>
+            推荐执行策略：
+            <span className="font-medium text-blue-700">
+              {strategyLabel(selectedStrategy)}
+            </span>
           </div>
         )}
       </section>

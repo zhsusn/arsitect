@@ -100,6 +100,7 @@ class DAGEditorService:
 
     async def delete_node(self, node: SkillDAGNode) -> None:
         """Delete a node and cascade edges."""
+
         async def do() -> None:
             await self._session.delete(node)
 

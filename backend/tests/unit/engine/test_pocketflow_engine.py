@@ -62,13 +62,9 @@ class TestKimiCLIAdapter:
         """Timeout triggers SIGTERM then SIGKILL."""
         adapter = KimiCLIAdapter()
         mock_process = AsyncMock()
-        mock_process.communicate = AsyncMock(
-            side_effect=asyncio.TimeoutError
-        )
+        mock_process.communicate = AsyncMock(side_effect=asyncio.TimeoutError)
         # First wait after terminate times out, then kill succeeds
-        mock_process.wait = AsyncMock(
-            side_effect=[asyncio.TimeoutError, None]
-        )
+        mock_process.wait = AsyncMock(side_effect=[asyncio.TimeoutError, None])
 
         monkeypatch.setattr(
             asyncio,

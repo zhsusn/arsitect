@@ -149,9 +149,7 @@ class C4Renderer:
                 edge_count += 1
 
         lines.append("  end")
-        return MermaidOutput(
-            "\n".join(lines), "L2", len(ws.containers), edge_count
-        )
+        return MermaidOutput("\n".join(lines), "L2", len(ws.containers), edge_count)
 
     def _render_l3(
         self,
@@ -199,30 +197,22 @@ class C4Renderer:
                         row_comps = comps[ridx : ridx + grid_cols]
                         start_idx = ridx + 1
                         end_idx = min(ridx + grid_cols, len(comps))
-                        lines.append(
-                            f'    subgraph {row_id} ["{cid} ({start_idx}~{end_idx})"]'
-                        )
+                        lines.append(f'    subgraph {row_id} ["{cid} ({start_idx}~{end_idx})"]')
                         lines.append("      direction LR")
                         for comp in row_comps:
                             comp_id = _mermaid_id(comp["id"])
-                            lines.append(
-                                f'        {comp_id}["{comp.get("name", comp["id"])}"]'
-                            )
+                            lines.append(f'        {comp_id}["{comp.get("name", comp["id"])}"]')
                         lines.append("    end")
                 else:
                     lines.append("    direction LR")
                     for comp in comps:
                         comp_id = _mermaid_id(comp["id"])
-                        lines.append(
-                            f'    {comp_id}["{comp.get("name", comp["id"])}"]'
-                        )
+                        lines.append(f'    {comp_id}["{comp.get("name", comp["id"])}"]')
                 lines.append("  end")
                 visible_nodes += len(comps)
             else:
                 hub_id = f"{safe_cid}_hub"
-                lines.append(
-                    f'  {hub_id}["{cid}<br/>({len(comps)} components)"]'
-                )
+                lines.append(f'  {hub_id}["{cid}<br/>({len(comps)} components)"]')
                 visible_nodes += 1
 
         # Build component -> container mapping for visible components only
@@ -254,46 +244,28 @@ class C4Renderer:
                 # Intra-container relationship
                 if src_expanded:
                     if desc:
-                        lines.append(
-                            f'  {_mermaid_id(src)} -->|"{desc}"| {_mermaid_id(dst)}'
-                        )
+                        lines.append(f'  {_mermaid_id(src)} -->|"{desc}"| {_mermaid_id(dst)}')
                     else:
-                        lines.append(
-                            f"  {_mermaid_id(src)} --> {_mermaid_id(dst)}"
-                        )
+                        lines.append(f"  {_mermaid_id(src)} --> {_mermaid_id(dst)}")
                     edge_count += 1
             else:
                 # Cross-container relationship
                 if src_expanded and dst_expanded:
                     if desc:
-                        lines.append(
-                            f'  {_mermaid_id(src)} -->|"{desc}"| {_mermaid_id(dst)}'
-                        )
+                        lines.append(f'  {_mermaid_id(src)} -->|"{desc}"| {_mermaid_id(dst)}')
                     else:
-                        lines.append(
-                            f"  {_mermaid_id(src)} --> {_mermaid_id(dst)}"
-                        )
+                        lines.append(f"  {_mermaid_id(src)} --> {_mermaid_id(dst)}")
                     edge_count += 1
                 else:
-                    src_node = (
-                        _mermaid_id(src)
-                        if src_expanded
-                        else f"{_mermaid_id(src_cid)}_hub"
-                    )
-                    dst_node = (
-                        _mermaid_id(dst)
-                        if dst_expanded
-                        else f"{_mermaid_id(dst_cid)}_hub"
-                    )
+                    src_node = _mermaid_id(src) if src_expanded else f"{_mermaid_id(src_cid)}_hub"
+                    dst_node = _mermaid_id(dst) if dst_expanded else f"{_mermaid_id(dst_cid)}_hub"
                     edge_key = (src_node, dst_node)
                     if edge_key not in seen_hub_edges:
                         seen_hub_edges.add(edge_key)
                         lines.append(f"  {src_node} --> {dst_node}")
                         edge_count += 1
 
-        return MermaidOutput(
-            "\n".join(lines), "L3", visible_nodes, edge_count
-        )
+        return MermaidOutput("\n".join(lines), "L3", visible_nodes, edge_count)
 
     def _render_l4(self, ws: C4Workspace) -> MermaidOutput:
         if not ws.code_elements:
@@ -317,20 +289,25 @@ class C4Renderer:
                 elem_id = _mermaid_id(elem["id"])
                 elem_name = elem.get("name", elem["id"])
                 elem_type = elem.get("type", "Code")
-                lines.append(
-                    f'    {elem_id}["{elem_name}<br/>[{elem_type}]"]'
-                )
+                lines.append(f'    {elem_id}["{elem_name}<br/>[{elem_type}]"]')
             lines.append("  end")
 
-        return MermaidOutput(
-            "\n".join(lines), "L4", len(ws.code_elements), 0
-        )
+        return MermaidOutput("\n".join(lines), "L4", len(ws.code_elements), 0)
 
 
 def _mermaid_id(raw: str) -> str:
     import re
 
     text = re.sub(r"[^a-zA-Z0-9_]", "_", raw)
-    if text in ("default", "graph", "subgraph", "end", "direction", "style", "classDef", "linkStyle"):
+    if text in (
+        "default",
+        "graph",
+        "subgraph",
+        "end",
+        "direction",
+        "style",
+        "classDef",
+        "linkStyle",
+    ):
         text = f"_{text}"
     return text

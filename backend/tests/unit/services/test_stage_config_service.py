@@ -136,3 +136,23 @@ class TestStageConfigService:
             stages = await svc.get_stage_sequence("Standard")
             order_indices = [s.order_index for s in stages]
             assert order_indices == sorted(order_indices)
+
+    @pytest.mark.asyncio
+    async def test_update_execution_strategy(self, seeded_template: Template) -> None:
+        """Template default execution strategy can be updated."""
+        async with AsyncSessionLocal() as session:
+            svc = StageConfigService(session)
+            updated = await svc.update_execution_strategy("Standard", "full_auto")
+            assert updated.default_execution_strategy == "full_auto"
+            refreshed = await svc.get_template_detail("Standard")
+            assert refreshed["template"].default_execution_strategy == "full_auto"
+
+    @pytest.mark.asyncio
+    async def test_update_execution_strategy_invalid(self) -> None:
+        """Invalid execution strategy raises ValidationError."""
+        from app.core.exceptions import ValidationError
+
+        async with AsyncSessionLocal() as session:
+            svc = StageConfigService(session)
+            with pytest.raises(ValidationError):
+                await svc.update_execution_strategy("Standard", "invalid")

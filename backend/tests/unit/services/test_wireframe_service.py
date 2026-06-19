@@ -85,12 +85,8 @@ class TestWireframeService:
     async def test_update_wireframe(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="upd")
         svc = WireframeService(db_session)
-        wf = await svc.create_wireframe(
-            project_id=proj.project_id, name="Old", status="DRAFT"
-        )
-        updated = await svc.update_wireframe(
-            wf.wireframe_id, {"name": "New", "status": "ACTIVE"}
-        )
+        wf = await svc.create_wireframe(project_id=proj.project_id, name="Old", status="DRAFT")
+        updated = await svc.update_wireframe(wf.wireframe_id, {"name": "New", "status": "ACTIVE"})
         assert updated.name == "New"
         assert updated.status == "ACTIVE"
 
@@ -98,9 +94,7 @@ class TestWireframeService:
     async def test_delete_wireframe(self, db_session) -> None:
         proj = await self._seed_project(db_session, suffix="del")
         svc = WireframeService(db_session)
-        wf = await svc.create_wireframe(
-            project_id=proj.project_id, name="ToDel", status="DRAFT"
-        )
+        wf = await svc.create_wireframe(project_id=proj.project_id, name="ToDel", status="DRAFT")
         await svc.delete_wireframe(wf.wireframe_id)
         with pytest.raises(NotFoundError):
             await svc.get_wireframe(wf.wireframe_id)

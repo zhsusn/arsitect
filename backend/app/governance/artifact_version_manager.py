@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
-from git import Repo
+from git import Actor, Repo
 
 from app.common.project_context import ProjectContext
 
@@ -56,14 +56,12 @@ class GitAdapter:
         repo = GitAdapter._repo(repo_path)
         repo.git.add(file_path)
         if repo.is_dirty() or repo.untracked_files:
-            commit = repo.index.commit(message, author=author)
+            commit = repo.index.commit(message, author=Actor(name=author, email=""))
             return str(commit.hexsha)
         return ""
 
     @staticmethod
-    def get_file_history(
-        repo_path: str, file_path: str, limit: int = 20
-    ) -> list[dict[str, Any]]:
+    def get_file_history(repo_path: str, file_path: str, limit: int = 20) -> list[dict[str, Any]]:
         """Return commit history for a file."""
         repo = GitAdapter._repo(repo_path)
         commits = list(repo.iter_commits(paths=file_path, max_count=limit))
@@ -72,9 +70,7 @@ class GitAdapter:
                 "hash": c.hexsha[:8],
                 "message": c.message.strip(),
                 "author": str(c.author),
-                "date": datetime.fromtimestamp(
-                    c.committed_date, tz=UTC
-                ),
+                "date": datetime.fromtimestamp(c.committed_date, tz=UTC),
                 "files": list(c.stats.files.keys()),
             }
             for c in commits
@@ -89,12 +85,10 @@ class GitAdapter:
     ) -> str:
         """Return textual diff for a file between two commits."""
         repo = GitAdapter._repo(repo_path)
-        return repo.git.diff(f"{old_commit}..{new_commit}", "--", file_path)
+        return cast(str, repo.git.diff(f"{old_commit}..{new_commit}", "--", file_path))
 
     @staticmethod
-    def checkout_file(
-        repo_path: str, file_path: str, commit_hash: str
-    ) -> bool:
+    def checkout_file(repo_path: str, file_path: str, commit_hash: str) -> bool:
         """Restore a file to a specific commit."""
         repo = GitAdapter._repo(repo_path)
         try:
@@ -140,9 +134,7 @@ class ArtifactVersionManager:
             author=author,
         )
 
-    async def get_history(
-        self, relative_path: str, limit: int = 20
-    ) -> list[VersionRecord]:
+    async def get_history(self, relative_path: str, limit: int = 20) -> list[VersionRecord]:
         """Return version history for an artifact."""
         full_path = self.ctx.artifacts_dir / relative_path
         commits = self.git.get_file_history(
@@ -161,9 +153,7 @@ class ArtifactVersionManager:
             for c in commits
         ]
 
-    async def diff(
-        self, relative_path: str, old_commit: str, new_commit: str
-    ) -> DiffResult:
+    async def diff(self, relative_path: str, old_commit: str, new_commit: str) -> DiffResult:
         """Diff an artifact between two commits."""
         diff_text = self.git.diff_commits(
             repo_path=str(self.ctx.project_dir),
@@ -181,9 +171,7 @@ class ArtifactVersionManager:
             removed_lines=removed,
         )
 
-    async def rollback(
-        self, relative_path: str, commit_hash: str
-    ) -> bool:
+    async def rollback(self, relative_path: str, commit_hash: str) -> bool:
         """Rollback an artifact to a specific commit."""
         full_path = self.ctx.artifacts_dir / relative_path
         return self.git.checkout_file(

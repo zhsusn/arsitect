@@ -1,1 +1,0 @@
-﻿{"role":"assistant","content":[{"type":"think","think":"The user just said \"hello\". This is a simple greeting. I should respond politely and concisely, asking how I can help them. Since this is a Chinese project, I should respond in Chinese.","encrypted":null},{"type":"text","text":"你好！有什么我可以帮你的吗？"}]}

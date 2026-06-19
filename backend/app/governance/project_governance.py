@@ -154,9 +154,7 @@ class ProjectGovernance:
     # Helpers
     # ============================================================
     async def _get_entity(self, project_id: str) -> Project:
-        result = await self.db.execute(
-            select(Project).where(Project.project_id == project_id)
-        )
+        result = await self.db.execute(select(Project).where(Project.project_id == project_id))
         project = result.scalar_one_or_none()
         if project is None:
             raise ValueError(f"Project not found: {project_id}")
@@ -174,9 +172,7 @@ class ProjectGovernance:
     def _require_state(project: Project, expected: ProjectState) -> None:
         current = ProjectGovernance._current_state(project)
         if current != expected:
-            raise ValueError(
-                f"Expected state {expected.value}, current state is {current.value}"
-            )
+            raise ValueError(f"Expected state {expected.value}, current state is {current.value}")
 
     @staticmethod
     def _normalize_template_level(route: str) -> str:

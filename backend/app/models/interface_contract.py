@@ -27,27 +27,19 @@ class InterfaceContract(Base):
         String(64), nullable=True, comment="所属 C4 Container 标识"
     )
     endpoint_path: Mapped[str] = mapped_column(String(256), nullable=False)
-    method_type: Mapped[str] = mapped_column(
-        String(8), nullable=False, comment="HTTP 方法"
-    )
-    operation_summary: Mapped[str | None] = mapped_column(
-        String(256), nullable=True
-    )
+    method_type: Mapped[str] = mapped_column(String(8), nullable=False, comment="HTTP 方法")
+    operation_summary: Mapped[str | None] = mapped_column(String(256), nullable=True)
     request_schema: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="请求参数结构 JSON"
     )
     response_schema: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="响应结构 JSON"
     )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
     frozen_at: Mapped[datetime | None] = mapped_column(
         nullable=True, comment="冻结时间（Gate 签字后）"
     )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

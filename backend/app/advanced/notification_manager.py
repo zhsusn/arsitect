@@ -138,15 +138,11 @@ class NotificationManager:
 
         return notification
 
-    def register_channel_handler(
-        self, channel: str, handler: NotificationHandler
-    ) -> None:
+    def register_channel_handler(self, channel: str, handler: NotificationHandler) -> None:
         """Register or override a channel handler."""
         self._handlers[channel] = handler
 
-    def get_notifications(
-        self, project_id: str, unread_only: bool = False
-    ) -> list[Notification]:
+    def get_notifications(self, project_id: str, unread_only: bool = False) -> list[Notification]:
         """Return notifications for a project."""
         notifications = self._notifications.get(project_id, [])
         if unread_only:
@@ -170,9 +166,7 @@ class NotificationManager:
                 count += 1
         return count
 
-    async def connect_sse(
-        self, project_id: str, request: Request
-    ) -> StreamingResponse:
+    async def connect_sse(self, project_id: str, request: Request) -> StreamingResponse:
         """Create an SSE stream for a project."""
         queue: asyncio.Queue[str] = asyncio.Queue(maxsize=100)
         self._clients.setdefault(project_id, set()).add(queue)
@@ -224,9 +218,7 @@ class NotificationManager:
         for dq in dead:
             clients.discard(dq)
 
-    def broadcast(
-        self, project_id: str, message_type: str, payload: dict[str, Any]
-    ) -> None:
+    def broadcast(self, project_id: str, message_type: str, payload: dict[str, Any]) -> None:
         """Broadcast a raw message to SSE clients."""
         clients = self._clients.get(project_id)
         if not clients:

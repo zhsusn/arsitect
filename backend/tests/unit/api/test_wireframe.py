@@ -101,7 +101,9 @@ class TestWireframeRouter:
         assert res.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_list_wireframes(self, seeded_project: Project, seeded_wireframe: Wireframe) -> None:
+    async def test_list_wireframes(
+        self, seeded_project: Project, seeded_wireframe: Wireframe
+    ) -> None:
         """TEST-0703: GET lists wireframes (Direct)."""
         async with AsyncSessionLocal() as session:
             result = await list_wireframes(seeded_project.project_id, db=session)

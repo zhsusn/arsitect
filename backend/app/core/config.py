@@ -46,12 +46,8 @@ class Settings(BaseSettings):
     HEALTH_CHECK_INTERVAL_SECONDS: float = Field(
         default=30.0, alias="health_check_interval_seconds"
     )
-    OPENUI_HEALTH_CHECK_ENABLED: bool = Field(
-        default=False, alias="openui_health_check_enabled"
-    )
-    OPENUI_URL: str | None = Field(
-        default=None, alias="openui_url"
-    )
+    OPENUI_HEALTH_CHECK_ENABLED: bool = Field(default=False, alias="openui_health_check_enabled")
+    OPENUI_URL: str | None = Field(default=None, alias="openui_url")
 
     # Governance auto-fix LLM
     GOVERNANCE_LLM_PROVIDER: str = Field(default="kimi", alias="governance_llm_provider")

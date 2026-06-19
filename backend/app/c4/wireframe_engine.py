@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -43,7 +44,7 @@ class WireframeResult:
     svg_content: str
 
 
-PAGE_TYPE_RULES: list[tuple[callable, str, float]] = [  # type: ignore[type-arg]
+PAGE_TYPE_RULES: list[tuple[Callable[[str], bool], str, float]] = [
     (lambda e: "count" in str(e).lower() or "total" in str(e).lower(), "dashboard", 0.8),
     (lambda e: "AggregateRoot" in str(e), "list", 0.9),
     (lambda e: "id" in str(e).lower() and "name" in str(e).lower(), "detail", 0.7),
@@ -51,7 +52,7 @@ PAGE_TYPE_RULES: list[tuple[callable, str, float]] = [  # type: ignore[type-arg]
     (lambda e: "search" in str(e).lower(), "search", 0.9),
 ]
 
-_COLORS = {
+_COLORS: dict[str, Any] = {
     "bg": "white",
     "border": "#333",
     "header": "#e3f2fd",
@@ -77,9 +78,7 @@ class WireframeEngine:
     def __init__(self, baseline_store: C4BaselineStore) -> None:
         self.store = baseline_store
 
-    async def generate(
-        self, project_id: str, module_id: str | None = None
-    ) -> WireframeResult:
+    async def generate(self, project_id: str, module_id: str | None = None) -> WireframeResult:
         entities = await self.store.get_l2_entities(project_id)
         if not entities:
             return WireframeResult([], [], [], "")
@@ -119,9 +118,7 @@ class WireframeEngine:
                 return page_type, confidence
         return "list", 0.5
 
-    def _generate_elements(
-        self, page_type: str, entity: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    def _generate_elements(self, page_type: str, entity: dict[str, Any]) -> list[dict[str, Any]]:
         name = entity.get("name", "")
         if page_type == "list":
             return [
@@ -183,18 +180,12 @@ class WireframeEngine:
         form_pages = {p.entity_id: p for p in pages if p.page_type == "form"}
         for eid, lp in list_pages.items():
             if eid in detail_pages:
-                edges.append(
-                    NavigationEdge(lp.page_id, detail_pages[eid].page_id, "view", 1.0)
-                )
+                edges.append(NavigationEdge(lp.page_id, detail_pages[eid].page_id, "view", 1.0))
             if eid in form_pages:
-                edges.append(
-                    NavigationEdge(lp.page_id, form_pages[eid].page_id, "create", 0.8)
-                )
+                edges.append(NavigationEdge(lp.page_id, form_pages[eid].page_id, "create", 0.8))
         return edges
 
-    def _render_svg(
-        self, pages: list[WireframePage], edges: list[NavigationEdge]
-    ) -> str:
+    def _render_svg(self, pages: list[WireframePage], edges: list[NavigationEdge]) -> str:
         c = self.CANVAS_WIDTH
         h = self.CANVAS_HEIGHT
         parts = [
@@ -219,7 +210,7 @@ class WireframeEngine:
             '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" '
             'refX="9" refY="3.5" orient="auto">'
             '<polygon points="0 0, 10 3.5, 0 7" fill="#666"/>'
-            '</marker></defs>'
+            "</marker></defs>"
         )
         parts.append("</svg>")
         return "\n".join(parts)
@@ -243,8 +234,7 @@ class WireframeEngine:
             f'font-weight="bold" fill="#1565c0">{page.title}</text>'
         )
         parts.append(
-            f'<rect x="{x + 1}" y="{y + 24}" width="{w - 2}" '
-            f'height="{h - 25}" fill="{tc}"/>'
+            f'<rect x="{x + 1}" y="{y + 24}" width="{w - 2}" height="{h - 25}" fill="{tc}"/>'
         )
         for elem in page.elements:
             ex = x + elem.get("x", 10)

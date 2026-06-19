@@ -22,21 +22,15 @@ class GateDecision(Base):
         ForeignKey("projects.project_id", ondelete="CASCADE"), nullable=False
     )
     gate_type: Mapped[str] = mapped_column(String(16), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="pending"
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
     confidence: Mapped[str | None] = mapped_column(String(16), nullable=True)
     decision_type: Mapped[str | None] = mapped_column(String(16), nullable=True)
     decision_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
     decision_at: Mapped[datetime | None] = mapped_column(nullable=True)
     duration_sec: Mapped[int | None] = mapped_column(nullable=True)
     reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    unlocked_stages: Mapped[str] = mapped_column(
-        Text, nullable=False, default="[]"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    unlocked_stages: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

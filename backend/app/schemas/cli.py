@@ -27,9 +27,7 @@ class CliSessionCreate(BaseModel):
     """DTO for creating a CLI session."""
 
     project_id: str = Field(..., description="关联项目 ID")
-    mode: Literal["bug", "arch"] = Field(
-        default="bug", description="工作模式"
-    )
+    mode: Literal["bug", "arch"] = Field(default="bug", description="工作模式")
 
 
 class CliSessionResponse(BaseModel):
@@ -41,9 +39,7 @@ class CliSessionResponse(BaseModel):
     project_id: str = Field(..., description="关联项目 ID")
     user_id: str = Field(..., description="创建用户 ID")
     mode: Literal["bug", "arch"] = Field(..., description="当前工作模式")
-    status: Literal["active", "paused", "closed"] = Field(
-        ..., description="会话状态"
-    )
+    status: Literal["active", "paused", "closed"] = Field(..., description="会话状态")
     created_at: datetime = Field(..., description="创建时间")
     closed_at: datetime | None = Field(None, description="关闭时间")
     updated_at: datetime = Field(..., description="更新时间")
@@ -92,17 +88,15 @@ class CliCardAction(BaseModel):
 
     label: str = Field(..., description="按钮文字")
     command: str = Field(..., description="触发命令")
-    style: Literal["primary", "danger", "default"] | None = Field(
-        None, description="按钮样式"
-    )
+    style: Literal["primary", "danger", "default"] | None = Field(None, description="按钮样式")
 
 
 class CliCard(BaseModel):
     """Interactive card pushed to the CLI."""
 
-    type: Literal[
-        "bug-report", "fix-proposal", "arch-decision", "progress", "confirm"
-    ] = Field(..., description="卡片类型")
+    type: Literal["bug-report", "fix-proposal", "arch-decision", "progress", "confirm"] = Field(
+        ..., description="卡片类型"
+    )
     data: dict[str, Any] = Field(..., description="卡片业务数据")
     actions: list[CliCardAction] = Field(..., description="可用操作")
 
@@ -152,9 +146,9 @@ class CliResponsePayload(BaseModel):
 class CliResponse(BaseModel):
     """Server-to-client CLI WebSocket message."""
 
-    type: Literal[
-        "text", "card", "progress", "error", "done", "prompt", "pong", "thinking"
-    ] = Field(..., description="消息类型")
+    type: Literal["text", "card", "progress", "error", "done", "prompt", "pong", "thinking"] = (
+        Field(..., description="消息类型")
+    )
     session_id: str = Field(..., description="会话 ID")
     payload: CliResponsePayload = Field(
         default_factory=CliResponsePayload.model_construct, description="消息载荷"
@@ -226,9 +220,7 @@ class ArchIssueResponse(BaseModel):
     project_id: str = Field(..., description="关联项目 ID")
     session_id: str = Field(..., description="关联会话 ID")
     issue_type: str = Field(..., description="问题类型")
-    severity: Literal["critical", "warning", "info"] = Field(
-        ..., description="严重级别"
-    )
+    severity: Literal["critical", "warning", "info"] = Field(..., description="严重级别")
     rule_id: str | None = Field(None, description="命中规则 ID")
     title: str = Field(..., description="问题标题")
     description: str | None = Field(None, description="问题描述")
@@ -237,9 +229,9 @@ class ArchIssueResponse(BaseModel):
     governance_plan: str | None = Field(None, description="治理方案")
     refactor_diff: str | None = Field(None, description="重构 Diff")
     review_points: list[str] | None = Field(None, description="审查要点")
-    status: Literal[
-        "detected", "planned", "executed", "verified", "closed", "skipped"
-    ] = Field(..., description="治理状态")
+    status: Literal["detected", "planned", "executed", "verified", "closed", "skipped"] = Field(
+        ..., description="治理状态"
+    )
     executed_at: datetime | None = Field(None, description="执行时间")
     adr_id: str | None = Field(None, description="ADR 记录 ID")
     backup_path: str | None = Field(None, description="备份文件路径")
@@ -277,6 +269,4 @@ class ScanRule(BaseModel):
     name: str = Field(..., description="规则名称")
     description: str | None = Field(None, description="规则描述")
     enabled: bool = Field(..., description="是否启用")
-    severity: Literal["critical", "warning", "info"] = Field(
-        ..., description="严重级别"
-    )
+    severity: Literal["critical", "warning", "info"] = Field(..., description="严重级别")

@@ -38,7 +38,9 @@ class PlanAdjustmentDTO(BaseModel):
     """计划调整项 DTO."""
 
     node_id: str = Field(description="节点 ID")
-    action: str = Field(description="操作: move_stage | move_group | add_dependency | remove_dependency | reorder")
+    action: str = Field(
+        description="操作: move_stage | move_group | add_dependency | remove_dependency | reorder"
+    )
     target_stage_id: str | None = Field(default=None, description="目标 Stage ID")
     target_group_id: str | None = Field(default=None, description="目标组 ID")
     source_node_id: str | None = Field(default=None, description="源节点 ID")

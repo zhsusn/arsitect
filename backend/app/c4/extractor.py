@@ -19,6 +19,7 @@ Improvements over the legacy version:
 - Frontend service-module and Zustand-store components.
 - Bulk Service -> Repository healing by stem and substring matching.
 """
+
 from __future__ import annotations
 
 import re
@@ -388,7 +389,9 @@ def _should_scan_backend_file(py_file: Path) -> bool:
         "backend/app/common/",
         "backend/app/infrastructure/database/repositories/",
     )
-    return any(path_str.startswith(str(_PROJECT_ROOT / r).replace("\\", "/")) for r in allowed_roots)
+    return any(
+        path_str.startswith(str(_PROJECT_ROOT / r).replace("\\", "/")) for r in allowed_roots
+    )
 
 
 def _scan_backend_routers(root: Path) -> dict[str, dict[str, Any]]:
@@ -812,14 +815,18 @@ class RegistryBuilder:
         self._rel_set.add(key)
         self.relationships.append({"source": source, "target": target, "description": description})
 
-    def add_interface(self, iid: str, method: str, path: str, source_container: str | None = None) -> None:
+    def add_interface(
+        self, iid: str, method: str, path: str, source_container: str | None = None
+    ) -> None:
         if not any(i["id"] == iid for i in self.interfaces):
-            self.interfaces.append({
-                "id": iid,
-                "method": method,
-                "path": path,
-                "source_container": source_container,
-            })
+            self.interfaces.append(
+                {
+                    "id": iid,
+                    "method": method,
+                    "path": path,
+                    "source_container": source_container,
+                }
+            )
 
     # ------------------------------------------------------------------
     # Helpers
@@ -843,7 +850,9 @@ class RegistryBuilder:
                     return eid
         return None
 
-    def ensure_component(self, eid: str, name: str, container_id: str, kind: str = "derived") -> str:
+    def ensure_component(
+        self, eid: str, name: str, container_id: str, kind: str = "derived"
+    ) -> str:
         """Ensure a derived component exists (e.g. inferred service module)."""
         if eid in self.components:
             return eid
@@ -886,7 +895,11 @@ def _load_hld(builder: RegistryBuilder) -> None:
             for eid, name, aliases in [
                 ("frontend-spa", "React 19 SPA", ["Frontend", "前端", "Pg_SPA", "SPA"]),
                 ("backend-api", "FastAPI", ["REST API", "REST API + SSE", "Pg_API"]),
-                ("skill-orchestrator", "Skill Orchestrator", ["PocketFlow 三阶段调度", "编排引擎", "Pg_Orchestrator"]),
+                (
+                    "skill-orchestrator",
+                    "Skill Orchestrator",
+                    ["PocketFlow 三阶段调度", "编排引擎", "Pg_Orchestrator"],
+                ),
                 ("c4-dsl-engine", "C4 DSL Engine", ["自研解析渲染", "Pg_C4Engine"]),
                 ("wireframe-engine", "WireframeEngine", ["领域感知线框", "Pg_Wireframe"]),
                 ("sqlite-db", "SQLite", ["元数据与状态", "Pg_SQLite"]),
@@ -899,25 +912,80 @@ def _load_hld(builder: RegistryBuilder) -> None:
 
         if "Component" in content:
             for eid, name, aliases, container in [
-                ("project-api", "Project API", ["项目 / 应用 / 模块 CRUD", "Pg_ProjectAPI"], "backend-api"),
+                (
+                    "project-api",
+                    "Project API",
+                    ["项目 / 应用 / 模块 CRUD", "Pg_ProjectAPI"],
+                    "backend-api",
+                ),
                 ("canvas-api", "Canvas API", ["节点 / 边 / 布局", "Pg_CanvasAPI"], "backend-api"),
                 ("skill-api", "Skill API", ["导入 / 解析 / 执行", "Pg_SkillAPI"], "backend-api"),
-                ("artifact-api", "Artifact API", ["产物 / 版本 / diff", "Pg_ArtifactAPI"], "backend-api"),
+                (
+                    "artifact-api",
+                    "Artifact API",
+                    ["产物 / 版本 / diff", "Pg_ArtifactAPI"],
+                    "backend-api",
+                ),
                 ("gate-api", "Gate API", ["审批 / 摘要 / 历史", "Pg_GateAPI"], "backend-api"),
                 ("c4-api", "C4 API", ["DSL / 渲染 / 导出", "Pg_C4API"], "c4-dsl-engine"),
-                ("prototype-api", "Prototype API", ["OpenUI / Wireframe", "Pg_ProtoAPI"], "wireframe-engine"),
-                ("project-service", "Project Service", ["双态管理 / Timebox", "Pg_ProjectSvc"], "backend-api"),
-                ("orchestrator-service", "Orchestrator Service", ["DAG 调度 / 并行执行", "Pg_OrcheSvc"], "skill-orchestrator"),
-                ("skill-service", "Skill Service", ["CLI 适配 / 日志捕获", "Pg_SkillSvc"], "backend-api"),
-                ("artifact-service", "Artifact Service", ["Git 快照 / 冲突检测", "Pg_ArtifactSvc"], "backend-api"),
+                (
+                    "prototype-api",
+                    "Prototype API",
+                    ["OpenUI / Wireframe", "Pg_ProtoAPI"],
+                    "wireframe-engine",
+                ),
+                (
+                    "project-service",
+                    "Project Service",
+                    ["双态管理 / Timebox", "Pg_ProjectSvc"],
+                    "backend-api",
+                ),
+                (
+                    "orchestrator-service",
+                    "Orchestrator Service",
+                    ["DAG 调度 / 并行执行", "Pg_OrcheSvc"],
+                    "skill-orchestrator",
+                ),
+                (
+                    "skill-service",
+                    "Skill Service",
+                    ["CLI 适配 / 日志捕获", "Pg_SkillSvc"],
+                    "backend-api",
+                ),
+                (
+                    "artifact-service",
+                    "Artifact Service",
+                    ["Git 快照 / 冲突检测", "Pg_ArtifactSvc"],
+                    "backend-api",
+                ),
                 ("gate-service", "Gate Service", ["自检摘要 / HITL", "Pg_GateSvc"], "backend-api"),
-                ("size-estimate-service", "SizeEstimate Service", ["五维度评估 / 路由", "Pg_SizeSvc"], "backend-api"),
+                (
+                    "size-estimate-service",
+                    "SizeEstimate Service",
+                    ["五维度评估 / 路由", "Pg_SizeSvc"],
+                    "backend-api",
+                ),
                 ("c4-service", "C4 Service", ["DSL 生成 / 层级穿透", "Pg_C4Svc"], "c4-dsl-engine"),
-                ("prototype-service", "Prototype Service", ["OpenUI 适配 / Wireframe", "Pg_ProtoSvc"], "wireframe-engine"),
+                (
+                    "prototype-service",
+                    "Prototype Service",
+                    ["OpenUI 适配 / Wireframe", "Pg_ProtoSvc"],
+                    "wireframe-engine",
+                ),
                 ("db-repository", "Repository", ["SQLAlchemy 2.0", "Pg_DBRepo"], "backend-api"),
-                ("file-repository", "File Repository", ["本地文件系统", "Pg_FileRepo"], "backend-api"),
+                (
+                    "file-repository",
+                    "File Repository",
+                    ["本地文件系统", "Pg_FileRepo"],
+                    "backend-api",
+                ),
                 ("git-repository", "Git Repository", ["GitPython", "Pg_GitRepo"], "backend-api"),
-                ("cli-adapter", "CLI Adapter", ["Kimi STDIO", "Pg_CLIAdapter"], "skill-orchestrator"),
+                (
+                    "cli-adapter",
+                    "CLI Adapter",
+                    ["Kimi STDIO", "Pg_CLIAdapter"],
+                    "skill-orchestrator",
+                ),
                 ("sse-manager", "SSE Manager", ["事件推送", "Pg_SSEMgr"], "frontend-spa"),
             ]:
                 builder.add_component(eid, name, aliases, container_id=container, source="doc")
@@ -1041,7 +1109,9 @@ def _load_interfaces(builder: RegistryBuilder) -> None:
                 if (method, path) in seen:
                     continue
                 seen.add((method, path))
-                iid = _slug_id(f"{method}-{path.replace('/', '-').replace('{', '').replace('}', '')}")
+                iid = _slug_id(
+                    f"{method}-{path.replace('/', '-').replace('{', '').replace('}', '')}"
+                )
                 source_container = _infer_api_container_from_path(path)
                 builder.add_interface(iid, method, path, source_container=source_container)
 
@@ -1192,16 +1262,16 @@ def _add_code_relationships(
                 continue
 
             # Service -> Service / Manager / Adapter / Engine / Store
-            if src_name.endswith("Service") and tgt_name.endswith((
-                "Service", "Manager", "Adapter", "Engine", "Store", "Handler", "Worker"
-            )):
+            if src_name.endswith("Service") and tgt_name.endswith(
+                ("Service", "Manager", "Adapter", "Engine", "Store", "Handler", "Worker")
+            ):
                 builder.add_relationship(src_final, tgt_final, "调用")
                 continue
 
             # Manager -> Service / Repository / Engine
-            if src_name.endswith("Manager") and tgt_name.endswith((
-                "Service", "Repository", "Engine", "Adapter", "Store"
-            )):
+            if src_name.endswith("Manager") and tgt_name.endswith(
+                ("Service", "Repository", "Engine", "Adapter", "Store")
+            ):
                 builder.add_relationship(src_final, tgt_final, "调用")
                 continue
 
@@ -1228,14 +1298,10 @@ def _add_code_relationships(
 def _heal_service_repository_pairs(builder: RegistryBuilder) -> None:
     """Add obvious Service -> Repository edges that import-scan missed."""
     services = {
-        eid: info
-        for eid, info in builder.components.items()
-        if info["name"].endswith("Service")
+        eid: info for eid, info in builder.components.items() if info["name"].endswith("Service")
     }
     repos = {
-        eid: info
-        for eid, info in builder.components.items()
-        if info["name"].endswith("Repository")
+        eid: info for eid, info in builder.components.items() if info["name"].endswith("Repository")
     }
     for sid, sinfo in services.items():
         sname = sinfo["name"]
@@ -1246,11 +1312,7 @@ def _heal_service_repository_pairs(builder: RegistryBuilder) -> None:
             if not rstem:
                 continue
             # Exact stem match, or repository contains service stem, or vice versa.
-            if (
-                stem == rstem
-                or stem in rstem
-                or rstem in stem
-            ):
+            if stem == rstem or stem in rstem or rstem in stem:
                 builder.add_relationship(sid, rid, "持久化/查询")
 
 
@@ -1291,27 +1353,70 @@ def _mark_intentional_orphans(builder: RegistryBuilder) -> None:
         path_lower = src_files.lower()
         # Frontend state containers / renderers / service stubs that nothing uses.
         if info.get("container_id") == "frontend-spa":
-            if info.get("kind") in ("service-module", "store") or any(
-                name.lower().endswith(s)
-                for s in (
-                    "button", "input", "badge", "popover", "mask", "handle", "layer",
-                    "view", "panel", "overlay", "card", "item", "state", "directions",
-                    "header", "steps", "menu", "menuitem", "tab", "row", "btn", "block",
-                    "path", "tag", "chip", "icon", "avatar", "divider", "spacer",
+            if (
+                info.get("kind") in ("service-module", "store")
+                or any(
+                    name.lower().endswith(s)
+                    for s in (
+                        "button",
+                        "input",
+                        "badge",
+                        "popover",
+                        "mask",
+                        "handle",
+                        "layer",
+                        "view",
+                        "panel",
+                        "overlay",
+                        "card",
+                        "item",
+                        "state",
+                        "directions",
+                        "header",
+                        "steps",
+                        "menu",
+                        "menuitem",
+                        "tab",
+                        "row",
+                        "btn",
+                        "block",
+                        "path",
+                        "tag",
+                        "chip",
+                        "icon",
+                        "avatar",
+                        "divider",
+                        "spacer",
+                    )
                 )
-            ) or name.lower() in {"react", "app"}:
+                or name.lower() in {"react", "app"}
+            ):
                 info["intentional_orphan"] = True
             continue
         # Backend cross-cutting helpers that do not depend on registry entities
         # and are not depended upon by anyone.
         backend_util_suffixes = (
-            "Manager", "Handler", "Adapter", "Controller", "Router",
-            "Engine", "Worker", "Producer", "Consumer",
-            "Validator", "Resolver", "Generator", "Calculator", "Aggregator", "Collector",
+            "Manager",
+            "Handler",
+            "Adapter",
+            "Controller",
+            "Router",
+            "Engine",
+            "Worker",
+            "Producer",
+            "Consumer",
+            "Validator",
+            "Resolver",
+            "Generator",
+            "Calculator",
+            "Aggregator",
+            "Collector",
         )
         # Cross-cutting utilities or implemented algorithmic helpers with no dependents.
-        has_code_file = "/services/" in path_lower or "/c4/" in path_lower or any(
-            frag in path_lower for frag in ("advanced", "common", "governance", "docforge")
+        has_code_file = (
+            "/services/" in path_lower
+            or "/c4/" in path_lower
+            or any(frag in path_lower for frag in ("advanced", "common", "governance", "docforge"))
         )
         if name.endswith(backend_util_suffixes) and has_code_file:
             info["intentional_orphan"] = True

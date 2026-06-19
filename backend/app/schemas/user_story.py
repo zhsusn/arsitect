@@ -26,9 +26,7 @@ class UserStoryUpdateDTO(BaseModel):
     acceptance_criteria: str | None = Field(default=None)
     page_desc: str | None = Field(default=None)
     priority: str | None = Field(default=None, pattern=r"^(P0|P1|P2|P3)$")
-    status: str | None = Field(
-        default=None, pattern=r"^(DRAFT|ACTIVE|ARCHIVED)$"
-    )
+    status: str | None = Field(default=None, pattern=r"^(DRAFT|ACTIVE|ARCHIVED)$")
 
 
 class UserStoryResponseDTO(BaseModel):

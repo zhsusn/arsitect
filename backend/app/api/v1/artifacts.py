@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.artifacts.artifact_editor import ArtifactEditor
@@ -77,6 +79,21 @@ async def get_artifact_status(
     return ArtifactStatusDTO.model_validate(status)
 
 
+@router.get("/{artifact_id}/download")
+async def download_artifact(
+    artifact_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> FileResponse:
+    """Download artifact file with Content-Disposition attachment."""
+    svc = ArtifactService(db)
+    file_path = await svc.get_download_path(artifact_id)
+    return FileResponse(
+        file_path,
+        media_type="application/octet-stream",
+        filename=Path(file_path).name,
+    )
+
+
 @router.put("/{artifact_id}/content", response_model=ArtifactVersionDTO)
 async def save_artifact_content(
     artifact_id: str,
@@ -85,9 +102,7 @@ async def save_artifact_content(
 ) -> ArtifactVersionDTO:
     """Save artifact content and create a snapshot version."""
     svc = ArtifactService(db)
-    version = await svc.save_content(
-        artifact_id, dto.content, expected_hash=dto.expected_hash
-    )
+    version = await svc.save_content(artifact_id, dto.content, expected_hash=dto.expected_hash)
     return ArtifactVersionDTO.model_validate(version)
 
 
@@ -134,7 +149,6 @@ async def diff_artifact_versions(
         from_content=from_v.content or "",
         to_content=to_v.content or "",
     )
-
 
 
 @router.post("/{artifact_path:path}/edit")

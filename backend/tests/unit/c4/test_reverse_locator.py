@@ -79,9 +79,7 @@ class TestC4ReverseLocator:
                 source_location=str(real_file),
             )
 
-            locator = C4ReverseLocator(
-                None, registry, code_base_dir=tmpdir
-            )
+            locator = C4ReverseLocator(None, registry, code_base_dir=tmpdir)
             loc = await locator.locate_code(proj.project_id, "UserController")
             assert loc is not None
             assert loc.file_path == str(real_file)
@@ -98,9 +96,7 @@ class TestC4ReverseLocator:
             src_dir.mkdir(parents=True)
             (src_dir / "UserController.py").write_text("class UserController:")
 
-            locator = C4ReverseLocator(
-                None, registry, code_base_dir=tmpdir
-            )
+            locator = C4ReverseLocator(None, registry, code_base_dir=tmpdir)
             loc = await locator.locate_code(proj.project_id, "UserController")
             assert loc is not None
             assert "UserController.py" in loc.file_path
@@ -119,9 +115,7 @@ class TestC4ReverseLocator:
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            locator = C4ReverseLocator(
-                None, registry, code_base_dir=tmpdir
-            )
+            locator = C4ReverseLocator(None, registry, code_base_dir=tmpdir)
             node = await locator.locate_node(proj.project_id, "/code/user.py")
             assert node is not None
             assert node.node_id == "UserController"
@@ -136,12 +130,8 @@ class TestC4ReverseLocator:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             baseline_store = AsyncMockBaselineStore(baseline.dsl_content)
-            locator = C4ReverseLocator(
-                baseline_store, registry, code_base_dir=tmpdir
-            )
-            node = await locator.locate_node(
-                proj.project_id, "/any/UserController.py"
-            )
+            locator = C4ReverseLocator(baseline_store, registry, code_base_dir=tmpdir)
+            node = await locator.locate_node(proj.project_id, "/any/UserController.py")
             assert node is not None
             assert node.node_id == "UserController"
 
@@ -152,12 +142,8 @@ class TestC4ReverseLocator:
         registry = C4BindingRegistry(db_session)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            locator = C4ReverseLocator(
-                None, registry, code_base_dir=tmpdir
-            )
-            results = await locator.locate_codes_batch(
-                proj.project_id, ["A", "B"]
-            )
+            locator = C4ReverseLocator(None, registry, code_base_dir=tmpdir)
+            results = await locator.locate_codes_batch(proj.project_id, ["A", "B"])
             assert set(results.keys()) == {"A", "B"}
 
 

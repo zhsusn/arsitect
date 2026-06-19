@@ -78,9 +78,7 @@ class WireframePageService:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def update_page(
-        self, page_id: str, updates: dict[str, Any]
-    ) -> WireframePage:
+    async def update_page(self, page_id: str, updates: dict[str, Any]) -> WireframePage:
         """Update an existing wireframe page."""
         page = await self.get_page(page_id)
         for key, value in updates.items():

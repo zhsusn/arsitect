@@ -28,7 +28,5 @@ class ArchValidationSession(Base):
     current_dsl: Mapped[str] = mapped_column(Text, nullable=False, default="")
     diff_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING")
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC), nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(nullable=True)

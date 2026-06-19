@@ -40,9 +40,7 @@ class MetricsCollector:
         """Initialize with database session."""
         self._session = session
 
-    async def get_skill_metrics(
-        self, skill_id: str, project_id: str
-    ) -> SkillMetrics | None:
+    async def get_skill_metrics(self, skill_id: str, project_id: str) -> SkillMetrics | None:
         """Return aggregated metrics for a skill in a project."""
         result = await self._session.execute(
             select(
@@ -86,9 +84,7 @@ class MetricsCollector:
         total_duration = 0
         for r in records:
             if r.started_at and r.completed_at:
-                total_duration += int(
-                    (r.completed_at - r.started_at).total_seconds() * 1000
-                )
+                total_duration += int((r.completed_at - r.started_at).total_seconds() * 1000)
 
         count = row["execution_count"] or 0
         return SkillMetrics(
@@ -103,16 +99,13 @@ class MetricsCollector:
             avg_gate_wait_ms=await self._avg_gate_wait(project_id),
         )
 
-    async def get_project_metrics(
-        self, project_id: str
-    ) -> dict[str, Any]:
+    async def get_project_metrics(self, project_id: str) -> dict[str, Any]:
         """Return aggregated metrics for a project."""
         result = await self._session.execute(
             select(
                 func.count().label("execution_count"),
                 func.sum(SkillExecution.retry_count).label("retry_count"),
-            )
-            .where(SkillExecution.project_id == project_id)
+            ).where(SkillExecution.project_id == project_id)
         )
         row = result.mappings().one_or_none()
 
@@ -139,18 +132,13 @@ class MetricsCollector:
             "success_count": success_count,
             "fail_count": fail_count,
             "retry_count": retry_count or 0,
-            "success_rate": (
-                success_count / count if count else 0
-            ),
+            "success_rate": (success_count / count if count else 0),
         }
 
-    async def list_application_metrics(
-        self, application_id: str
-    ) -> list[dict[str, Any]]:
+    async def list_application_metrics(self, application_id: str) -> list[dict[str, Any]]:
         """Return per-project metrics for an application."""
         result = await self._session.execute(
-            select(Project.project_id)
-            .where(Project.application_id == application_id)
+            select(Project.project_id).where(Project.application_id == application_id)
         )
         project_ids = list(result.scalars().all())
         return [await self.get_project_metrics(pid) for pid in project_ids]

@@ -168,7 +168,9 @@ class TestSkillExecutionRepository:
             assert items[0].overall_status == "RUNNING"
 
     @pytest.mark.asyncio
-    async def test_list_running_by_skill_none(self, seeded_executions: list[SkillExecution]) -> None:
+    async def test_list_running_by_skill_none(
+        self, seeded_executions: list[SkillExecution]
+    ) -> None:
         """TEST-0807: No running executions returns empty list.
 
         Covers edge case: no matching running executions.

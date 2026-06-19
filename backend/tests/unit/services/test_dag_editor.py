@@ -113,7 +113,9 @@ class TestDAGEditorService:
             svc = DAGEditorService(session, session_id="sess-001")
             for i in range(55):
                 skill = await _make_skill(session)
-                await svc.add_node(f"n-depth-{i}-{str(uuid.uuid4())[:4]}", skill.skill_id, Position())
+                await svc.add_node(
+                    f"n-depth-{i}-{str(uuid.uuid4())[:4]}", skill.skill_id, Position()
+                )
             assert len(svc._undo_stack) == 55
 
     @pytest.mark.asyncio
@@ -129,9 +131,7 @@ class TestDAGEditorService:
             )
 
             result = await session.execute(
-                select(SkillChangeLog).where(
-                    SkillChangeLog.session_id == "sess-002"
-                )
+                select(SkillChangeLog).where(SkillChangeLog.session_id == "sess-002")
             )
             log = result.scalar_one()
             assert log.operation_type == "ADD_NODE"

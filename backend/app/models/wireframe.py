@@ -27,21 +27,11 @@ class Wireframe(Base):
     c4_baseline_version: Mapped[str | None] = mapped_column(
         String(20), nullable=True, comment="关联的 C4 Baseline 版本"
     )
-    pipeline_stage: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="idle"
-    )
-    page_count: Mapped[int | None] = mapped_column(
-        nullable=True, comment="生成页面数"
-    )
-    avg_confidence: Mapped[int | None] = mapped_column(
-        nullable=True, comment="平均映射置信度"
-    )
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="DRAFT"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    pipeline_stage: Mapped[str] = mapped_column(String(16), nullable=False, default="idle")
+    page_count: Mapped[int | None] = mapped_column(nullable=True, comment="生成页面数")
+    avg_confidence: Mapped[int | None] = mapped_column(nullable=True, comment="平均映射置信度")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

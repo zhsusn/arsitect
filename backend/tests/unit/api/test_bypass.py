@@ -55,6 +55,7 @@ class TestBypassRouter:
 
             # Seed execution_plan to satisfy FK constraint on bypass_records.plan_id
             from app.models.execution_plan import ExecutionPlan
+
             plan = ExecutionPlan(
                 plan_id=f"plan-{proj.project_id}",
                 project_id=proj.project_id,
@@ -81,6 +82,7 @@ class TestBypassRouter:
         """Seed a bypass record."""
         async with AsyncSessionLocal() as session:
             from datetime import datetime
+
             record = BypassRecord(
                 record_id="bypass-test-001",
                 plan_id=f"plan-{seeded_project.project_id}",
@@ -129,7 +131,9 @@ class TestBypassRouter:
         assert res.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_list_bypass_applications(self, seeded_project: Project, seeded_record: BypassRecord) -> None:
+    async def test_list_bypass_applications(
+        self, seeded_project: Project, seeded_record: BypassRecord
+    ) -> None:
         """TEST-0403: GET lists bypass applications (Direct)."""
         async with AsyncSessionLocal() as session:
             result = await list_bypass_applications(seeded_project.project_id, db=session)

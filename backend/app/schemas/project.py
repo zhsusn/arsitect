@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -23,6 +24,15 @@ class ProjectUpdateDTO(BaseModel):
     project_description: str | None = Field(None, max_length=256)
 
 
+class ProjectExecutionStrategyUpdateDTO(BaseModel):
+    """DTO for updating a project's execution strategy."""
+
+    execution_strategy: str = Field(
+        ..., description="执行策略: full_auto / semi_auto / full_manual"
+    )
+    reason: str | None = Field(None, description="变更原因")
+
+
 class ProjectResponseDTO(BaseModel):
     """DTO for project response."""
 
@@ -36,10 +46,13 @@ class ProjectResponseDTO(BaseModel):
     template_level: str
     progress_percent: int
     current_stage: str | None
+    current_stage_id: str | None
     risk_level: str
     last_activity_at: str | None = None
     last_activity_type: str | None
     size_estimate_id: str | None
+    execution_strategy: str = "semi_auto"
+    merge_policy_json: dict[str, Any] | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
@@ -73,6 +86,7 @@ class StageProgressDTO(BaseModel):
     stage_name: str
     order_index: int
     status: str
+    runtime_status: str = "not_started"
     execution_status: str
     progress_percent: int = Field(default=0, ge=0, le=100)
     planned_days: float | None = None
@@ -130,3 +144,77 @@ class BindSizeEstimateDTO(BaseModel):
     """DTO for binding size estimate to project."""
 
     estimate_id: str | None = Field(None, description="规模评估ID，null表示解绑")
+
+
+class StageStartResponseDTO(BaseModel):
+    """DTO for starting a project stage pipeline."""
+
+    project_id: str
+    current_stage_id: str
+    status: str
+
+
+class ProjectExecutionStrategyResponseDTO(BaseModel):
+    """DTO for project execution strategy update response."""
+
+    project_id: str
+    execution_strategy: str
+    updated_stage_ids: list[str] = Field(default_factory=list)
+
+
+class StageExecuteResponseDTO(BaseModel):
+    """DTO for executing a project stage."""
+
+    project_stage_id: str
+    execution_ids: list[str]
+    status: str
+    next_stage_id: str | None = None
+
+
+class StageAdvanceResponseDTO(BaseModel):
+    """DTO for advancing a project stage."""
+
+    project_stage_id: str
+    status: str
+    next_stage_id: str | None = None
+
+
+class StageGateDecisionDTO(BaseModel):
+    """DTO for Gate decision."""
+
+    decision: str = Field(..., description="pass 或 reject")
+    reason: str | None = Field(None, description="驳回时必填")
+
+
+class StageGateDecisionResponseDTO(BaseModel):
+    """DTO for Gate decision response."""
+
+    project_stage_id: str
+    status: str
+    next_stage_id: str | None = None
+
+
+class StageProgressResponseDTO(BaseModel):
+    """DTO for aggregated project stage progress."""
+
+    project_id: str
+    execution_strategy: str
+    current_stage_id: str | None
+    progress_percent: int
+    stages: list[dict[str, Any]]
+
+
+class StageRollbackRequestDTO(BaseModel):
+    """DTO for stage rollback request."""
+
+    target_stage_id: str = Field(..., description="回滚目标阶段 ID")
+    reason: str | None = Field(None, description="回滚原因")
+
+
+class StageRollbackResponseDTO(BaseModel):
+    """DTO for stage rollback response."""
+
+    project_id: str
+    target_stage_id: str
+    reset_stage_ids: list[str] = Field(default_factory=list)
+    stale_artifact_ids: list[str] = Field(default_factory=list)

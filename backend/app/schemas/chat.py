@@ -22,9 +22,7 @@ class ChatSessionCreate(BaseModel):
 class ChatSessionModeRequest(BaseModel):
     """DTO for updating a chat session mode/provider/context."""
 
-    task_mode: Literal["free-chat", "bug", "arch-fix"] | None = Field(
-        None, description="任务模式"
-    )
+    task_mode: Literal["free-chat", "bug", "arch-fix"] | None = Field(None, description="任务模式")
     llm_provider: str | None = Field(None, description="LLM 提供商")
     context_json: dict[str, Any] | None = Field(None, description="会话上下文 JSON")
 

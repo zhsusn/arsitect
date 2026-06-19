@@ -77,9 +77,7 @@ async def _resolve_stage(db: AsyncSession, stage_id: str | None) -> ProjectStage
     """
     if stage_id is None:
         raise BadRequestError(detail="target_stage_id is required")
-    result = await db.execute(
-        select(ProjectStage).where(ProjectStage.project_stage_id == stage_id)
-    )
+    result = await db.execute(select(ProjectStage).where(ProjectStage.project_stage_id == stage_id))
     stage = result.scalar_one_or_none()
     if stage is None:
         raise NotFoundError(detail=f"Stage '{stage_id}' not found")
@@ -203,11 +201,7 @@ async def list_executions(
     elif stage_id:
         items = await repo.list_by_stage(stage_id)
     else:
-        stmt = (
-            select(SkillExecution)
-            .order_by(SkillExecution.created_at.desc())
-            .limit(limit)
-        )
+        stmt = select(SkillExecution).order_by(SkillExecution.created_at.desc()).limit(limit)
         result = await db.execute(stmt)
         items = list(result.scalars().all())
     return items
@@ -239,7 +233,11 @@ class _BatchTriggerPayload(BaseModel):
     confirm_release: bool = Field(default=False, description="是否确认发布类 Skill")
 
 
-@router.post("/batch-trigger", response_model=list[SkillExecutionResponseDTO], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/batch-trigger",
+    response_model=list[SkillExecutionResponseDTO],
+    status_code=status.HTTP_201_CREATED,
+)
 async def batch_trigger_execution(
     dto: _BatchTriggerPayload,
     db: AsyncSession = Depends(get_db),
@@ -303,4 +301,3 @@ async def batch_trigger_execution(
         executions.append(await repo.create(execution))
 
     return executions
-

@@ -12,10 +12,16 @@ import StageDetailPanel from '../../components/StageDetailPanel'
 import { FlowCanvas } from '../../components/FlowCanvas'
 import { useExecutionPlanStore } from '../../stores/executionPlanStore'
 import { useStageDetailStore } from '../../stores/stageDetailStore'
+import { useProjectSSE } from '../../services/sse'
 import { api } from '../../services/api'
-import type { ProjectStage } from '../../types/stage-detail'
+import type { StageProgressItem } from '../../services/stage'
 import type { ExecutionPlanItem, ExecutionPlanDetail } from '../../types/execution-plan'
 import { fetchCanvasState, mergeCanvasStages } from '../../services/canvas'
+import {
+  fetchStageProgress,
+  executeProjectStage,
+  startProject,
+} from '../../services/stage'
 import type { CanvasNode, CanvasEdge } from '../../services/canvas'
 
 import FilterPanel from './components/FilterPanel'
@@ -34,10 +40,34 @@ import {
 } from './constants'
 import type { ContextMenuAction } from './components/NodeContextMenu'
 
+function mapPlanNodeStatus(status: string): string {
+  switch (status.toUpperCase()) {
+    case 'NOT_STARTED':
+    case 'PENDING':
+      return 'Pending'
+    case 'EXECUTING':
+    case 'RUNNING':
+      return 'Executing'
+    case 'COMPLETED':
+    case 'SUCCESS':
+    case 'EXECUTED':
+      return 'Success'
+    case 'FAILED':
+    case 'ERROR':
+      return 'Failed'
+    case 'BLOCKED':
+      return 'Blocked'
+    case 'SKIPPED':
+      return 'Skipped'
+    default:
+      return status
+  }
+}
+
 export default function CanvasPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const [viewMode, setViewMode] = useState<ViewMode>('stage')
-  const [projectStages, setProjectStages] = useState<ProjectStage[]>([])
+  const [projectStages, setProjectStages] = useState<StageProgressItem[]>([])
   const openPanel = useStageDetailStore((s) => s.openPanel)
 
   const [filters, setFilters] = useState<CanvasFilters>(DEFAULT_FILTERS)
@@ -58,22 +88,53 @@ export default function CanvasPage() {
   // Merge modal
   const [mergeOpen, setMergeOpen] = useState(false)
 
-  // Load project stages for node-click mapping
+  // Load project stages for node-click mapping and runtime status
   useEffect(() => {
     if (!projectId) return
     let cancelled = false
-    api
-      .get<ProjectStage[]>(`/v1/templates/projects/${projectId}/stage-sequence`)
+    fetchStageProgress(projectId)
       .then((res) => {
-        if (!cancelled) setProjectStages(res.data)
+        if (!cancelled) setProjectStages(res.stages)
       })
       .catch((err) => {
-        console.error('Failed to load project stages:', err)
+        console.error('Failed to load project stage progress:', err)
       })
     return () => {
       cancelled = true
     }
   }, [projectId])
+
+  // Real-time updates for stages and execution plan
+  useProjectSSE(projectId, {
+    'stage.auto_advance': () => {
+      if (!projectId) return
+      fetchStageProgress(projectId)
+        .then((res) => setProjectStages(res.stages))
+        .catch(console.error)
+      if (plan) pollPlan(plan.plan_id)
+    },
+    'stage.status_changed': () => {
+      if (!projectId) return
+      fetchStageProgress(projectId)
+        .then((res) => setProjectStages(res.stages))
+        .catch(console.error)
+      if (plan) pollPlan(plan.plan_id)
+    },
+    'stage.rollback_complete': () => {
+      if (!projectId) return
+      fetchStageProgress(projectId)
+        .then((res) => setProjectStages(res.stages))
+        .catch(console.error)
+      if (plan) pollPlan(plan.plan_id)
+    },
+    'skill.execution_updated': (data) => {
+      const nodeId = data.execution_id as string | undefined
+      const status = data.status as string | undefined
+      if (nodeId && status) {
+        updateNodeStatus(nodeId, mapPlanNodeStatus(status))
+      }
+    },
+  })
 
   // Load canvas state for non-stage views
   useEffect(() => {
@@ -106,6 +167,8 @@ export default function CanvasPage() {
     fetchPlan,
     executePlan,
     freezePlan,
+    pollPlan,
+    updateNodeStatus,
   } = useExecutionPlanStore()
 
   const [, setRfNodes] = useNodesState<Node>([])
@@ -251,9 +314,10 @@ export default function CanvasPage() {
     [projectId, projectStages, openPanel],
   )
 
-  // Stage execution with release confirmation for高危 skills
+  // Stage execution with release confirmation for release skills
   const handleStageExecute = useCallback(
-    (stageId: string, stageLabel: string) => {
+    async (stageId: string, stageLabel: string) => {
+      if (!projectId) return
       const isReleaseStage = stageLabel.toLowerCase().includes('release') || stageLabel.toLowerCase().includes('finish')
       if (isReleaseStage) {
         setReleaseModalData({ stageId, stageName: stageLabel, skills: [{ skill_name: stageLabel, skill_id: stageId }] })
@@ -261,12 +325,22 @@ export default function CanvasPage() {
         return
       }
       setExecutingStages((prev) => new Set(prev).add(stageId))
-      // Trigger execution via API
-      if (plan) {
-        executePlan(plan.plan_id).catch(console.error)
+      try {
+        await executeProjectStage(projectId, stageId)
+        // Refresh stage progress after execution
+        const progress = await fetchStageProgress(projectId)
+        setProjectStages(progress.stages)
+      } catch (err) {
+        console.error('Failed to execute stage:', err)
+      } finally {
+        setExecutingStages((prev) => {
+          const next = new Set(prev)
+          next.delete(stageId)
+          return next
+        })
       }
     },
-    [plan, executePlan],
+    [projectId],
   )
 
   const handleReleaseConfirm = useCallback(() => {
@@ -279,6 +353,17 @@ export default function CanvasPage() {
     setReleaseModalOpen(false)
     setReleaseModalData(null)
   }, [plan, executePlan, releaseModalData])
+
+  const handleStartProject = useCallback(async () => {
+    if (!projectId) return
+    try {
+      await startProject(projectId)
+      const progress = await fetchStageProgress(projectId)
+      setProjectStages(progress.stages)
+    } catch (err) {
+      console.error('Failed to start project:', err)
+    }
+  }, [projectId])
 
   // Context menu
   const handleNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
@@ -459,6 +544,24 @@ export default function CanvasPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Start project */}
+          {projectStages.length > 0 && projectStages.every((s) => s.runtime_status === 'not_started') && (
+            <button
+              onClick={handleStartProject}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 4,
+                border: '1px solid #3b82f6',
+                background: '#3b82f6',
+                color: '#fff',
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              开始项目
+            </button>
+          )}
+
           {/* Filter toggle */}
           <button
             onClick={() => setShowFilters((s) => !s)}
@@ -572,13 +675,13 @@ export default function CanvasPage() {
                 </div>
               ) : plan ? (
                 <FlowCanvas
-                  projectId={projectId}
                   dag={{
                     nodes: plan.nodes.map((n) => ({
                       id: n.node_id,
                       label: n.skill_id,
                       phase: n.stage_id,
-                      status: n.status,
+                      status: mapPlanNodeStatus(n.status),
+                      node_type: n.node_type,
                     })),
                     edges: rfEdges.map((e) => ({
                       source: e.source,
@@ -607,6 +710,7 @@ export default function CanvasPage() {
                   allEdges={canvasEdges as unknown as Edge[]}
                   filters={filters}
                   onNodeContextMenu={handleNodeContextMenu}
+                  stages={projectStages}
                 />
               )}
             </>

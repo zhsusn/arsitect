@@ -33,7 +33,7 @@ class ComplexityService:
         page_count: int,
         entity_count: int,
         integration_count: int,
-    ) -> dict[str, int | str | dict[str, float]]:
+    ) -> dict[str, int | str | float | dict[str, float]]:
         """Calculate complexity scores from five numeric dimensions.
 
         This method is kept for backward compatibility of the public API.
@@ -48,10 +48,11 @@ class ComplexityService:
             integration_count=integration_count,
         )
         assessment = ComplexityRouter().assess(metrics)
+        scores = ComplexityService._calculate_three_tier_scores(
+            assessment.route, assessment.confidence
+        )
         return {
-            "optimistic_score": 0,
-            "expected_score": 0,
-            "conservative_score": 0,
+            **scores,
             "complexity_level": assessment.route.value.capitalize(),
             "route": assessment.route.value,
             "confidence": assessment.confidence,
@@ -84,6 +85,7 @@ class ComplexityService:
         Kept for backward compatibility; internally delegates to
         :class:`ComplexityRouter`.
         """
+        del tech_complexity, risk_level  # Legacy dimensions no longer drive scoring.
         metrics = ComplexityService._legacy_to_metrics(
             module_count=module_count,
             interface_complexity=max(1, interface_count // 2),
@@ -92,10 +94,11 @@ class ComplexityService:
             integration_count=interface_count,
         )
         assessment = ComplexityRouter().assess(metrics)
+        scores = ComplexityService._calculate_three_tier_scores(
+            assessment.route, assessment.confidence
+        )
         return {
-            "optimistic_score": 0,
-            "expected_score": 0,
-            "conservative_score": 0,
+            **scores,
             "complexity_level": assessment.route.value.capitalize(),
         }
 
@@ -122,6 +125,9 @@ class ComplexityService:
             integration_count=interface_count,
         )
         assessment = self._router.assess(metrics)
+        scores = ComplexityService._calculate_three_tier_scores(
+            assessment.route, assessment.confidence
+        )
 
         estimate = SizeEstimate(
             estimate_id=str(uuid.uuid4()),
@@ -131,9 +137,9 @@ class ComplexityService:
             page_count=page_count,
             tech_complexity=tech_complexity,
             risk_level=risk_level,
-            optimistic_score=0,
-            expected_score=0,
-            conservative_score=0,
+            optimistic_score=scores["optimistic_score"],
+            expected_score=scores["expected_score"],
+            conservative_score=scores["conservative_score"],
             complexity_level=assessment.route.value.capitalize(),
             created_at=datetime.now(UTC),
         )
@@ -142,9 +148,7 @@ class ComplexityService:
         await self._session.refresh(estimate)
         return estimate
 
-    async def list_size_estimates(
-        self, project_id: str
-    ) -> list[SizeEstimate]:
+    async def list_size_estimates(self, project_id: str) -> list[SizeEstimate]:
         """List all size estimates for a project (newest first)."""
         from sqlalchemy import select
 
@@ -201,6 +205,39 @@ class ComplexityService:
             )
 
         return recommendations[level]
+
+    @staticmethod
+    def _calculate_three_tier_scores(
+        route: ComplexityRoute, confidence: float
+    ) -> dict[str, int]:
+        """Return optimistic / expected / conservative scores for a route.
+
+        Base scores grow with route complexity. Lower confidence widens the
+        spread between optimistic and conservative estimates because the
+        dimension assessments disagree more.
+        """
+        base_scores: dict[ComplexityRoute, tuple[int, int, int]] = {
+            ComplexityRoute.TRIVIAL: (10, 20, 30),
+            ComplexityRoute.LIGHT: (30, 45, 60),
+            ComplexityRoute.STANDARD: (60, 75, 90),
+            ComplexityRoute.DEEP: (90, 105, 120),
+        }
+        optimistic, expected, conservative = base_scores[route]
+
+        if confidence >= 0.9:
+            spread = 0
+        elif confidence >= 0.7:
+            spread = 5
+        elif confidence >= 0.4:
+            spread = 15
+        else:
+            spread = 25
+
+        return {
+            "optimistic_score": max(0, optimistic - spread),
+            "expected_score": expected,
+            "conservative_score": conservative + spread,
+        }
 
     @staticmethod
     def _legacy_to_metrics(

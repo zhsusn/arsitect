@@ -66,9 +66,7 @@ class WireframeService:
         )
         return list(result.scalars().all())
 
-    async def update_wireframe(
-        self, wireframe_id: str, updates: dict[str, Any]
-    ) -> Wireframe:
+    async def update_wireframe(self, wireframe_id: str, updates: dict[str, Any]) -> Wireframe:
         """Update an existing wireframe."""
         wf = await self.get_wireframe(wireframe_id)
         for key, value in updates.items():

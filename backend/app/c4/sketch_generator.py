@@ -124,8 +124,8 @@ color:{c["label"]}">({n} pages)</span></h1>
         html = '<div class="sketch-element">[Search Bar]  Search...</div>\n'
         html += '<table class="sketch-table"><tr>\n'
         for f in fields[:5]:
-            html += f'<th>{f.get("name", "")}</th>\n'
-        html += '<th>Actions</th></tr>\n'
+            html += f"<th>{f.get('name', '')}</th>\n"
+        html += "<th>Actions</th></tr>\n"
         for _ in range(3):
             html += "<tr>\n"
             for _ in fields[:5]:
@@ -140,10 +140,7 @@ color:{c["label"]}">({n} pages)</span></h1>
         html = ""
         for f in fields:
             html += f'<div class="field-label">{f.get("name", "")}</div>\n'
-            html += (
-                f'<div class="sketch-element">'
-                f'{{{f.get("name", "value")}}}</div>\n'
-            )
+            html += f'<div class="sketch-element">{{{f.get("name", "value")}}}</div>\n'
         return html
 
     def _render_form(self, page: PageSpec) -> str:
@@ -151,14 +148,11 @@ color:{c["label"]}">({n} pages)</span></h1>
         html = ""
         for f in fields:
             html += f'<div class="field-label">{f.get("name", "")} *</div>\n'
-            html += (
-                f'<input class="sketch-input" '
-                f'value="Enter {f.get("name", "")}...">\n'
-            )
+            html += f'<input class="sketch-input" value="Enter {f.get("name", "")}...">\n'
         html += '<div style="margin-top:12px"><button class="sketch-btn">'
-        html += 'Submit</button>\n'
+        html += "Submit</button>\n"
         html += '<button class="sketch-btn" style="background:#999">'
-        html += 'Cancel</button></div>\n'
+        html += "Cancel</button></div>\n"
         return html
 
     def _render_dashboard(self, page: PageSpec) -> str:
@@ -187,9 +181,9 @@ color:{c["label"]}">({n} pages)</span></h1>
         html += 'style="flex:1">\n'
         html += '<button class="sketch-btn">Search</button>\n'
         html += '<button class="sketch-btn" style="background:#666">'
-        html += 'Advanced</button></div>\n'
+        html += "Advanced</button></div>\n"
         html += '<div class="sketch-element">[Filter Panel] '
-        html += 'Status | Date | Category</div>\n'
+        html += "Status | Date | Category</div>\n"
         html += '<div class="sketch-element" style="margin-top:8px">'
         html += "[Results List]  10 results found</div>\n"
         return html

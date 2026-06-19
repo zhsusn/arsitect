@@ -169,9 +169,7 @@ class TestBypassApprovalService:
         Covers AC-F-008 / BR-014-4: Post-approval closure.
         """
         created = await service.request_bypass(valid_dto, "plan-1", "user-1")
-        closed = await service.close_bypass_record(
-            created.record_id, "APPROVED"
-        )
+        closed = await service.close_bypass_record(created.record_id, "APPROVED")
         assert closed.status == "CLOSED"
         assert closed.closed_at is not None
 
@@ -186,9 +184,7 @@ class TestBypassApprovalService:
         Covers AC-F-009: Rejection leads to violation pending.
         """
         created = await service.request_bypass(valid_dto, "plan-1", "user-1")
-        closed = await service.close_bypass_record(
-            created.record_id, "REJECTED"
-        )
+        closed = await service.close_bypass_record(created.record_id, "REJECTED")
         assert closed.status == "VIOLATION_PENDING"
 
     @pytest.mark.asyncio
@@ -202,9 +198,7 @@ class TestBypassApprovalService:
         Covers AC-F-006 / BR-014-5: Timeout handling.
         """
         created = await service.request_bypass(valid_dto, "plan-1", "user-1")
-        closed = await service.close_bypass_record(
-            created.record_id, "TIMEOUT"
-        )
+        closed = await service.close_bypass_record(created.record_id, "TIMEOUT")
         assert closed.status == "VIOLATION_PENDING"
 
     @pytest.mark.asyncio

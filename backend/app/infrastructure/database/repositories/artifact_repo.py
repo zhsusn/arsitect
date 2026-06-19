@@ -85,9 +85,7 @@ class ArtifactVersionRepository:
         await self._session.refresh(version)
         return version
 
-    async def list_versions(
-        self, artifact_id: str, *, limit: int = 10
-    ) -> list[ArtifactVersion]:
+    async def list_versions(self, artifact_id: str, *, limit: int = 10) -> list[ArtifactVersion]:
         """List versions for an artifact, newest first."""
         stmt = (
             select(ArtifactVersion)
@@ -98,9 +96,7 @@ class ArtifactVersionRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_version(
-        self, artifact_id: str, version_number: int
-    ) -> ArtifactVersion | None:
+    async def get_version(self, artifact_id: str, version_number: int) -> ArtifactVersion | None:
         """Fetch a specific version by artifact_id and version_number."""
         stmt = select(ArtifactVersion).where(
             ArtifactVersion.artifact_id == artifact_id,

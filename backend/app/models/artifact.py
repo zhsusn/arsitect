@@ -24,6 +24,10 @@ class ArtifactFile(Base):
     )
     stage_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     skill_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    execution_id: Mapped[str | None] = mapped_column(
+        ForeignKey("skill_executions.execution_id", ondelete="SET NULL"),
+        nullable=True,
+    )
     file_name: Mapped[str] = mapped_column(String(256), nullable=False)
     file_path: Mapped[str] = mapped_column(String(4096), nullable=False)
     file_type: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -33,9 +37,7 @@ class ArtifactFile(Base):
     last_synced_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_synced_at: Mapped[datetime | None] = mapped_column(nullable=True)
     stale_flag: Mapped[bool] = mapped_column(default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-    )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),

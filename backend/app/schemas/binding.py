@@ -22,9 +22,7 @@ class BindingUpdateDTO(BaseModel):
 
     source_field: str | None = Field(default=None, min_length=1, max_length=128)
     target_field: str | None = Field(default=None, min_length=1, max_length=128)
-    transform_type: str | None = Field(
-        default=None, pattern=r"^(DIRECT|MAP|FORMAT|FILTER)$"
-    )
+    transform_type: str | None = Field(default=None, pattern=r"^(DIRECT|MAP|FORMAT|FILTER)$")
     transform_config: str | None = None
     status: str | None = Field(default=None, pattern=r"^(ACTIVE|INACTIVE)$")
 

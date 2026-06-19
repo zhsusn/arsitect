@@ -115,7 +115,20 @@ class TestStageRouter:
             )
             await session.commit()
 
-        res = client.delete(
-            f"/api/v1/stages/{seeded_stage.project_stage_id}/annotations/ann-del"
-        )
+        res = client.delete(f"/api/v1/stages/{seeded_stage.project_stage_id}/annotations/ann-del")
         assert res.status_code == 204
+
+    @pytest.mark.asyncio
+    async def test_get_stage_execution_status(self, seeded_stage) -> None:
+        """GET /stages/{id}/execution-status returns aggregated status."""
+        res = client.get(f"/api/v1/stages/{seeded_stage.project_stage_id}/execution-status")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["stage_id"] == seeded_stage.project_stage_id
+        assert data["overall_status"] == "NOT_STARTED"
+        assert data["progress_percent"] == 0
+
+    def test_get_stage_execution_status_not_found(self) -> None:
+        """GET execution-status for unknown stage returns 404."""
+        res = client.get("/api/v1/stages/no-such-stage/execution-status")
+        assert res.status_code == 404

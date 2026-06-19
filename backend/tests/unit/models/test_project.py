@@ -45,9 +45,7 @@ class TestProjectModel:
             session.add(proj)
             await session.commit()
 
-            result = await session.execute(
-                select(Project).where(Project.project_id == "proj-001")
-            )
+            result = await session.execute(select(Project).where(Project.project_id == "proj-001"))
             fetched = result.scalar_one()
             assert fetched.project_name == "Test Project"
             assert fetched.project_status == "Draft"

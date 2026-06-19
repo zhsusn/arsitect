@@ -58,9 +58,7 @@ class TestGateRouter:
             session.add(gate)
             await session.commit()
 
-        res = client.get(
-            f"/api/v1/gates?project_id={seeded_project.project_id}"
-        )
+        res = client.get(f"/api/v1/gates?project_id={seeded_project.project_id}")
         assert res.status_code == 200
         data = res.json()
         assert "data" in data
@@ -133,9 +131,7 @@ class TestGateRouter:
         assert data["reason"] == "Requirements incomplete"
 
     @pytest.mark.asyncio
-    async def test_reject_gate_reason_too_short(
-        self, seeded_project: Project
-    ) -> None:
+    async def test_reject_gate_reason_too_short(self, seeded_project: Project) -> None:
         """Reject with short reason returns 400."""
         async with AsyncSessionLocal() as session:
             gate = GateDecision(

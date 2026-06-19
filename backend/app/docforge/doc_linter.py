@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -61,9 +61,7 @@ class DocLinter:
         template = DEFAULT_TEMPLATES[doc_type]
 
         # 2. Front Matter check
-        fm, fm_issues, fixed_content = self._check_frontmatter(
-            fixed_content, doc_type, template
-        )
+        fm, fm_issues, fixed_content = self._check_frontmatter(fixed_content, doc_type, template)
         issues.extend(fm_issues)
 
         # 3. c4_binding check
@@ -74,9 +72,7 @@ class DocLinter:
             issues.extend(binding_issues)
 
         # 4. @C4- tags check
-        tag_issues, fixed_content = self._check_c4_tags(
-            fixed_content, doc_type, template
-        )
+        tag_issues, fixed_content = self._check_c4_tags(fixed_content, doc_type, template)
         issues.extend(tag_issues)
 
         return self._build_report(file_path, doc_type, issues, fixed_content)
@@ -120,7 +116,7 @@ class DocLinter:
             try:
                 fm = yaml.safe_load(fm_match.group(1))
                 if fm and "doc_type" in fm:
-                    return fm["doc_type"].upper()
+                    return cast(str | None, fm["doc_type"].upper())
             except yaml.YAMLError:
                 pass
         return None
@@ -224,8 +220,7 @@ class DocLinter:
                 LintIssue(
                     rule_id="VAL-DOC-BIND-002",
                     severity="ERROR",
-                    message=f"c4_binding.level 应为 {expected_level}，实际为 "
-                    f"{actual_level}",
+                    message=f"c4_binding.level 应为 {expected_level}，实际为 {actual_level}",
                     location="c4_binding.level",
                     fix_hint=f"修改为 level: {expected_level}",
                     auto_fixable=True,

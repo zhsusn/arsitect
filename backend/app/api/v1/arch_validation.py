@@ -37,7 +37,9 @@ async def trigger_validation(
     )
 
 
-@router.get("/projects/{project_id}/arch-validation/diffs", response_model=list[ArchValidationDiffDTO])
+@router.get(
+    "/projects/{project_id}/arch-validation/diffs", response_model=list[ArchValidationDiffDTO]
+)
 async def get_diffs(
     project_id: str,
     db: AsyncSession = Depends(get_db),
@@ -60,7 +62,9 @@ async def get_diffs(
     ]
 
 
-@router.post("/projects/{project_id}/arch-validation/baseline/update", response_model=ArchValidationDiffDTO)
+@router.post(
+    "/projects/{project_id}/arch-validation/baseline/update", response_model=ArchValidationDiffDTO
+)
 async def update_baseline(
     project_id: str,
     dto: ArchValidationBaselineUpdateDTO,

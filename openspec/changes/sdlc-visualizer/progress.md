@@ -38,7 +38,7 @@ phases:
     status: completed
     weight: 12%
     completion: 100%
-    note: "全部 154/154 任务完成（Phase 1–7），backend services/routers + frontend pages/services + API contract 已同步"
+    note: "全部 154/154 任务完成（Phase 1–7），backend services/routers + frontend pages/services + API contract 已同步。追加：DR-024 前端布局重构 v3.0 完成（6 个合并页面、30+ 旧路由重定向、路由导航重构、TypeScript 零错误）"
   unit-test:
     status: completed
     weight: 8%
@@ -113,13 +113,13 @@ risks:
     level: low
     status: open
     mitigation: "已在覆盖度分析中标记，建议在 detailed-requirements 阶段补充 US-001 的扩展 AC 或新增 US-00X"
-last_updated: 2026-06-12T19:30:00+08:00
+last_updated: 2026-06-17T10:00:00+08:00
 ---
 
 # 进度看板 — SDLC Visualizer
 
 > 单一可信进度源（SSOT）
-> 更新时间：2026-06-03 09:17 CST
+> 更新时间：2026-06-17 10:00 CST
 
 ---
 
@@ -129,7 +129,7 @@ last_updated: 2026-06-12T19:30:00+08:00
 ████████████████████████████████████████████████████████████  80%
 ```
 
-> **进度说明**：前期阶段（1-6）全部完成（56%），编码实现 100%（12%），单元测试 100%（8%），集成测试 100%（4%），合计约 80%。
+> **进度说明**：前期阶段（1-6）全部完成（56%），编码实现 100%（12%），单元测试 100%（8%），集成测试 100%（4%），合计约 80%。追加 DR-024 前端布局重构 v3.0 完成（编码实现阶段补充）。
 
 ---
 
@@ -180,6 +180,12 @@ last_updated: 2026-06-12T19:30:00+08:00
 
 | 时间 | 活动 | 产出物 |
 |------|------|--------|
+| 2026-06-16 | **Feature-23 Batch-2 阶段状态机与推进 API 完成** — 扩展 ProjectStage 运行时状态枚举；重构 StageOrchestrator 状态机核心方法；项目激活时首阶段 READY 并支持 full_auto 自动启动；新增 /start /execute /advance /gate/decide /stage-progress 推进 API；前端画布按 runtime_status 渲染状态色与中文阶段名；阶段详情面板基础版可展示状态/Skill/操作按钮；后端全量 pytest 815 passed，ruff/mypy 0 错误 | `backend/`, `frontend/`, `openspec/changes/sdlc-visualizer/detailed-design/feature-23-stage-orchestration-refactor/design.md`, `progress.md` |
+| 2026-06-16 | **Feature-23 Batch-3 执行策略与 Gate 决策完成** — 新增项目/模板执行策略更新 API（PUT /projects/{id}/execution-strategy、PUT /templates/{level}/execution-strategy）及级联更新；新增阶段级 StageGateController，StageOrchestrator 在进入 review_pending/gate_pending 时自动创建 Gate 记录，decide/advance 时自动审批；前端 TemplateStageConfig 支持修改模板默认执行策略并显示策略标签；StageDetailPanel 增加审批意见输入、Gate ID/创建时间展示、执行策略徽章；新增 9 个单元测试；后端全量 pytest 824 passed，前端 lint/typecheck/build 通过 | `backend/`, `frontend/`, `progress.md` |
+| 2026-06-16 | **Feature-23 Batch-7 产物浏览器增强 + StageDetailPanel 真实状态展示完成** — 后端：给 `ArtifactFile` 增加 `execution_id` 外键并新增 Alembic migration；`StageOrchestrator` 在真实 Skill 执行成功后写入产物关联并持久化执行日志；新增 `GET /v1/stages/{stage_id}/execution-status` 聚合接口与 `GET /v1/artifacts/{artifact_id}/download` 下载接口；`StatusAggregator` 现在返回真实 `artifact_paths` 与 `error_summary`。前端：ArtifactViewer 增加 Stage/Skill 筛选下拉、刷新按钮、元信息面板、下载/复制路径按钮，并支持 `?artifact_id=` 深度链接；StageDetailPanel 头部增加进度条与阻塞原因，PocketFlowStatusTab 实时轮询阶段执行状态、展示进度条/错误摘要/产物路径/停止执行按钮，ArtifactCardsTab 增加「在产物浏览器中查看」入口。新增后端测试 4 个；全量 pytest 857 passed / 4 skipped，ruff/mypy 0 错误；前端 lint/typecheck/build 通过 | `backend/`, `frontend/`, `progress.md` |
+| 2026-06-16 | **Feature-23 Batch-6 PocketFlow 真实 Skill 执行接入完成** — 新增 `KimiCLIAdapter` + `MockCLIAdapter` 实现真实子进程调用与测试替身；`ExecStage` / `PocketFlowEngine` 默认使用 `KimiCLIAdapter`（`kimi run <skill_path>`）并保留 HTTP fallback；新增 `SkillResolver` 服务按 skill_id 解析 `.agents/skills/{name}/SKILL.md`（支持数据库 directory_path 优先）；`StageOrchestrator.execute_stage` 改为先启动阶段、再真实执行 StageSkillBinding、最后根据执行结果完成/阻塞阶段；执行结果回写 `SkillExecution` 记录，成功产物写入 `ArtifactFile`。后端新增 `test_cli_adapter.py`、`test_skill_resolver.py` 并扩展 `test_stage_orchestrator.py` 真实执行用例；全量 pytest 853 passed / 4 skipped，ruff/mypy 0 错误；前端 lint/typecheck/build 通过 | `backend/`, `frontend/`, `progress.md` |
+| 2026-06-16 | **Feature-23 Batch-5 阶段合并策略与泳道视图完成** — 后端：ComplexityService 真实三档得分（基于 ComplexityRouter route/confidence）；画布状态 API 在 stage 节点注入 merge_group_label / merged_stage_keys / is_merged；StageOrchestrator.get_stage_progress 正确返回 business_stage_key 与合并组元数据；修复 ProjectStage.stage_id 改为 business_stage_key 后 ImpactScopeCalculator / 模板切换新增 stage 的一致性问题。前端：TemplateStageConfig 显示合并标识 `(合并: X+Y)` 并强制主 Skill 必填；CanvasSwimlane 支持合并组虚线框与组间分隔线；ComplexityRouter 路径卡片展示执行策略与合并策略说明。后端全量 pytest 835 passed / 4 skipped，ruff/mypy 0 错误；前端 lint/typecheck/build 通过 | `backend/`, `frontend/`, `progress.md` |
+| 2026-06-16 | **Feature-23 Batch-4 自动串联、回退、SSE 完成** — ExecutionPlanGenerator 支持从 ProjectStage + StageSkillBinding 生成真实计划节点与依赖矩阵；StageOrchestrator 自动推进下游阶段并发布 stage.auto_advance / stage.status_changed / stage.gate_pending / skill.execution_updated 事件；新增 GET /projects/{id}/sse SSE 端点、POST /projects/{id}/stages/{id}/rollback 回退 API 与产物 Stale 标记；前端新增统一 SSEClient / useProjectSSE、StageAdjustmentModal（回退/策略变更）、执行视图改用 SkillNode 自定义节点；后端全量 pytest 829 passed / ruff / mypy 0 错误，前端 lint/typecheck/build 通过 | `backend/`, `frontend/`, `progress.md` |
 | 2026-06-12 | **E2E 回归套件构建完成** — 20 路由 smoke + 5 黄金流程（OpenUI/Sketch/Wireframe/Binding/Bypass）共 25/25 通过；修复 Project 事务未提交、主键长度不足、Bypass 列表查询关联错误、Scheduler bypass 404 等问题 | `tests/e2e/`, `progress.md` |
 | 2026-05-31 | **Technical 竞品分析完成** — 生成 competitive-analysis.md + design-input.md | `competitive-analysis/` |
 | 2026-05-31 | **Detailed Requirements 完成** — 10 个模块全部生成，一致性校验通过 | `detailed-requirements/` |
@@ -217,4 +223,8 @@ last_updated: 2026-06-12T19:30:00+08:00
 7. **✅ Phase 6 已完成** — P2 Enhancement (Module 13–20) 全部交付，backend + frontend + API contract 同步完成。
 8. **✅ Phase 7 已完成** — Canvas 画布公共组件 + 集成联调（Module 21），13/13 任务完成，3 条集成测试链路通过。
 9. **✅ 代码审查已完成** — 集成测试套件审查通过，blocking 问题清零。
-10. **🟡 下一步** — 启动 UAT 验证（uat-verification），等待人工闸门 Gate 3。
+10. **✅ Feature-23 Batch-4 已完成** — 自动串联、回退、SSE 已落地。
+11. **✅ Feature-23 Batch-5 已完成** — 阶段合并策略与泳道视图已落地，前后端质量回归通过。
+12. **✅ Feature-23 Batch-6 已完成** — PocketFlow 真实 Skill 执行接入已落地，默认调用 `kimi run <SKILL.md>`，测试可注入 `MockCLIAdapter`。
+13. **🟡 下一步** — 用户确认是否继续推进 Feature-23 后续批次（产物浏览器增强 / 监控面板集成 / StageDetailPanel 真实执行状态展示）或进入 UAT / Code Review。
+14. **✅ DR-024 前端布局重构 v3.0 已完成** — 路由重组（4 室 + 平台管理）、6 个合并页面实现、30+ 旧路由重定向、TypeScript 零错误。后端接口零改动。

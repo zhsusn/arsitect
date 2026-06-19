@@ -59,11 +59,13 @@ class CodeScanner:
     # Regex patterns
     _PY_CLASS = re.compile(r"^class\s+([A-Za-z_][A-Za-z0-9_]*)\s*[\(:]")
     _PY_FUNC = re.compile(r"^(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
-    _PY_ROUTE = re.compile(
-        r"@router\.(?:get|post|put|delete|patch)\s*\(\s*['\"]([^'\"]+)['\"]"
+    _PY_ROUTE = re.compile(r"@router\.(?:get|post|put|delete|patch)\s*\(\s*['\"]([^'\"]+)['\"]")
+    _TS_FUNC = re.compile(
+        r"^(?:export\s+)?(?:async\s+)?(?:function|const)\s+([A-Z][a-zA-Z0-9_]*)\s*[\(:=]"
     )
-    _TS_FUNC = re.compile(r"^(?:export\s+)?(?:async\s+)?(?:function|const)\s+([A-Z][a-zA-Z0-9_]*)\s*[\(:=]")
-    _TS_COMPONENT = re.compile(r"^(?:export\s+)?(?:default\s+)?(?:function|const)\s+([A-Z][a-zA-Z0-9_]*)\s*[\(:=]")
+    _TS_COMPONENT = re.compile(
+        r"^(?:export\s+)?(?:default\s+)?(?:function|const)\s+([A-Z][a-zA-Z0-9_]*)\s*[\(:=]"
+    )
 
     def __init__(self, project_root: Path | None = None) -> None:
         self.project_root = project_root or settings.project_root

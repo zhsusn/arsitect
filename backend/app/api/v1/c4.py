@@ -20,6 +20,7 @@ from app.c4.registry_extractor import extract_registry as run_c4_extraction
 from app.c4.renderer import C4Renderer
 from app.infrastructure.database.session import get_db
 from app.schemas.c4 import (
+    AnalysisReportDTO,
     C4AnalyzeResponseDTO,
     C4ChangeSetDTO,
     C4DiffItemDTO,
@@ -39,6 +40,7 @@ from app.schemas.c4 import (
     C4RenderResponseDTO,
     C4SketchResponseDTO,
     C4WireframeResponseDTO,
+    ConsistencyReportDTO,
 )
 from app.schemas.c4 import (
     DSLEditDTO as DSLEditDTOSch,
@@ -50,6 +52,7 @@ router = APIRouter(tags=["c4"])
 # ============================================================
 # Unified C4 DSL endpoints (arsitect.aac.yml)
 # ============================================================
+
 
 async def get_baseline_store(
     db: AsyncSession = Depends(get_db),
@@ -120,8 +123,13 @@ async def rollback_dsl(
 async def render_c4(
     project_id: str,
     level: str = "L2",
-    refresh: bool = Query(default=False, description="Re-extract from design docs and sync to DB before rendering"),
-    expanded: str | None = Query(default=None, description="Comma-separated list of container IDs to expand in L3 view. Empty = all collapsed, omitted = all expanded."),
+    refresh: bool = Query(
+        default=False, description="Re-extract from design docs and sync to DB before rendering"
+    ),
+    expanded: str | None = Query(
+        default=None,
+        description="Comma-separated list of container IDs to expand in L3 view. Empty = all collapsed, omitted = all expanded.",
+    ),
     renderer: C4Renderer = Depends(get_renderer),
     store: C4BaselineStore = Depends(get_baseline_store),
 ) -> C4RenderResponseDTO:
@@ -161,8 +169,16 @@ async def render_c4(
         node_count=result.node_count,
         edge_count=result.edge_count,
         debug_info=debug_info,
-        analysis_report=result.analysis_report,
-        consistency_report=result.consistency_report,
+        analysis_report=(
+            None
+            if result.analysis_report is None
+            else AnalysisReportDTO.model_validate(result.analysis_report)
+        ),
+        consistency_report=(
+            None
+            if result.consistency_report is None
+            else ConsistencyReportDTO.model_validate(result.consistency_report)
+        ),
     )
 
 
@@ -205,7 +221,9 @@ def _stats_from_registry(project_id: str, content: dict[str, Any] | None) -> C4R
         for cid, info in components.items()
         if cid not in rel_nodes
     ]
-    intentional = [o for o in orphans if o.id in components and components[o.id].get("intentional_orphan")]
+    intentional = [
+        o for o in orphans if o.id in components and components[o.id].get("intentional_orphan")
+    ]
     return C4RegistryStatsDTO(
         project_id=project_id,
         orphans=orphans,
@@ -377,7 +395,11 @@ async def analyze_c4(
             )
             for r in level_results
         ],
-        consistency=consistency_data,
+        consistency=(
+            None
+            if consistency_data is None
+            else ConsistencyReportDTO.model_validate(consistency_data)
+        ),
     )
 
 
@@ -489,8 +511,7 @@ async def generate_c4_fix_plan(
         for plan in plans:
             for change in plan.changes:
                 change.rationale = (
-                    f"【根因分析】\n{root_cause_analysis}\n\n"
-                    f"【修复方案】\n{change.rationale}"
+                    f"【根因分析】\n{root_cause_analysis}\n\n【修复方案】\n{change.rationale}"
                 )
 
     return C4FixPlanResponseDTO(
@@ -557,10 +578,7 @@ async def generate_wireframe(
         page_count=len(result.pages),
         edge_count=len(result.edges),
         orphan_pages=result.orphan_pages,
-        pages=[
-            {"id": p.page_id, "title": p.title, "type": p.page_type}
-            for p in result.pages
-        ],
+        pages=[{"id": p.page_id, "title": p.title, "type": p.page_type} for p in result.pages],
     )
 
 

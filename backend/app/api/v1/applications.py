@@ -125,9 +125,7 @@ async def update_application(
         description=dto.description,
     )
     if updated is None:
-        raise NotFoundError(
-            detail=f"Application '{application_id}' not found"
-        )
+        raise NotFoundError(detail=f"Application '{application_id}' not found")
     return updated
 
 
@@ -144,6 +142,4 @@ async def delete_application(
     svc = ApplicationService(db)
     result = await svc.delete_application(application_id)
     if not result:
-        raise NotFoundError(
-            detail=f"Application '{application_id}' not found"
-        )
+        raise NotFoundError(detail=f"Application '{application_id}' not found")

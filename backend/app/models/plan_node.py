@@ -21,13 +21,9 @@ class PlanNode(Base):
     skill_id: Mapped[str] = mapped_column(String(36), nullable=False)
     stage_id: Mapped[str] = mapped_column(String(36), nullable=False)
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
-    node_type: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="primary"
-    )
+    node_type: Mapped[str] = mapped_column(String(16), nullable=False, default="primary")
     module_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="NOT_STARTED"
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="NOT_STARTED")
 
     __table_args__ = (
         CheckConstraint(

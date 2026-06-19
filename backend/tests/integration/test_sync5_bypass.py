@@ -78,7 +78,9 @@ class TestSync5Bypass:
             return proj, plan
 
     @pytest.mark.asyncio
-    async def test_bypass_full_flow(self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient) -> None:
+    async def test_bypass_full_flow(
+        self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient
+    ) -> None:
         """TEST-1504: Bypass 申请 -> 列表 -> 审批闭环.
 
         Covers AC-F-001 / AC-F-003 / AC-F-005 / AC-F-008.
@@ -120,7 +122,9 @@ class TestSync5Bypass:
         assert approved["status"] == "CLOSED"
 
     @pytest.mark.asyncio
-    async def test_bypass_apply_short_reason(self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient) -> None:
+    async def test_bypass_apply_short_reason(
+        self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient
+    ) -> None:
         """TEST-1505: 理由过短返回 422.
 
         Covers AC-V-002: 输入长度校验.
@@ -138,7 +142,9 @@ class TestSync5Bypass:
         assert res.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_bypass_approve_not_found(self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient) -> None:
+    async def test_bypass_approve_not_found(
+        self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient
+    ) -> None:
         """TEST-1506: 审批不存在的记录返回 404.
 
         Covers AC-E-002: 记录缺失.
@@ -150,7 +156,9 @@ class TestSync5Bypass:
         assert res.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_bypass_list_empty(self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient) -> None:
+    async def test_bypass_list_empty(
+        self, seeded_project_with_plan: tuple[Project, ExecutionPlan], client: TestClient
+    ) -> None:
         """TEST-1507: 无旁路记录时列表为空.
 
         Covers edge case: 空列表.
